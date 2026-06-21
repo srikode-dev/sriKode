@@ -1,3 +1,26 @@
+export const navLinks = [
+  {
+    name: "Home",
+    href: "/",
+  },
+  {
+    name: "Blogs",
+    href: "/blogs",
+  },
+  {
+    name: "Videos",
+    href: "/videos",
+  },
+  {
+    name: "About",
+    href: "/about",
+  },
+  {
+    name: "Contact",
+    href: "/contact-us",
+  },
+];
+
 export const categories = [
   {
     name: "HTML",
@@ -26,27 +49,5 @@ export const categories = [
   {
     name: "MongoDB",
     slug: "mongodb",
-  },
-];
-export const navLinks = [
-  {
-    name: "Home",
-    href: "/",
-  },
-  {
-    name: "Blogs",
-    href: "/blogs",
-  },
-  {
-    name: "Videos",
-    href: "/videos",
-  },
-  {
-    name: "About",
-    href: "/about",
-  },
-  {
-    name: "Contact",
-    href: "/contact-us",
   },
 ];
