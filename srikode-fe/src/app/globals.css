@@ -1,2 +1,89 @@
 @import "tailwindcss";
 
+:root {
+    --background: #ffffff;
+    --foreground: #111827;
+
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+
+    --muted: #6b7280;
+
+    --border: #e5e7eb;
+
+    --card: #ffffff;
+
+    --section-spacing: 5rem;
+}
+
+@layer base {
+    * {
+        @apply border-gray-200;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply bg-white text-gray-900 antialiased;
+    }
+
+    img {
+        @apply max-w-full h-auto;
+    }
+}
+
+@layer utilities {
+    .h1 {
+        @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
+    }
+
+    .h2 {
+        @apply text-3xl md:text-4xl font-bold;
+    }
+
+    .h3 {
+        @apply text-xl md:text-2xl font-semibold;
+    }
+
+    .section-padding {
+        @apply py-20;
+    }
+
+    .text-muted {
+        @apply text-gray-600;
+    }
+
+    .blog-prose {
+        @apply text-gray-700 leading-relaxed;
+    }
+
+    .blog-prose h2 {
+        @apply text-3xl font-bold mt-12 mb-4 text-gray-900;
+    }
+
+    .blog-prose h3 {
+        @apply text-2xl font-semibold mt-10 mb-4 text-gray-900;
+    }
+
+    .blog-prose p {
+        @apply mb-5;
+    }
+
+    .blog-prose ul {
+        @apply list-disc pl-6 mb-5;
+    }
+
+    .blog-prose ol {
+        @apply list-decimal pl-6 mb-5;
+    }
+
+    .blog-prose pre {
+        @apply bg-gray-900 text-white rounded-xl p-5 overflow-x-auto;
+    }
+
+    .blog-prose code {
+        @apply text-sm;
+    }
+}
