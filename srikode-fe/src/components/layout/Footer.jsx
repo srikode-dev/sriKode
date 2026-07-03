@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Container from "../shared/Container";
-import { categories, navLinks } from "@/data/navigation";
+import { navLinks } from "@/data/navigation";
 
 export default function Footer() {
   return (
@@ -40,22 +40,31 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Categories */}
+          {/* Legal & Policies */}
           <div>
             <h3 className="mb-4 font-bold text-sm uppercase tracking-wider text-sk-text">
-              Categories
+              Legal & Policies
             </h3>
 
             <div className="space-y-2.5">
-              {categories.slice(0, 6).map((cat) => (
-                <Link
-                  key={cat.slug}
-                  href={`/category/${cat.slug}`}
-                  className="block text-sm text-sk-text-muted hover:text-sk-primary transition-colors duration-200"
-                >
-                  {cat.name}
-                </Link>
-              ))}
+              <Link
+                href="/privacy-policy"
+                className="block text-sm text-sk-text-muted hover:text-sk-primary transition-colors duration-200"
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                href="/terms-of-service"
+                className="block text-sm text-sk-text-muted hover:text-sk-primary transition-colors duration-200"
+              >
+                Terms of Service
+              </Link>
+              <Link
+                href="/privacy-policy#cookies"
+                className="block text-sm text-sk-text-muted hover:text-sk-primary transition-colors duration-200"
+              >
+                Cookie Policy
+              </Link>
             </div>
           </div>
 

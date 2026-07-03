@@ -144,7 +144,7 @@ export default async function BlogDetailPage({ params }) {
               </div>
 
               {/* Cover Image Card */}
-              <div className="relative aspect-[21/9] w-full overflow-hidden rounded-2xl bg-gray-100 dark:bg-zinc-800 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-black/[0.03] dark:border-zinc-700/30 mb-8">
+              <div className="relative aspect-[21/9] w-full overflow-hidden rounded-2xl bg-sk-bg-subtle shadow-xs border border-sk-border mb-8">
                 <Image
                   src={blog.coverImage}
                   alt={blog.title}
@@ -156,7 +156,7 @@ export default async function BlogDetailPage({ params }) {
               </div>
 
               {/* Excerpt lead */}
-              <p className="mb-8 text-lg leading-relaxed text-gray-600 dark:text-zinc-400 border-l-4 border-blue-500 pl-5 italic">
+              <p className="mb-8 text-lg leading-relaxed text-sk-text-muted border-l-4 border-sk-primary pl-5 italic">
                 {blog.excerpt}
               </p>
 
