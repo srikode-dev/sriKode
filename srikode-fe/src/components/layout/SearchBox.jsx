@@ -25,7 +25,7 @@ const SearchBox = () => {
   return (
     <div className="relative flex items-center" ref={searchRef}>
       <button
-        className="text-lg"
+        className="text-lg text-gray-550 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition"
         onClick={() => {
           setOpen((prev) => !prev);
           setTimeout(() => {
@@ -41,7 +41,7 @@ const SearchBox = () => {
             type="text"
             ref={inputRef}
             placeholder="Search ..."
-            className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-150"
           />
         </div>
       )}

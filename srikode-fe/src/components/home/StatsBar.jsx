@@ -52,7 +52,11 @@ export default function StatsBar() {
   }, []);
 
   return (
-    <section ref={ref} className="bg-blue-600 py-14">
+    <section
+      ref={ref}
+      className="py-14"
+      style={{ backgroundColor: "var(--sk-primary)" }}
+    >
       <div className="mx-auto max-w-5xl px-4">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-4">
           {stats.map((s) => (

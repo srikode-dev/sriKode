@@ -1,89 +1,241 @@
 @import "tailwindcss";
 
+/* ============================================================
+   SRIKODE DESIGN SYSTEM — SEMANTIC THEME TOKENS
+   ============================================================
+   To retheme the entire site, ONLY edit these CSS variables.
+   
+   QUICK RETHEME GUIDE:
+   - Change primary color:  --sk-primary (and --sk-primary-hover, --sk-primary-light)
+   - Change font:           edit font-family in body below
+   - All dark/light values live in .dark {} override below
+   ============================================================ */
+
+@theme {
+  /* Expose CSS vars as Tailwind utilities (bg-sk-card, text-sk-text, etc.) */
+  --color-sk-bg:            var(--sk-bg);
+  --color-sk-bg-subtle:     var(--sk-bg-subtle);
+  --color-sk-bg-card:       var(--sk-bg-card);
+  --color-sk-border:        var(--sk-border);
+  --color-sk-border-strong: var(--sk-border-strong);
+  --color-sk-text:          var(--sk-text);
+  --color-sk-text-muted:    var(--sk-text-muted);
+  --color-sk-text-faint:    var(--sk-text-faint);
+  --color-sk-primary:       var(--sk-primary);
+  --color-sk-primary-hover: var(--sk-primary-hover);
+  --color-sk-primary-light: var(--sk-primary-light);
+  --color-sk-primary-text:  var(--sk-primary-text);
+}
+
+/* ── LIGHT MODE ──────────────────────────────────────────── */
 :root {
-    --background: #ffffff;
-    --foreground: #111827;
+  /* =====  CHANGE THESE TWO TO RETHEME PRIMARY COLOR  ===== */
+  --sk-primary:        #2563eb;   /* ← your brand color here */
+  --sk-primary-hover:  #1d4ed8;
+  /* ======================================================== */
 
-    --primary: #2563eb;
-    --primary-hover: #1d4ed8;
+  --sk-primary-light:  #eff6ff;   /* chip/badge background   */
+  --sk-primary-text:   #1d4ed8;   /* text on primary-light   */
 
-    --muted: #6b7280;
+  /* Backgrounds */
+  --sk-bg:             #ffffff;
+  --sk-bg-subtle:      #f8fafc;   /* alternating section bg  */
+  --sk-bg-card:        #ffffff;   /* card surface            */
 
-    --border: #e5e7eb;
+  /* Borders */
+  --sk-border:         rgba(15, 23, 42, 0.08);
+  --sk-border-strong:  rgba(15, 23, 42, 0.14);
 
-    --card: #ffffff;
+  /* Typography */
+  --sk-text:           #0f172a;   /* headings                */
+  --sk-text-muted:     #475569;   /* body copy               */
+  --sk-text-faint:     #94a3b8;   /* meta, timestamps        */
 
-    --section-spacing: 5rem;
+  /* Legacy aliases (keep for backward compat with older code) */
+  --background: var(--sk-bg);
+  --foreground:  var(--sk-text);
+  --primary:     var(--sk-primary);
+  --primary-hover: var(--sk-primary-hover);
+  --muted:       var(--sk-text-muted);
+  --border:      var(--sk-border);
+  --card:        var(--sk-bg-card);
 }
 
+/* ── DARK MODE ───────────────────────────────────────────── */
+.dark {
+  /* =====  CHANGE THESE TWO TO RETHEME PRIMARY COLOR  ===== */
+  --sk-primary:        #3b82f6;
+  --sk-primary-hover:  #60a5fa;
+  /* ======================================================== */
+
+  --sk-primary-light:  rgba(59, 130, 246, 0.14);
+  --sk-primary-text:   #93c5fd;
+
+  --sk-bg:             #09090b;
+  --sk-bg-subtle:      #09090b;
+  --sk-bg-card:        #18181b;
+
+  --sk-border:         rgba(255, 255, 255, 0.07);
+  --sk-border-strong:  rgba(255, 255, 255, 0.12);
+
+  --sk-text:           #f8fafc;
+  --sk-text-muted:     #94a3b8;
+  --sk-text-faint:     #52525b;
+
+  /* Legacy aliases */
+  --background: var(--sk-bg);
+  --foreground:  var(--sk-text);
+  --primary:     var(--sk-primary);
+  --primary-hover: var(--sk-primary-hover);
+  --muted:       var(--sk-text-muted);
+  --border:      var(--sk-border);
+  --card:        var(--sk-bg-card);
+}
+
+/* ── BASE STYLES ─────────────────────────────────────────── */
 @layer base {
-    * {
-        @apply border-gray-200;
-    }
+  /* Reset border color to use our token */
+  * {
+    border-color: var(--sk-border);
+  }
 
-    html {
-        scroll-behavior: smooth;
-    }
+  /* Text selection uses primary color */
+  ::selection {
+    background-color: var(--sk-primary);
+    color: #ffffff;
+  }
 
-    body {
-        @apply bg-white text-gray-900 antialiased;
-    }
+  html {
+    scroll-behavior: smooth;
+  }
 
-    img {
-        @apply max-w-full h-auto;
-    }
+  body {
+    background-color: var(--sk-bg);
+    color: var(--sk-text);
+    @apply antialiased;
+    font-family: var(--font-inter, system-ui, sans-serif);
+  }
+
+  /* Smooth transitions on all themeable elements */
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color, box-shadow, opacity;
+    transition-duration: 250ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* But NOT layout/position properties (causes jank) */
+  *,
+  *::before,
+  *::after {
+    transition-property: none;
+  }
+
+  /* Re-add only for theme-sensitive elements */
+  body, header, footer, nav, aside, section,
+  article, div, span, a, button, input, select, textarea, label {
+    transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1),
+                border-color     250ms cubic-bezier(0.4, 0, 0.2, 1),
+                color            250ms cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow       250ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  img {
+    @apply max-w-full h-auto;
+  }
 }
 
+/* ── UTILITY CLASSES ─────────────────────────────────────── */
 @layer utilities {
-    .h1 {
-        @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
-    }
 
-    .h2 {
-        @apply text-3xl md:text-4xl font-bold;
-    }
+  /* === SHORTHAND SEMANTIC UTILITIES === */
 
-    .h3 {
-        @apply text-xl md:text-2xl font-semibold;
-    }
+  /* Card surface */
+  .sk-card {
+    background-color: var(--sk-bg-card);
+    border: 1px solid var(--sk-border);
+    @apply rounded-xl shadow-sm;
+  }
 
-    .section-padding {
-        @apply py-20;
-    }
+  /* Subtle section background */
+  .sk-section-subtle {
+    background-color: var(--sk-bg-subtle);
+    border-top: 1px solid var(--sk-border);
+    border-bottom: 1px solid var(--sk-border);
+  }
 
-    .text-muted {
-        @apply text-gray-600;
-    }
+  /* Primary badge / chip */
+  .sk-badge-primary {
+    background-color: var(--sk-primary-light);
+    color: var(--sk-primary-text);
+    @apply rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider;
+  }
 
-    .blog-prose {
-        @apply text-gray-700 leading-relaxed;
-    }
+  /* Heading utility */
+  .sk-heading {
+    color: var(--sk-text);
+    @apply font-extrabold tracking-tight;
+  }
 
-    .blog-prose h2 {
-        @apply text-3xl font-bold mt-12 mb-4 text-gray-900;
-    }
+  /* Body text */
+  .sk-body {
+    color: var(--sk-text-muted);
+  }
 
-    .blog-prose h3 {
-        @apply text-2xl font-semibold mt-10 mb-4 text-gray-900;
-    }
+  /* Muted/meta text */
+  .sk-meta {
+    color: var(--sk-text-faint);
+  }
 
-    .blog-prose p {
-        @apply mb-5;
-    }
+  /* Primary button */
+  .sk-btn-primary {
+    background-color: var(--sk-primary);
+    color: #ffffff;
+    @apply rounded-xl px-5 py-2.5 text-sm font-semibold shadow-sm transition;
+  }
+  .sk-btn-primary:hover {
+    background-color: var(--sk-primary-hover);
+  }
 
-    .blog-prose ul {
-        @apply list-disc pl-6 mb-5;
-    }
-
-    .blog-prose ol {
-        @apply list-decimal pl-6 mb-5;
-    }
-
-    .blog-prose pre {
-        @apply bg-gray-900 text-white rounded-xl p-5 overflow-x-auto;
-    }
-
-    .blog-prose code {
-        @apply text-sm;
-    }
+  /* === LEGACY UTILITIES (keep existing code working) === */
+  .h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
+  }
+  .h2 {
+    @apply text-3xl md:text-4xl font-bold;
+  }
+  .h3 {
+    @apply text-xl md:text-2xl font-semibold;
+  }
+  .section-padding {
+    @apply py-20;
+  }
+  .text-muted {
+    @apply text-gray-600;
+  }
+  .blog-prose {
+    @apply text-gray-700 leading-relaxed;
+  }
+  .blog-prose h2 {
+    @apply text-3xl font-bold mt-12 mb-4 text-gray-900;
+  }
+  .blog-prose h3 {
+    @apply text-2xl font-semibold mt-10 mb-4 text-gray-900;
+  }
+  .blog-prose p {
+    @apply mb-5;
+  }
+  .blog-prose ul {
+    @apply list-disc pl-6 mb-5;
+  }
+  .blog-prose ol {
+    @apply list-decimal pl-6 mb-5;
+  }
+  .blog-prose pre {
+    @apply bg-gray-900 text-white rounded-xl p-5 overflow-x-auto;
+  }
+  .blog-prose code {
+    @apply text-sm;
+  }
 }

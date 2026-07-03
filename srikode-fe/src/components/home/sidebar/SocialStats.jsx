@@ -26,16 +26,16 @@ const stats = [
 
 export default function SocialStats() {
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-sk-border bg-sk-bg-card shadow-sm transition-all duration-300">
       {/* Heading */}
-      <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-3">
-        <span className="h-4 w-1 rounded-full bg-blue-600" />
-        <h3 className="text-sm font-bold uppercase tracking-widest text-gray-800">
+      <div className="flex items-center gap-3 border-b border-sk-border px-4 py-3">
+        <span className="h-4 w-1 rounded-full bg-sk-primary" />
+        <h3 className="text-sm font-bold uppercase tracking-widest text-sk-text">
           Follow Us
         </h3>
       </div>
 
-      <div className="grid grid-cols-3 gap-0 divide-x divide-gray-100 p-4">
+      <div className="grid grid-cols-3 gap-0 divide-x divide-sk-border p-4">
         {stats.map(({ icon: Icon, label, count, color, href }) => (
           <a
             key={label}
@@ -47,8 +47,8 @@ export default function SocialStats() {
             <span className={`flex h-10 w-10 items-center justify-center rounded-full text-white text-xl ${color} shadow`}>
               <Icon />
             </span>
-            <span className="text-base font-bold text-gray-800">{count}</span>
-            <span className="text-[11px] uppercase tracking-wide text-gray-400">{label}</span>
+            <span className="text-base font-bold text-sk-text">{count}</span>
+            <span className="text-[11px] uppercase tracking-wide text-sk-text-faint">{label}</span>
           </a>
         ))}
       </div>

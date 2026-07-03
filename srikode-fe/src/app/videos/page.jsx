@@ -36,9 +36,9 @@ export default function VideosPage() {
         {/* Header */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-red-600">YouTube</p>
-            <h1 className="text-3xl font-extrabold text-gray-900 md:text-4xl">Video Tutorials</h1>
-            <p className="mt-2 text-gray-500">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--sk-primary)" }}>YouTube</p>
+            <h1 className="text-3xl font-extrabold md:text-4xl" style={{ color: "var(--sk-text)" }}>Video Tutorials</h1>
+            <p className="mt-2" style={{ color: "var(--sk-text-muted)" }}>
               Free web development videos — watch, learn and build real projects.
             </p>
           </div>
@@ -46,7 +46,7 @@ export default function VideosPage() {
             href="https://youtube.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex w-fit items-center gap-2 rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-red-700"
+            className="flex w-fit items-center gap-2 rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-650"
           >
             <FaYoutube size={16} />
             Subscribe on YouTube
@@ -54,15 +54,15 @@ export default function VideosPage() {
         </div>
 
         {/* Channel stats strip */}
-        <div className="mb-10 grid grid-cols-3 divide-x divide-gray-100 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+        <div className="mb-10 grid grid-cols-3 divide-x divide-sk-border overflow-hidden rounded-xl border border-sk-border bg-sk-bg-card shadow-sm">
           {[
             { label: "Total Videos", value: `${videos.length}+` },
             { label: "Total Views", value: `${Math.round(totalViews / 1000)}K+` },
             { label: "Subscribers", value: "500+" },
           ].map(({ label, value }) => (
             <div key={label} className="flex flex-col items-center py-5">
-              <span className="text-2xl font-extrabold text-gray-900">{value}</span>
-              <span className="text-xs text-gray-400">{label}</span>
+              <span className="text-2xl font-extrabold" style={{ color: "var(--sk-text)" }}>{value}</span>
+              <span className="text-xs" style={{ color: "var(--sk-text-faint)" }}>{label}</span>
             </div>
           ))}
         </div>

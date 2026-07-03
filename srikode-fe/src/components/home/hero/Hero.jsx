@@ -66,7 +66,7 @@ function HeroCard({ blog, type }) {
       {/* Content overlay bottom-left */}
       <div className={`absolute bottom-0 left-0 w-full p-4 sm:p-5 text-white flex flex-col justify-end ${isLarge ? "sm:p-8" : ""}`}>
         <div className="flex items-center gap-2 mb-1.5">
-          <span className="text-[9px] font-black uppercase tracking-wider text-blue-400 dark:text-blue-300">
+          <span className="text-[9px] font-black uppercase tracking-wider text-sk-primary">
             {blog.category}
           </span>
           <span className="text-white/40 text-[10px]">•</span>
@@ -77,7 +77,7 @@ function HeroCard({ blog, type }) {
         </div>
 
         <h3
-          className={`font-black leading-tight text-white transition-colors group-hover:text-blue-300 tracking-tight ${
+          className={`font-black leading-tight text-white transition-colors group-hover:text-sk-primary tracking-tight ${
             isLarge
               ? "text-xl sm:text-2xl lg:text-3xl line-clamp-3"
               : isMedium
@@ -88,7 +88,7 @@ function HeroCard({ blog, type }) {
           {blog.title}
         </h3>
 
-        <span className="mt-2 text-[9px] text-white/50 dark:text-slate-400 font-medium">
+        <span className="mt-2 text-[9px] text-white/50 font-medium">
           {formatDate(blog.publishedAt)}
         </span>
       </div>
@@ -99,13 +99,13 @@ function HeroCard({ blog, type }) {
 function StatItem({ value, suffix, label, isLast }) {
   return (
     <div className="flex items-center gap-1.5">
-      <span className="font-extrabold text-blue-600 dark:text-blue-400 text-base">
+      <span className="font-extrabold text-sk-primary text-base">
         <CountUp value={value} />
         {suffix || "+"}
       </span>
       <span>{label}</span>
       {!isLast && (
-        <span className="hidden sm:inline-block ml-8 text-gray-350 dark:text-slate-800">•</span>
+        <span className="hidden sm:inline-block ml-8 text-sk-border-strong font-bold">•</span>
       )}
     </div>
   );
@@ -144,7 +144,7 @@ export default function Hero() {
         </div>
 
         {/* Minimalist Centered Inline Stats */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs sm:text-sm text-gray-500 dark:text-slate-400 font-medium select-none">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs sm:text-sm text-sk-text-muted font-bold select-none">
           {statsData.map((s, idx) => (
             <StatItem
               key={idx}

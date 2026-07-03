@@ -21,10 +21,10 @@ export default function TableOfContents({ items }) {
   }, [items]);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
-      <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-3">
-        <List size={14} className="text-blue-600" />
-        <h3 className="text-sm font-bold uppercase tracking-widest text-gray-800">
+    <div className="overflow-hidden rounded-xl border border-sk-border bg-sk-bg-card shadow-sm transition-all duration-300">
+      <div className="flex items-center gap-3 border-b border-sk-border px-4 py-3">
+        <List size={14} className="text-sk-primary" />
+        <h3 className="text-sm font-bold uppercase tracking-widest text-sk-text">
           Table of Contents
         </h3>
       </div>
@@ -34,10 +34,10 @@ export default function TableOfContents({ items }) {
             <li key={item.id}>
               <a
                 href={`#${item.id}`}
-                className={`block rounded-lg px-3 py-2 text-sm transition ${
+                className={`block rounded-lg px-3 py-2 text-sm transition-all duration-200 ${
                   active === item.id
-                    ? "bg-blue-50 font-semibold text-blue-600"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-blue-600"
+                    ? "font-semibold bg-sk-primary-light text-sk-primary-text"
+                    : "text-sk-text-muted hover:bg-sk-primary-light/50 hover:text-sk-primary"
                 }`}
               >
                 {item.title}

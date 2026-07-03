@@ -35,22 +35,28 @@ export default function ContactUsPage() {
   };
 
   const socials = [
-    { icon: FaGithub, label: "GitHub", handle: "@srikant-sahu", href: "https://github.com", color: "border-gray-200 hover:border-gray-800 hover:bg-gray-900 hover:text-white" },
-    { icon: FaYoutube, label: "YouTube", handle: "SriKode", href: "https://youtube.com", color: "border-gray-200 hover:border-red-500 hover:bg-red-600 hover:text-white" },
-    { icon: FaTwitter, label: "Twitter / X", handle: "@srikantdev", href: "https://twitter.com", color: "border-gray-200 hover:border-sky-400 hover:bg-sky-500 hover:text-white" },
-    { icon: FaLinkedin, label: "LinkedIn", handle: "Srikant Sahu", href: "https://linkedin.com", color: "border-gray-200 hover:border-blue-600 hover:bg-blue-700 hover:text-white" },
+    { icon: FaGithub, label: "GitHub", handle: "@srikant-sahu", href: "https://github.com", color: "hover:border-zinc-800 hover:bg-zinc-900 hover:text-white dark:hover:bg-zinc-800" },
+    { icon: FaYoutube, label: "YouTube", handle: "SriKode", href: "https://youtube.com", color: "hover:border-red-500 hover:bg-red-600 hover:text-white dark:hover:bg-red-950/20" },
+    { icon: FaTwitter, label: "Twitter / X", handle: "@srikantdev", href: "https://twitter.com", color: "hover:border-sky-400 hover:bg-sky-500 hover:text-white dark:hover:bg-sky-950/20" },
+    { icon: FaLinkedin, label: "LinkedIn", handle: "Srikant Sahu", href: "https://linkedin.com", color: "hover:border-blue-600 hover:bg-blue-700 hover:text-white dark:hover:bg-blue-950/20" },
   ];
 
   return (
-    <div className="py-12">
+    <div className="py-12" style={{ backgroundColor: "var(--sk-bg)" }}>
       <Container>
         {/* Header */}
         <div className="mb-10 text-center">
-          <span className="mb-3 inline-block rounded-full bg-blue-100 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-blue-700">
+          <span
+            className="mb-3 inline-block rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-widest"
+            style={{
+              backgroundColor: "var(--sk-primary-light)",
+              color: "var(--sk-primary-text)",
+            }}
+          >
             Contact
           </span>
-          <h1 className="text-3xl font-extrabold text-gray-900 md:text-4xl">Get in Touch</h1>
-          <p className="mx-auto mt-3 max-w-lg text-gray-500">
+          <h1 className="text-3xl font-extrabold md:text-4xl" style={{ color: "var(--sk-text)" }}>Get in Touch</h1>
+          <p className="mx-auto mt-3 max-w-lg text-sm" style={{ color: "var(--sk-text-muted)" }}>
             Have a question, suggestion, or want to collaborate? Drop me a message — I read every one.
           </p>
         </div>
@@ -58,17 +64,30 @@ export default function ContactUsPage() {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_340px]">
 
           {/* ── Contact Form ── */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+          <div
+            className="rounded-2xl border p-8 shadow-sm"
+            style={{
+              backgroundColor: "var(--sk-bg-card)",
+              borderColor: "var(--sk-border)",
+            }}
+          >
             <div className="mb-6 flex items-center gap-3">
-              <MessageSquare size={20} className="text-blue-600" />
-              <h2 className="text-lg font-bold text-gray-900">Send a Message</h2>
+              <MessageSquare size={20} style={{ color: "var(--sk-primary)" }} />
+              <h2 className="text-lg font-bold" style={{ color: "var(--sk-text)" }}>Send a Message</h2>
             </div>
 
             {submitted ? (
-              <div className="flex flex-col items-center justify-center gap-4 rounded-xl bg-green-50 border border-green-200 p-10 text-center">
+              <div
+                className="flex flex-col items-center justify-center gap-4 rounded-xl border p-10 text-center"
+                style={{
+                  backgroundColor: "rgba(34,197,94,0.06)",
+                  borderColor: "rgba(34,197,94,0.25)",
+                  color: "#16a34a",
+                }}
+              >
                 <CheckCircle size={40} className="text-green-500" />
-                <p className="text-lg font-bold text-green-800">Message Sent!</p>
-                <p className="text-sm text-green-600">
+                <p className="text-lg font-bold dark:text-green-400">Message Sent!</p>
+                <p className="text-sm dark:text-green-500">
                   Thanks for reaching out. I&apos;ll get back to you as soon as possible.
                 </p>
               </div>
@@ -77,7 +96,7 @@ export default function ContactUsPage() {
                 {/* Name + Email */}
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div>
-                    <label htmlFor="contact-name" className="mb-1.5 block text-xs font-semibold text-gray-600">
+                    <label htmlFor="contact-name" className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--sk-text-muted)" }}>
                       Full Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -87,12 +106,16 @@ export default function ContactUsPage() {
                       value={form.name}
                       onChange={handleChange}
                       placeholder="Srikant Sahu"
-                      className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-gray-800 outline-none placeholder:text-gray-400 transition focus:ring-2 focus:ring-blue-100 ${errors.name ? "border-red-400 focus:border-red-400" : "border-gray-200 focus:border-blue-400"}`}
+                      className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-sk-primary/20 ${errors.name ? "border-red-400 focus:border-red-400" : "border-sk-border-strong focus:border-sk-primary"}`}
+                      style={{
+                        backgroundColor: "var(--sk-bg)",
+                        color: "var(--sk-text)",
+                      }}
                     />
                     {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
                   </div>
                   <div>
-                    <label htmlFor="contact-email" className="mb-1.5 block text-xs font-semibold text-gray-600">
+                    <label htmlFor="contact-email" className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--sk-text-muted)" }}>
                       Email Address <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -102,7 +125,11 @@ export default function ContactUsPage() {
                       value={form.email}
                       onChange={handleChange}
                       placeholder="you@example.com"
-                      className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-gray-800 outline-none placeholder:text-gray-400 transition focus:ring-2 focus:ring-blue-100 ${errors.email ? "border-red-400 focus:border-red-400" : "border-gray-200 focus:border-blue-400"}`}
+                      className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-sk-primary/20 ${errors.email ? "border-red-400 focus:border-red-400" : "border-sk-border-strong focus:border-sk-primary"}`}
+                      style={{
+                        backgroundColor: "var(--sk-bg)",
+                        color: "var(--sk-text)",
+                      }}
                     />
                     {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
                   </div>
@@ -110,7 +137,7 @@ export default function ContactUsPage() {
 
                 {/* Subject */}
                 <div>
-                  <label htmlFor="contact-subject" className="mb-1.5 block text-xs font-semibold text-gray-600">
+                  <label htmlFor="contact-subject" className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--sk-text-muted)" }}>
                     Subject <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -120,14 +147,18 @@ export default function ContactUsPage() {
                     value={form.subject}
                     onChange={handleChange}
                     placeholder="Guest post, collaboration, feedback..."
-                    className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-gray-800 outline-none placeholder:text-gray-400 transition focus:ring-2 focus:ring-blue-100 ${errors.subject ? "border-red-400 focus:border-red-400" : "border-gray-200 focus:border-blue-400"}`}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-sk-primary/20 ${errors.subject ? "border-red-400 focus:border-red-400" : "border-sk-border-strong focus:border-sk-primary"}`}
+                    style={{
+                      backgroundColor: "var(--sk-bg)",
+                      color: "var(--sk-text)",
+                    }}
                   />
                   {errors.subject && <p className="mt-1 text-xs text-red-500">{errors.subject}</p>}
                 </div>
 
                 {/* Message */}
                 <div>
-                  <label htmlFor="contact-message" className="mb-1.5 block text-xs font-semibold text-gray-600">
+                  <label htmlFor="contact-message" className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--sk-text-muted)" }}>
                     Message <span className="text-red-500">*</span>
                   </label>
                   <textarea
@@ -137,7 +168,11 @@ export default function ContactUsPage() {
                     value={form.message}
                     onChange={handleChange}
                     placeholder="Tell me what's on your mind..."
-                    className={`w-full resize-none rounded-xl border bg-white px-4 py-3 text-sm text-gray-800 outline-none placeholder:text-gray-400 transition focus:ring-2 focus:ring-blue-100 ${errors.message ? "border-red-400 focus:border-red-400" : "border-gray-200 focus:border-blue-400"}`}
+                    className={`w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-sk-primary/20 ${errors.message ? "border-red-400 focus:border-red-400" : "border-sk-border-strong focus:border-sk-primary"}`}
+                    style={{
+                      backgroundColor: "var(--sk-bg)",
+                      color: "var(--sk-text)",
+                    }}
                   />
                   {errors.message && <p className="mt-1 text-xs text-red-500">{errors.message}</p>}
                 </div>
@@ -145,7 +180,12 @@ export default function ContactUsPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white shadow transition hover:bg-blue-700 active:scale-95 disabled:opacity-60"
+                  className="flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold text-white shadow transition active:scale-95 disabled:opacity-60"
+                  style={{
+                    backgroundColor: "var(--sk-primary)",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "var(--sk-primary-hover)"}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "var(--sk-primary)"}
                 >
                   {loading ? (
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -160,24 +200,43 @@ export default function ContactUsPage() {
           {/* ── Right panel ── */}
           <div className="flex flex-col gap-6">
             {/* Direct email */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+            <div
+              className="rounded-2xl border p-6 shadow-sm"
+              style={{
+                backgroundColor: "var(--sk-bg-card)",
+                borderColor: "var(--sk-border)",
+              }}
+            >
+              <div
+                className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl"
+                style={{
+                  backgroundColor: "var(--sk-primary-light)",
+                  color: "var(--sk-primary)",
+                }}
+              >
                 <Mail size={22} />
               </div>
-              <h3 className="font-bold text-gray-900">Email Directly</h3>
-              <p className="mt-1 text-sm text-gray-500">Prefer email? Reach me at:</p>
+              <h3 className="font-bold" style={{ color: "var(--sk-text)" }}>Email Directly</h3>
+              <p className="mt-1 text-sm" style={{ color: "var(--sk-text-muted)" }}>Prefer email? Reach me at:</p>
               <a
                 href="mailto:hello@srikode.dev"
-                className="mt-2 block text-sm font-semibold text-blue-600 hover:underline"
+                className="mt-2 block text-sm font-semibold hover:underline"
+                style={{ color: "var(--sk-primary)" }}
               >
                 hello@srikode.dev
               </a>
-              <p className="mt-3 text-xs text-gray-400">I typically reply within 24–48 hours.</p>
+              <p className="mt-3 text-xs" style={{ color: "var(--sk-text-faint)" }}>I typically reply within 24–48 hours.</p>
             </div>
 
             {/* Social connect */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-              <h3 className="mb-4 font-bold text-gray-900">Connect on Social</h3>
+            <div
+              className="rounded-2xl border p-6 shadow-sm"
+              style={{
+                backgroundColor: "var(--sk-bg-card)",
+                borderColor: "var(--sk-border)",
+              }}
+            >
+              <h3 className="mb-4 font-bold" style={{ color: "var(--sk-text)" }}>Connect on Social</h3>
               <div className="flex flex-col gap-3">
                 {socials.map(({ icon: Icon, label, handle, href, color }) => (
                   <a
@@ -185,23 +244,33 @@ export default function ContactUsPage() {
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`group flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium text-gray-700 transition ${color}`}
+                    className={`group flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition ${color}`}
+                    style={{
+                      borderColor: "var(--sk-border-strong)",
+                      color: "var(--sk-text-muted)",
+                    }}
                   >
                     <Icon size={18} />
                     <span className="flex-1">{label}</span>
-                    <span className="text-xs text-gray-400 group-hover:text-current">{handle}</span>
+                    <span className="text-xs" style={{ color: "var(--sk-text-faint)" }}>{handle}</span>
                   </a>
                 ))}
               </div>
             </div>
 
             {/* Guest post note */}
-            <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50 p-6">
-              <h3 className="font-bold text-blue-900">Write for SriKode</h3>
-              <p className="mt-2 text-sm text-blue-700">
+            <div
+              className="rounded-2xl border border-dashed p-6"
+              style={{
+                backgroundColor: "var(--sk-primary-light)",
+                borderColor: "var(--sk-primary)",
+              }}
+            >
+              <h3 className="font-bold" style={{ color: "var(--sk-primary-text)" }}>Write for SriKode</h3>
+              <p className="mt-2 text-sm" style={{ color: "var(--sk-primary-text)" }}>
                 Got something valuable to share with the dev community? I welcome quality guest posts on web development topics.
               </p>
-              <p className="mt-3 text-xs text-blue-500">Use the contact form with subject: <strong>&quot;Guest Post&quot;</strong></p>
+              <p className="mt-3 text-xs opacity-75" style={{ color: "var(--sk-primary-text)" }}>Use the contact form with subject: <strong>&quot;Guest Post&quot;</strong></p>
             </div>
           </div>
         </div>

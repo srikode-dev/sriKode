@@ -16,7 +16,13 @@ const POSTS_PER_PAGE = 8;
 
 function BlogListCard({ blog }) {
   return (
-    <article className="group flex flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md sm:flex-row">
+    <article
+      className="group flex flex-col overflow-hidden rounded-xl shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md sm:flex-row"
+      style={{
+        backgroundColor: "var(--sk-bg-card)",
+        border: "1px solid var(--sk-border)",
+      }}
+    >
       {/* Thumbnail */}
       <Link
         href={`/blog/${blog.slug}`}
@@ -34,19 +40,32 @@ function BlogListCard({ blog }) {
       {/* Content */}
       <div className="flex flex-1 flex-col justify-between p-5">
         <div>
-          <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700">
+          <span
+            className="inline-block rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide"
+            style={{
+              backgroundColor: "var(--sk-primary-light)",
+              color: "var(--sk-primary-text)",
+            }}
+          >
             {blog.category}
           </span>
           <Link href={`/blog/${blog.slug}`}>
-            <h2 className="mt-2 line-clamp-2 text-base font-bold text-gray-900 transition-colors group-hover:text-blue-600">
+            <h2
+              className="mt-2 line-clamp-2 text-base font-bold transition-colors"
+              style={{ color: "var(--sk-text)" }}
+              onMouseEnter={(e) => e.currentTarget.style.color = "var(--sk-primary)"}
+              onMouseLeave={(e) => e.currentTarget.style.color = "var(--sk-text)"}
+            >
               {blog.title}
             </h2>
           </Link>
-          <p className="mt-1.5 line-clamp-2 text-sm text-gray-500">{blog.excerpt}</p>
+          <p className="mt-1.5 line-clamp-2 text-sm" style={{ color: "var(--sk-text-muted)" }}>
+            {blog.excerpt}
+          </p>
         </div>
 
         <div className="mt-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 text-xs text-gray-400">
+          <div className="flex items-center gap-3 text-xs" style={{ color: "var(--sk-text-faint)" }}>
             <span className="flex items-center gap-1">
               <Calendar size={12} />
               {blog.publishedAt}
@@ -58,7 +77,8 @@ function BlogListCard({ blog }) {
           </div>
           <Link
             href={`/blog/${blog.slug}`}
-            className="flex items-center gap-1 text-xs font-semibold text-blue-600 transition hover:gap-2"
+            className="flex items-center gap-1 text-xs font-semibold transition hover:gap-2"
+            style={{ color: "var(--sk-primary)" }}
           >
             Read More <ArrowRight size={13} />
           </Link>
@@ -103,32 +123,44 @@ export default function BlogsPage() {
       <Container>
         {/* Page Header */}
         <div className="mb-8">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-blue-600">
+          <p
+            className="mb-1 text-xs font-semibold uppercase tracking-widest"
+            style={{ color: "var(--sk-primary)" }}
+          >
             SriKode Blog
           </p>
-          <h1 className="text-3xl font-extrabold text-gray-900 md:text-4xl">
-            All Tutorials & Articles
+          <h1
+            className="text-3xl font-extrabold md:text-4xl"
+            style={{ color: "var(--sk-text)" }}
+          >
+            All Tutorials &amp; Articles
           </h1>
-          <p className="mt-2 text-gray-500">
+          <p className="mt-2" style={{ color: "var(--sk-text-muted)" }}>
             Practical, step-by-step web development tutorials for all levels.
           </p>
         </div>
 
         {/* Search Bar */}
         <div className="relative mb-6 max-w-xl">
-          <Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--sk-text-faint)" }} />
           <input
             id="blog-search"
             type="text"
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
             placeholder="Search tutorials..."
-            className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-10 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl py-3 pl-11 pr-10 text-sm outline-none focus:ring-2"
+            style={{
+              backgroundColor: "var(--sk-bg-card)",
+              border: "1px solid var(--sk-border-strong)",
+              color: "var(--sk-text)",
+            }}
           />
           {search && (
             <button
               onClick={() => handleSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+              className="absolute right-3 top-1/2 -translate-y-1/2"
+              style={{ color: "var(--sk-text-faint)" }}
               aria-label="Clear search"
             >
               <X size={16} />
@@ -142,11 +174,12 @@ export default function BlogsPage() {
             <button
               key={cat}
               onClick={() => handleCategoryChange(cat)}
-              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
-                activeCategory === cat
-                  ? "bg-blue-600 text-white shadow"
-                  : "border border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:text-blue-600"
-              }`}
+              className="rounded-full px-4 py-1.5 text-xs font-semibold border transition active:scale-[0.98]"
+              style={{
+                backgroundColor: activeCategory === cat ? "var(--sk-primary)" : "var(--sk-bg-card)",
+                borderColor: activeCategory === cat ? "var(--sk-primary)" : "var(--sk-border-strong)",
+                color: activeCategory === cat ? "#ffffff" : "var(--sk-text-muted)",
+              }}
             >
               {cat}
             </button>
@@ -158,32 +191,38 @@ export default function BlogsPage() {
           {/* Left — Posts */}
           <div>
             {/* Results count & view toggle */}
-            <div className="mb-6 flex items-center justify-between border-b pb-4">
-              <p className="text-sm text-gray-550 dark:text-slate-400">
+            <div className="mb-6 flex items-center justify-between border-b border-gray-150/40 pb-4 dark:border-zinc-800/40">
+              <p className="text-sm text-gray-500 dark:text-zinc-400">
                 {filtered.length} article{filtered.length !== 1 ? "s" : ""} found
                 {search && <span> for &quot;{search}&quot;</span>}
               </p>
               
               {/* Grid / List Switcher */}
-              <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-0.5 shadow-xs">
+              <div
+                className="flex items-center gap-1 rounded-lg border p-0.5 shadow-xs"
+                style={{
+                  backgroundColor: "var(--sk-bg-card)",
+                  borderColor: "var(--sk-border)",
+                }}
+              >
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`rounded-md p-1.5 transition ${
-                    viewMode === "grid"
-                      ? "bg-blue-50 text-blue-600"
-                      : "text-gray-400 hover:text-gray-650"
-                  }`}
+                  className="rounded-md p-1.5 transition"
+                  style={{
+                    backgroundColor: viewMode === "grid" ? "var(--sk-primary-light)" : "transparent",
+                    color: viewMode === "grid" ? "var(--sk-primary-text)" : "var(--sk-text-faint)",
+                  }}
                   aria-label="Grid view"
                 >
                   <Grid size={16} />
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`rounded-md p-1.5 transition ${
-                    viewMode === "list"
-                      ? "bg-blue-50 text-blue-600"
-                      : "text-gray-400 hover:text-gray-650"
-                  }`}
+                  className="rounded-md p-1.5 transition"
+                  style={{
+                    backgroundColor: viewMode === "list" ? "var(--sk-primary-light)" : "transparent",
+                    color: viewMode === "list" ? "var(--sk-primary-text)" : "var(--sk-text-faint)",
+                  }}
                   aria-label="List view"
                 >
                   <List size={16} />
@@ -206,33 +245,40 @@ export default function BlogsPage() {
                 </div>
               )
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 py-20 text-center">
+              <div
+                className="flex flex-col items-center justify-center rounded-xl border border-dashed py-20 text-center"
+                style={{ borderColor: "var(--sk-border)" }}
+              >
                 <span className="text-4xl">🔍</span>
-                <p className="mt-4 text-base font-semibold text-gray-700">No results found</p>
-                <p className="mt-1 text-sm text-gray-400">
+                <p className="mt-4 text-base font-semibold" style={{ color: "var(--sk-text)" }}>No results found</p>
+                <p className="mt-1 text-sm" style={{ color: "var(--sk-text-faint)" }}>
                   Try a different search term or category.
                 </p>
                 <button
                   onClick={() => { handleSearch(""); handleCategoryChange("All"); }}
-                  className="mt-5 rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                  className="mt-5 rounded-full px-5 py-2 text-sm font-semibold text-white transition active:scale-[0.98]"
+                  style={{ backgroundColor: "var(--sk-primary)" }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "var(--sk-primary-hover)"}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "var(--sk-primary)"}
                 >
                   Clear Filters
                 </button>
               </div>
             )}
 
-            {/* Pagination */}
+             {/* Pagination */}
             {totalPages > 1 && (
               <div className="mt-10 flex items-center justify-center gap-2">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`flex h-9 w-9 items-center justify-center rounded-lg border text-sm font-medium transition ${
-                      page === currentPage
-                        ? "border-blue-600 bg-blue-600 text-white"
-                        : "border-gray-200 text-gray-600 hover:border-blue-600 hover:text-blue-600"
-                    }`}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border text-sm font-medium transition-colors duration-200 active:scale-95"
+                    style={{
+                      backgroundColor: page === currentPage ? "var(--sk-primary)" : "var(--sk-bg-card)",
+                      borderColor: page === currentPage ? "var(--sk-primary)" : "var(--sk-border-strong)",
+                      color: page === currentPage ? "#ffffff" : "var(--sk-text-muted)",
+                    }}
                     aria-current={page === currentPage ? "page" : undefined}
                   >
                     {page}

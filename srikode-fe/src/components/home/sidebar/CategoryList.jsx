@@ -17,26 +17,26 @@ const categoryList = buildCategories();
 
 export default function CategoryList() {
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-sk-border bg-sk-bg-card shadow-sm transition-all duration-300">
       {/* Heading */}
-      <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-3">
-        <span className="h-4 w-1 rounded-full bg-blue-600" />
-        <h3 className="text-sm font-bold uppercase tracking-widest text-gray-800">
+      <div className="flex items-center gap-3 border-b border-sk-border px-4 py-3">
+        <span className="h-4 w-1 rounded-full bg-sk-primary" />
+        <h3 className="text-sm font-bold uppercase tracking-widest text-sk-text">
           Categories
         </h3>
       </div>
 
-      <ul className="divide-y divide-gray-50 px-2 py-2">
+      <ul className="divide-y divide-sk-border px-2 py-2">
         {categoryList.map(({ name, count, slug }) => (
           <li key={slug}>
             <Link
               href={`/category/${slug}`}
-              className="group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm transition hover:bg-blue-50"
+              className="group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors duration-200 hover:bg-sk-primary-light/50"
             >
-              <span className="font-medium text-gray-700 transition group-hover:text-blue-600">
+              <span className="font-semibold text-sk-text-muted transition-colors group-hover:text-sk-primary">
                 {name}
               </span>
-              <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-500 transition group-hover:bg-blue-100 group-hover:text-blue-600">
+              <span className="rounded-full bg-sk-primary-light px-2.5 py-0.5 text-xs font-bold text-sk-primary-text transition-colors group-hover:bg-sk-primary group-hover:text-white">
                 {count}
               </span>
             </Link>

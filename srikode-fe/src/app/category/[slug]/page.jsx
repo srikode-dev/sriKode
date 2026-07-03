@@ -38,20 +38,20 @@ export default async function CategoryPage({ params }) {
       <Container>
         {/* Breadcrumb */}
         <nav className="mb-6 flex items-center gap-2 text-xs text-gray-400">
-          <Link href="/" className="hover:text-blue-600">Home</Link>
+          <Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400">Home</Link>
           <ChevronRight size={12} />
-          <Link href="/blogs" className="hover:text-blue-600">Blogs</Link>
+          <Link href="/blogs" className="hover:text-blue-600 dark:hover:text-blue-400">Blogs</Link>
           <ChevronRight size={12} />
-          <span className="font-semibold text-gray-700">{cat.name}</span>
+          <span className="font-semibold text-gray-700 dark:text-zinc-305">{cat.name}</span>
         </nav>
 
         {/* Page Header */}
         <div className="mb-8">
-          <span className="mb-2 inline-block rounded-full bg-blue-100 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-blue-700">
+          <span className="mb-2 inline-block rounded-full bg-blue-50 dark:bg-blue-950/40 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-blue-700 dark:text-blue-400">
             Category
           </span>
-          <h1 className="text-3xl font-extrabold text-gray-900 md:text-4xl">{cat.name}</h1>
-          <p className="mt-2 text-gray-500">
+          <h1 className="text-3xl font-extrabold text-gray-900 md:text-4xl dark:text-white">{cat.name}</h1>
+          <p className="mt-2 text-gray-500 dark:text-zinc-400">
             {categoryBlogs.length} article{categoryBlogs.length !== 1 ? "s" : ""} in {cat.name}
           </p>
         </div>
@@ -64,8 +64,8 @@ export default async function CategoryPage({ params }) {
               href={`/category/${c.slug}`}
               className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
                 c.slug === slug
-                  ? "bg-blue-600 text-white shadow"
-                  : "border border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:text-blue-600"
+                  ? "bg-blue-600 text-white shadow dark:bg-blue-550"
+                  : "border border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:text-blue-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:text-white"
               }`}
             >
               {c.name}
@@ -85,9 +85,9 @@ export default async function CategoryPage({ params }) {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 py-20 text-center">
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 py-20 text-center dark:border-zinc-800">
                 <span className="text-4xl">📂</span>
-                <p className="mt-4 font-semibold text-gray-700">No posts in this category yet</p>
+                <p className="mt-4 font-semibold text-gray-700 dark:text-zinc-300">No posts in this category yet</p>
                 <Link href="/blogs" className="mt-4 rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700">
                   Browse All Posts
                 </Link>

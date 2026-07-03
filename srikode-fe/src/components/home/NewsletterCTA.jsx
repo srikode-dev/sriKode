@@ -19,25 +19,48 @@ export default function NewsletterCTA() {
   };
 
   return (
-    <section className="border-t border-b border-gray-100 bg-gray-50 py-16">
+    <section
+      className="py-16"
+      style={{
+        backgroundColor: "var(--sk-bg-subtle)",
+        borderTop: "1px solid var(--sk-border)",
+        borderBottom: "1px solid var(--sk-border)",
+      }}
+    >
       <div className="mx-auto max-w-2xl px-4 text-center">
         {/* Icon accent */}
-        <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg shadow-blue-200">
+        <div
+          className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg"
+          style={{ backgroundColor: "var(--sk-primary)", boxShadow: "0 8px 24px color-mix(in srgb, var(--sk-primary) 35%, transparent)" }}
+        >
           <Send size={24} />
         </div>
 
-        <h2 className="text-3xl font-extrabold text-gray-900 md:text-4xl">
+        <h2
+          className="text-3xl font-extrabold md:text-4xl"
+          style={{ color: "var(--sk-text)" }}
+        >
           Never Miss a Tutorial
         </h2>
-        <p className="mt-3 text-base text-gray-500">
+        <p
+          className="mt-3 text-base"
+          style={{ color: "var(--sk-text-muted)" }}
+        >
           Get the latest web development tutorials, projects and tips delivered
           straight to your inbox. No spam — ever.
         </p>
 
         {submitted ? (
-          <div className="mt-8 flex items-center justify-center gap-3 rounded-xl bg-green-50 border border-green-200 px-6 py-5 text-green-700">
+          <div
+            className="mt-8 flex items-center justify-center gap-3 rounded-xl border px-6 py-5"
+            style={{
+              backgroundColor: "rgba(34,197,94,0.08)",
+              borderColor: "rgba(34,197,94,0.3)",
+              color: "#16a34a",
+            }}
+          >
             <CheckCircle size={22} className="text-green-500" />
-            <span className="font-semibold">You&apos;re subscribed! Welcome to SriKode 🎉</span>
+            <span className="font-semibold dark:text-green-400">You&apos;re subscribed! Welcome to SriKode 🎉</span>
           </div>
         ) : (
           <form
@@ -51,12 +74,23 @@ export default function NewsletterCTA() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email address..."
               required
-              className="flex-1 rounded-xl border border-gray-200 bg-white px-5 py-3.5 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:rounded-r-none sm:rounded-l-xl"
+              className="flex-1 rounded-xl border px-5 py-3.5 text-sm outline-none sm:rounded-r-none sm:rounded-l-xl focus:ring-2"
+              style={{
+                backgroundColor: "var(--sk-bg-card)",
+                borderColor: "var(--sk-border-strong)",
+                color: "var(--sk-text)",
+                "--tw-ring-color": "color-mix(in srgb, var(--sk-primary) 20%, transparent)",
+              }}
             />
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-7 py-3.5 text-sm font-semibold text-white shadow transition hover:bg-blue-700 active:scale-95 disabled:opacity-60 sm:rounded-l-none sm:rounded-r-xl"
+              className="flex items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold text-white shadow transition active:scale-95 disabled:opacity-60 sm:rounded-l-none sm:rounded-r-xl"
+              style={{
+                backgroundColor: "var(--sk-primary)",
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "var(--sk-primary-hover)"}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "var(--sk-primary)"}
             >
               {loading ? (
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -70,7 +104,10 @@ export default function NewsletterCTA() {
           </form>
         )}
 
-        <p className="mt-4 text-xs text-gray-400">
+        <p
+          className="mt-4 text-xs"
+          style={{ color: "var(--sk-text-faint)" }}
+        >
           Join 10,000+ developers learning with SriKode. Unsubscribe anytime.
         </p>
       </div>

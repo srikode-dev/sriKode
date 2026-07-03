@@ -26,8 +26,8 @@ export default function BlogGrid({ blogs }) {
     <div>
       {/* Section heading */}
       <div className="mb-6 flex items-center gap-3">
-        <span className="h-5 w-1 rounded-full bg-blue-600" />
-        <h2 className="text-lg font-bold uppercase tracking-widest text-gray-800">
+        <span className="h-5 w-1 rounded-full bg-sk-primary" />
+        <h2 className="text-lg font-bold uppercase tracking-widest text-sk-text">
           Recent Posts
         </h2>
       </div>
@@ -46,7 +46,12 @@ export default function BlogGrid({ blogs }) {
           <button
             onClick={() => goTo(currentPage - 1)}
             disabled={currentPage === 1}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-blue-600 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border text-sm font-medium transition-colors duration-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            style={{
+              backgroundColor: "var(--sk-bg-card)",
+              borderColor: "var(--sk-border-strong)",
+              color: "var(--sk-text-muted)",
+            }}
             aria-label="Previous page"
           >
             <ChevronLeft size={16} />
@@ -57,11 +62,12 @@ export default function BlogGrid({ blogs }) {
             <button
               key={page}
               onClick={() => goTo(page)}
-              className={`flex h-9 w-9 items-center justify-center rounded-lg border text-sm font-medium transition ${
-                page === currentPage
-                  ? "border-blue-600 bg-blue-600 text-white"
-                  : "border-gray-200 text-gray-600 hover:border-blue-600 hover:text-blue-600"
-              }`}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border text-sm font-medium transition-colors duration-200 active:scale-95"
+              style={{
+                backgroundColor: page === currentPage ? "var(--sk-primary)" : "var(--sk-bg-card)",
+                borderColor: page === currentPage ? "var(--sk-primary)" : "var(--sk-border-strong)",
+                color: page === currentPage ? "#ffffff" : "var(--sk-text-muted)",
+              }}
               aria-label={`Page ${page}`}
               aria-current={page === currentPage ? "page" : undefined}
             >
@@ -73,7 +79,12 @@ export default function BlogGrid({ blogs }) {
           <button
             onClick={() => goTo(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-blue-600 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border text-sm font-medium transition-colors duration-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            style={{
+              backgroundColor: "var(--sk-bg-card)",
+              borderColor: "var(--sk-border-strong)",
+              color: "var(--sk-text-muted)",
+            }}
             aria-label="Next page"
           >
             <ChevronRight size={16} />
@@ -83,7 +94,7 @@ export default function BlogGrid({ blogs }) {
 
       {/* Page info */}
       {totalPages > 1 && (
-        <p className="mt-3 text-center text-xs text-gray-400">
+        <p className="mt-3 text-center text-xs text-sk-text-faint font-semibold">
           Page {currentPage} of {totalPages}
         </p>
       )}

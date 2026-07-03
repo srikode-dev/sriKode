@@ -88,21 +88,21 @@ export default async function BlogDetailPage({ params }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       {/* ── Breadcrumb & Title Area ── */}
-      <div className="py-8 border-b border-gray-150/40">
+      <div className="py-8 border-b border-sk-border">
         <Container>
           {/* Breadcrumbs */}
-          <nav className="mb-6 flex items-center gap-2 text-xs text-gray-400 font-medium">
-            <Link href="/" className="hover:text-blue-650 transition">Home</Link>
+          <nav className="mb-6 flex items-center gap-2 text-xs text-sk-text-faint font-medium">
+            <Link href="/" className="hover:text-sk-primary transition-colors">Home</Link>
             <ChevronRight size={12} />
-            <Link href="/blogs" className="hover:text-blue-650 transition">Blogs</Link>
+            <Link href="/blogs" className="hover:text-sk-primary transition-colors">Blogs</Link>
             <ChevronRight size={12} />
-            <span className="text-gray-600 line-clamp-1 max-w-[200px] sm:max-w-xs">{blog.title}</span>
+            <span className="text-sk-text-muted line-clamp-1 max-w-[200px] sm:max-w-xs">{blog.title}</span>
           </nav>
 
-          <span className="inline-block rounded-full bg-blue-50 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-blue-600">
+          <span className="inline-block rounded-full bg-sk-primary-light px-3 py-1 text-[11px] font-black uppercase tracking-wider text-sk-primary-text">
             {blog.category}
           </span>
-          <h1 className="mt-3 text-3xl font-black leading-tight tracking-tight text-gray-900 sm:text-4xl md:text-5xl max-w-4xl">
+          <h1 className="mt-3 text-3xl font-black leading-tight tracking-tight text-sk-text sm:text-4xl md:text-5xl max-w-4xl">
             {blog.title}
           </h1>
         </Container>
@@ -116,35 +116,35 @@ export default async function BlogDetailPage({ params }) {
             {/* ── Left: Article ── */}
             <article className="min-w-0">
               {/* Author / Meta Bar */}
-              <div className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-gray-150/50 pb-6 text-sm text-gray-500">
+              <div className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-sk-border pb-6 text-sm text-sk-text-muted">
                 <div className="flex items-center gap-2">
-                  <User size={14} className="text-gray-400" />
-                  <span className="font-semibold text-gray-700">{blog.author.name}</span>
+                  <User size={14} className="text-sk-text-faint" />
+                  <span className="font-semibold text-sk-text">{blog.author.name}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Calendar size={14} className="text-gray-400" />
+                  <Calendar size={14} className="text-sk-text-faint" />
                   {formatDate(blog.publishedAt)}
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Clock size={14} className="text-gray-400" />
+                  <Clock size={14} className="text-sk-text-faint" />
                   {blog.readingTime}
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Eye size={14} className="text-gray-400" />
+                  <Eye size={14} className="text-sk-text-faint" />
                   {blog.views?.toLocaleString()} views
                 </div>
                 <div className="ml-auto flex items-center gap-3">
-                  <button aria-label="Like" className="flex items-center gap-1 rounded-full border border-gray-200 px-3.5 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-red-300 hover:text-red-500 hover:bg-red-50/20">
+                  <button aria-label="Like" className="flex items-center gap-1 rounded-full border border-sk-border px-3.5 py-1.5 text-xs font-semibold text-sk-text-muted transition hover:border-red-500 hover:text-red-500 hover:bg-red-500/10">
                     <Heart size={13} /> {blog.likes}
                   </button>
-                  <button aria-label="Bookmark" className="flex items-center gap-1 rounded-full border border-gray-200 px-3.5 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50/20">
+                  <button aria-label="Bookmark" className="flex items-center gap-1 rounded-full border border-sk-border px-3.5 py-1.5 text-xs font-semibold text-sk-text-muted transition hover:border-sk-primary hover:text-sk-primary hover:bg-sk-primary-light">
                     <Bookmark size={13} /> Save
                   </button>
                 </div>
               </div>
 
               {/* Cover Image Card */}
-              <div className="relative aspect-[21/9] w-full overflow-hidden rounded-2xl bg-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-black/[0.03] mb-8">
+              <div className="relative aspect-[21/9] w-full overflow-hidden rounded-2xl bg-gray-100 dark:bg-zinc-800 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-black/[0.03] dark:border-zinc-700/30 mb-8">
                 <Image
                   src={blog.coverImage}
                   alt={blog.title}
@@ -156,7 +156,7 @@ export default async function BlogDetailPage({ params }) {
               </div>
 
               {/* Excerpt lead */}
-              <p className="mb-8 text-lg leading-relaxed text-gray-600 border-l-4 border-blue-500 pl-5 italic">
+              <p className="mb-8 text-lg leading-relaxed text-gray-600 dark:text-zinc-400 border-l-4 border-blue-500 pl-5 italic">
                 {blog.excerpt}
               </p>
 
@@ -171,12 +171,12 @@ export default async function BlogDetailPage({ params }) {
               <ArticleContent content={blog.content} toc={tocItems} />
 
               {/* Action buttons (Live Demo & Source Code) */}
-              <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 rounded-2xl border border-gray-100 bg-gray-50/50 p-6 select-none">
+              <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 rounded-2xl border border-sk-border bg-sk-bg-subtle p-6 select-none">
                 <a
                   href={blog.demoUrl || "https://demo.srikode.dev"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 hover:shadow active:scale-[0.98]"
+                  className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-sk-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sk-primary-hover hover:shadow active:scale-[0.98]"
                 >
                   <ExternalLink size={16} />
                   Live Demo
@@ -185,7 +185,7 @@ export default async function BlogDetailPage({ params }) {
                   href={blog.sourceCodeUrl || "https://github.com/srikode-dev/srikode-tutorials"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-700 shadow-xs transition hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98]"
+                  className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-sk-border bg-sk-bg-card px-6 py-3 text-sm font-semibold text-sk-text-muted shadow-xs transition hover:bg-sk-primary-light hover:text-sk-primary active:scale-[0.98]"
                 >
                   <Code2 size={16} />
                   Source Code
@@ -194,13 +194,13 @@ export default async function BlogDetailPage({ params }) {
 
               {/* Tags */}
               {blog.tags?.length > 0 && (
-                <div className="mt-10 flex flex-wrap items-center gap-2 border-t border-gray-100 pt-6">
-                  <Tag size={14} className="text-gray-400" />
+                <div className="mt-10 flex flex-wrap items-center gap-2 border-t border-sk-border pt-6">
+                  <Tag size={14} className="text-sk-text-faint" />
                   {blog.tags.map((tag) => (
                     <Link
                       key={tag}
                       href={`/blogs?search=${tag}`}
-                      className="rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-600 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+                      className="rounded-full border border-sk-border bg-sk-bg-card px-3 py-1 text-xs text-sk-text-muted transition-colors duration-200 hover:border-sk-primary hover:bg-sk-primary-light hover:text-sk-primary"
                     >
                       #{tag}
                     </Link>
@@ -209,16 +209,16 @@ export default async function BlogDetailPage({ params }) {
               )}
 
               {/* Prev / Next navigation */}
-              <div className="mt-10 grid grid-cols-1 gap-4 border-t border-gray-100 pt-8 sm:grid-cols-2">
+              <div className="mt-10 grid grid-cols-1 gap-4 border-t border-sk-border pt-8 sm:grid-cols-2">
                 {prevBlog ? (
                   <Link
                     href={`/blog/${prevBlog.slug}`}
-                    className="group flex items-center gap-3 rounded-xl border border-gray-100 p-4 transition hover:border-blue-200 hover:bg-blue-50"
+                    className="group flex items-center gap-3 rounded-xl border border-sk-border bg-sk-bg-card p-4 transition hover:border-sk-primary hover:bg-sk-primary-light/30"
                   >
-                    <ArrowLeft size={18} className="shrink-0 text-gray-400 transition group-hover:text-blue-600" />
+                    <ArrowLeft size={18} className="shrink-0 text-sk-text-faint transition-colors group-hover:text-sk-primary" />
                     <div className="min-w-0">
-                      <p className="text-[10px] uppercase tracking-widest text-gray-400">Previous</p>
-                      <p className="line-clamp-1 text-sm font-semibold text-gray-800 group-hover:text-blue-600">
+                      <p className="text-[10px] uppercase tracking-widest text-sk-text-faint">Previous</p>
+                      <p className="line-clamp-1 text-sm font-bold text-sk-text group-hover:text-sk-primary">
                         {prevBlog.title}
                       </p>
                     </div>
@@ -228,36 +228,36 @@ export default async function BlogDetailPage({ params }) {
                 {nextBlog && (
                   <Link
                     href={`/blog/${nextBlog.slug}`}
-                    className="group flex items-center justify-end gap-3 rounded-xl border border-gray-100 p-4 text-right transition hover:border-blue-200 hover:bg-blue-50"
+                    className="group flex items-center justify-end gap-3 rounded-xl border border-sk-border bg-sk-bg-card p-4 text-right transition hover:border-sk-primary hover:bg-sk-primary-light/30"
                   >
                     <div className="min-w-0">
-                      <p className="text-[10px] uppercase tracking-widest text-gray-400">Next</p>
-                      <p className="line-clamp-1 text-sm font-semibold text-gray-800 group-hover:text-blue-600">
+                      <p className="text-[10px] uppercase tracking-widest text-sk-text-faint">Next</p>
+                      <p className="line-clamp-1 text-sm font-bold text-sk-text group-hover:text-sk-primary">
                         {nextBlog.title}
                       </p>
                     </div>
-                    <ArrowRight size={18} className="shrink-0 text-gray-400 transition group-hover:text-blue-600" />
+                    <ArrowRight size={18} className="shrink-0 text-sk-text-faint transition-colors group-hover:text-sk-primary" />
                   </Link>
                 )}
               </div>
 
               {/* Related Posts */}
               {relatedBlogs.length > 0 && (
-                <div className="mt-12 border-t border-gray-100 pt-10">
+                <div className="mt-12 border-t border-sk-border pt-10">
                   <div className="mb-5 flex items-center gap-3">
-                    <span className="h-4 w-1 rounded-full bg-blue-600" />
-                    <h2 className="text-lg font-bold uppercase tracking-widest text-gray-800">Related Posts</h2>
+                    <span className="h-4 w-1 rounded-full bg-sk-primary" />
+                    <h2 className="text-lg font-bold uppercase tracking-widest text-sk-text">Related Posts</h2>
                   </div>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     {relatedBlogs.map((rb) => (
-                      <Link key={rb.id} href={`/blog/${rb.slug}`} className="group block overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+                      <Link key={rb.id} href={`/blog/${rb.slug}`} className="group block overflow-hidden rounded-xl border border-sk-border bg-sk-bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-md">
                         <div className="relative aspect-video overflow-hidden">
                           <Image src={rb.coverImage} alt={rb.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="300px" />
                         </div>
                         <div className="p-3">
-                          <span className="text-[10px] font-semibold uppercase text-blue-600">{rb.category}</span>
-                          <p className="mt-1 line-clamp-2 text-sm font-bold text-gray-800 group-hover:text-blue-600">{rb.title}</p>
-                          <p className="mt-1 text-[11px] text-gray-400">{formatDate(rb.publishedAt)}</p>
+                          <span className="text-[10px] font-semibold uppercase text-sk-primary">{rb.category}</span>
+                          <p className="mt-1 line-clamp-2 text-sm font-bold text-sk-text group-hover:text-sk-primary">{rb.title}</p>
+                          <p className="mt-1 text-[11px] text-sk-text-faint">{formatDate(rb.publishedAt)}</p>
                         </div>
                       </Link>
                     ))}

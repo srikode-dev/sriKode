@@ -4,12 +4,10 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Info, AlertTriangle, Lightbulb, Check, Copy } from "lucide-react";
 import Prism from "prismjs";
-import "prismjs/themes/prism-tomorrow.css"; // Dark VS Code-likeTomorrow Theme
-
-// Load Prism components
+import "prismjs/themes/prism-tomorrow.css";
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-css";
-import "prismjs/components/prism-markup"; // HTML
+import "prismjs/components/prism-markup";
 import "prismjs/components/prism-jsx";
 import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-tsx";
@@ -17,11 +15,15 @@ import "prismjs/components/prism-json";
 
 function Heading({ level, text, id }) {
   const Tag = `h${level}`;
-  const sizes = { 2: "text-2xl mt-10 mb-4", 3: "text-xl mt-8 mb-3", 4: "text-lg mt-6 mb-2" };
+  const sizes = {
+    2: "text-2xl mt-10 mb-4",
+    3: "text-xl mt-8 mb-3",
+    4: "text-lg mt-6 mb-2",
+  };
   return (
     <Tag
       id={id}
-      className={`font-extrabold text-gray-900 scroll-mt-24 tracking-tight ${sizes[level] || sizes[2]}`}
+      className={`font-extrabold text-sk-text scroll-mt-24 tracking-tight ${sizes[level] || sizes[2]}`}
     >
       {text}
     </Tag>
@@ -31,7 +33,6 @@ function Heading({ level, text, id }) {
 function formatCode(code, language) {
   if (!code) return "";
   if (code.includes("\n")) return code;
-
   const lang = language?.toLowerCase();
   if (lang === "css") {
     return code
@@ -57,7 +58,7 @@ function formatCode(code, language) {
     });
     return result.join("\n");
   }
-  if (lang === "javascript" || lang === "js" || lang === "typescript" || lang === "ts" || lang === "jsx" || lang === "tsx") {
+  if (["javascript", "js", "typescript", "ts", "jsx", "tsx"].includes(lang)) {
     return code
       .replace(/\{/g, " {\n  ")
       .replace(/\}/g, "\n}\n")
@@ -79,7 +80,7 @@ function CodeBlock({ language, filename, code }) {
       const prismLang = Prism.languages[lang] || Prism.languages.javascript;
       const html = Prism.highlight(formatted, prismLang, lang);
       setHighlightedHtml(html);
-    } catch (e) {
+    } catch {
       setHighlightedHtml(code);
     }
   }, [code, language]);
@@ -96,16 +97,14 @@ function CodeBlock({ language, filename, code }) {
 
   return (
     <div className="my-6 overflow-hidden rounded-xl border border-zinc-200/10 bg-[#1e1e1e] shadow-lg">
-      {/* Top Bar (VS Code Editor Style) */}
+      {/* VS Code Top Bar */}
       <div className="flex items-center justify-between border-b border-zinc-800 bg-[#181818] px-4 py-2.5 select-none">
         <div className="flex items-center gap-2">
           <span className="h-3 w-3 rounded-full bg-[#ff5f56]" />
           <span className="h-3 w-3 rounded-full bg-[#ffbd2e]" />
           <span className="h-3 w-3 rounded-full bg-[#27c93f]" />
           {filename && (
-            <span className="ml-3 font-mono text-xs text-zinc-400">
-              {filename}
-            </span>
+            <span className="ml-3 font-mono text-xs text-zinc-400">{filename}</span>
           )}
         </div>
         <div className="flex items-center gap-3">
@@ -132,18 +131,15 @@ function CodeBlock({ language, filename, code }) {
           </button>
         </div>
       </div>
-
-      {/* Code Window with line numbers */}
+      {/* Code body with line numbers */}
       <div className="overflow-x-auto py-4">
         <table className="w-full border-collapse font-mono text-sm leading-relaxed text-zinc-100">
           <tbody>
             {lines.map((line, idx) => (
               <tr key={idx} className="group hover:bg-[#252525]">
-                {/* Line number gutter */}
-                <td className="w-10 select-none text-right pr-4 text-zinc-650 font-mono text-xs select-none border-r border-zinc-800/40">
+                <td className="w-10 select-none text-right pr-4 text-zinc-600 font-mono text-xs border-r border-zinc-800/40">
                   {idx + 1}
                 </td>
-                {/* Highlighted text line */}
                 <td className="pl-4 whitespace-pre font-mono text-zinc-100 text-[13px]">
                   {highlightedHtml ? (
                     <span dangerouslySetInnerHTML={{ __html: line || " " }} />
@@ -162,9 +158,24 @@ function CodeBlock({ language, filename, code }) {
 
 function Callout({ variant, title, text }) {
   const styles = {
-    info: { bg: "bg-blue-50/50 border-blue-300", icon: <Info size={16} className="text-blue-500 shrink-0" />, titleColor: "text-blue-700" },
-    warning: { bg: "bg-amber-50/50 border-amber-300", icon: <AlertTriangle size={16} className="text-amber-500 shrink-0" />, titleColor: "text-amber-700" },
-    tip: { bg: "bg-green-50/50 border-green-300", icon: <Lightbulb size={16} className="text-green-500 shrink-0" />, titleColor: "text-green-700" },
+    info: {
+      bg: "bg-blue-50/40 border-blue-200 dark:border-blue-800/45",
+      icon: <Info size={16} className="text-sk-primary shrink-0" />,
+      titleColor: "text-sk-primary-text font-extrabold",
+      textColor: "text-sk-text font-semibold",
+    },
+    warning: {
+      bg: "bg-amber-50/40 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800/45",
+      icon: <AlertTriangle size={16} className="text-amber-600 dark:text-amber-400 shrink-0" />,
+      titleColor: "text-amber-900 dark:text-amber-400 font-extrabold",
+      textColor: "text-sk-text font-semibold",
+    },
+    tip: {
+      bg: "bg-emerald-50/40 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800/45",
+      icon: <Lightbulb size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />,
+      titleColor: "text-emerald-900 dark:text-emerald-400 font-extrabold",
+      textColor: "text-sk-text font-semibold",
+    },
   };
   const s = styles[variant] || styles.info;
   return (
@@ -172,7 +183,7 @@ function Callout({ variant, title, text }) {
       {s.icon}
       <div>
         {title && <p className={`mb-1 text-sm font-bold ${s.titleColor}`}>{title}</p>}
-        <p className="text-sm text-gray-700">{text}</p>
+        <p className={`text-sm ${s.textColor}`}>{text}</p>
       </div>
     </div>
   );
@@ -182,7 +193,7 @@ export default function ArticleContent({ content, toc = [] }) {
   if (!content) return null;
 
   return (
-    <div className="prose-content text-gray-700">
+    <div className="prose-content text-sk-text-muted">
       {content.map((block, i) => {
         switch (block.type) {
           case "heading": {
@@ -191,19 +202,16 @@ export default function ArticleContent({ content, toc = [] }) {
                 item.title.toLowerCase() === block.text.toLowerCase() ||
                 block.text.toLowerCase().includes(item.title.toLowerCase())
             );
-            const headingId = matchingToc ? matchingToc.id : block.text.toLowerCase().replace(/\s+/g, "-");
+            const headingId = matchingToc
+              ? matchingToc.id
+              : block.text.toLowerCase().replace(/\s+/g, "-");
             return (
-              <Heading
-                key={i}
-                level={block.level}
-                text={block.text}
-                id={headingId}
-              />
+              <Heading key={i} level={block.level} text={block.text} id={headingId} />
             );
           }
           case "paragraph":
             return (
-              <p key={i} className="my-4 leading-relaxed text-gray-700">
+              <p key={i} className="my-4 leading-relaxed text-sk-text-muted">
                 {block.text}
               </p>
             );
@@ -219,7 +227,7 @@ export default function ArticleContent({ content, toc = [] }) {
           case "image":
             return (
               <figure key={i} className="my-8">
-                <div className="relative aspect-video overflow-hidden rounded-xl bg-gray-150">
+                <div className="relative aspect-video overflow-hidden rounded-xl border border-sk-border bg-sk-bg-subtle">
                   <Image
                     src={block.src}
                     alt={block.alt || ""}
@@ -229,7 +237,7 @@ export default function ArticleContent({ content, toc = [] }) {
                   />
                 </div>
                 {block.caption && (
-                  <figcaption className="mt-2 text-center text-sm text-gray-400 italic">
+                  <figcaption className="mt-2 text-center text-sm text-sk-text-faint italic">
                     {block.caption}
                   </figcaption>
                 )}
@@ -243,37 +251,43 @@ export default function ArticleContent({ content, toc = [] }) {
             return <Callout key={i} variant="warning" text={block.text} />;
           case "list":
             return block.style === "ordered" ? (
-              <ol key={i} className="my-4 list-decimal space-y-2 pl-6 text-gray-700">
+              <ol key={i} className="my-4 list-decimal space-y-2 pl-6 text-sk-text-muted">
                 {block.items.map((item, j) => <li key={j}>{item}</li>)}
               </ol>
             ) : (
-              <ul key={i} className="my-4 list-disc space-y-2 pl-6 text-gray-700">
+              <ul key={i} className="my-4 list-disc space-y-2 pl-6 text-sk-text-muted">
                 {block.items.map((item, j) => <li key={j}>{item}</li>)}
               </ul>
             );
           case "quote":
             return (
-              <blockquote key={i} className="my-6 border-l-4 border-blue-500 bg-blue-50/50 px-5 py-4 rounded-r-xl">
-                <p className="italic text-gray-700">&ldquo;{block.text}&rdquo;</p>
-                {block.author && <footer className="mt-2 text-xs font-semibold text-gray-500">— {block.author}</footer>}
+              <blockquote key={i} className="my-6 border-l-4 border-sk-primary bg-sk-primary-light/40 px-5 py-4 rounded-r-xl">
+                <p className="italic text-sk-text font-semibold">&ldquo;{block.text}&rdquo;</p>
+                {block.author && (
+                  <footer className="mt-2 text-xs font-semibold text-sk-text-faint">
+                    — {block.author}
+                  </footer>
+                )}
               </blockquote>
             );
           case "table":
             return (
-              <div key={i} className="my-6 overflow-x-auto rounded-xl border border-gray-200">
+              <div key={i} className="my-6 overflow-x-auto rounded-xl border border-sk-border bg-sk-bg-card">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 text-left">
+                  <thead className="bg-sk-bg-subtle text-left">
                     <tr>
                       {block.headers.map((h, j) => (
-                        <th key={j} className="border-b border-gray-200 px-4 py-3 font-semibold text-gray-700">{h}</th>
+                        <th key={j} className="border-b border-sk-border px-4 py-3 font-bold text-sk-text">
+                          {h}
+                        </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-sk-border">
                     {block.rows.map((row, j) => (
-                      <tr key={j} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                      <tr key={j} className="hover:bg-sk-bg-subtle/50 transition-colors">
                         {row.map((cell, k) => (
-                          <td key={k} className="px-4 py-3 text-gray-600">{cell}</td>
+                          <td key={k} className="px-4 py-3 text-sk-text-muted">{cell}</td>
                         ))}
                       </tr>
                     ))}
@@ -282,10 +296,10 @@ export default function ArticleContent({ content, toc = [] }) {
               </div>
             );
           case "divider":
-            return <hr key={i} className="my-8 border-zinc-200/50" />;
+            return <hr key={i} className="my-8 border-sk-border" />;
           case "video":
             return (
-              <div key={i} className="my-8 overflow-hidden rounded-xl border border-gray-200">
+              <div key={i} className="my-8 overflow-hidden rounded-xl border border-sk-border">
                 <div className="relative aspect-video">
                   <iframe
                     src={block.url.replace("watch?v=", "embed/")}

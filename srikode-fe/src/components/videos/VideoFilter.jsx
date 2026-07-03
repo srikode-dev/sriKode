@@ -10,7 +10,7 @@ function VideoCard({ video }) {
       href={video.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+      className="group flex flex-col overflow-hidden rounded-xl border border-sk-border bg-sk-bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
     >
       <div className="relative aspect-video overflow-hidden">
         <Image
@@ -21,22 +21,22 @@ function VideoCard({ video }) {
           sizes="(max-width: 768px) 100vw, 33vw"
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/25 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-600 text-white shadow-lg">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-sk-primary text-white shadow-lg">
             <Play size={22} fill="white" />
           </div>
         </div>
         <span className="absolute bottom-2 right-2 rounded bg-black/80 px-2 py-0.5 text-xs font-medium text-white">
           {video.duration}
         </span>
-        <span className="absolute left-3 top-3 rounded-full bg-red-600 px-3 py-1 text-[10px] font-semibold uppercase text-white">
+        <span className="absolute left-3 top-3 rounded-full bg-sk-primary px-3 py-1 text-[10px] font-semibold uppercase text-white shadow">
           {video.category}
         </span>
       </div>
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-2 text-sm font-bold leading-snug text-gray-900 transition-colors group-hover:text-red-600">
+        <h3 className="line-clamp-2 text-sm font-bold leading-snug text-sk-text transition-colors group-hover:text-sk-primary">
           {video.title}
         </h3>
-        <div className="mt-3 flex items-center gap-3 text-xs text-gray-400">
+        <div className="mt-3 flex items-center gap-3 text-xs text-sk-text-faint">
           <span className="flex items-center gap-1">
             <Eye size={12} />
             {video.views} views
@@ -65,11 +65,12 @@ export default function VideoFilter({ videos }) {
           <button
             key={cat}
             onClick={() => setActive(cat)}
-            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
-              active === cat
-                ? "bg-red-600 text-white shadow"
-                : "border border-gray-200 bg-white text-gray-600 hover:border-red-400 hover:text-red-600"
-            }`}
+            className="rounded-full px-4 py-1.5 text-xs font-semibold border transition active:scale-[0.98]"
+            style={{
+              backgroundColor: active === cat ? "var(--sk-primary)" : "var(--sk-bg-card)",
+              borderColor: active === cat ? "var(--sk-primary)" : "var(--sk-border-strong)",
+              color: active === cat ? "#ffffff" : "var(--sk-text-muted)",
+            }}
           >
             {cat}
           </button>
@@ -83,7 +84,7 @@ export default function VideoFilter({ videos }) {
         ))}
       </div>
 
-      <p className="mt-6 text-center text-sm text-gray-400">
+      <p className="mt-6 text-center text-sm text-sk-text-faint">
         Showing {filtered.length} of {videos.length} videos
       </p>
     </>
