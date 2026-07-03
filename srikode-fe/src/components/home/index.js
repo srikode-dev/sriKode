@@ -3,7 +3,6 @@ import Container from "@/components/shared/Container";
 import { Hero } from "./hero";
 import BlogGrid from "./blog/BlogGrid";
 import Sidebar from "./sidebar/Sidebar";
-import StatsBar from "./StatsBar";
 import LatestVideos from "./LatestVideos";
 import NewsletterCTA from "./NewsletterCTA";
 
@@ -12,9 +11,6 @@ export default function HomeSection() {
     <>
       {/* ── Hero ── */}
       <Hero />
-
-      {/* ── Stats Bar ── */}
-      <StatsBar />
 
       {/* ── Blog Grid + Sidebar ── */}
       <section className="py-12">
