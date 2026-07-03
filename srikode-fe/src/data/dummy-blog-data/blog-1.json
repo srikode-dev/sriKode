@@ -118,17 +118,7 @@
       "filename": "Card.jsx",
       "code": "export default function Card(){return <div className='p-4'>Hello React</div>}"
     },
-    {
-      "type": "heading",
-      "level": 2,
-      "text": "Next.js"
-    },
-    {
-      "type": "code",
-      "language": "tsx",
-      "filename": "page.tsx",
-      "code": "export default function Page(){return <main>Hello Next.js</main>}"
-    },
+   
     {
       "type": "list",
       "style": "unordered",
