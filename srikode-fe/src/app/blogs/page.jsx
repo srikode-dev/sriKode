@@ -3,15 +3,16 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, X, Calendar, Clock, ArrowRight } from "lucide-react";
+import { Search, X, Calendar, Clock, ArrowRight, Grid, List } from "lucide-react";
 import { blogs } from "@/data/dummy-blog-data";
 import Container from "@/components/shared/Container";
 import Sidebar from "@/components/home/sidebar/Sidebar";
+import BlogCard from "@/components/home/blog/BlogCard";
 
 // Derive unique categories from data
 const ALL_CATEGORIES = ["All", ...Array.from(new Set(blogs.map((b) => b.category)))];
 
-const POSTS_PER_PAGE = 6;
+const POSTS_PER_PAGE = 8;
 
 function BlogListCard({ blog }) {
   return (
@@ -71,6 +72,7 @@ export default function BlogsPage() {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState("grid");
 
   const filtered = useMemo(() => {
     return blogs.filter((b) => {
@@ -155,18 +157,54 @@ export default function BlogsPage() {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_300px]">
           {/* Left — Posts */}
           <div>
-            {/* Results count */}
-            <p className="mb-5 text-sm text-gray-400">
-              {filtered.length} article{filtered.length !== 1 ? "s" : ""} found
-              {search && <span> for &quot;{search}&quot;</span>}
-            </p>
+            {/* Results count & view toggle */}
+            <div className="mb-6 flex items-center justify-between border-b pb-4">
+              <p className="text-sm text-gray-550 dark:text-slate-400">
+                {filtered.length} article{filtered.length !== 1 ? "s" : ""} found
+                {search && <span> for &quot;{search}&quot;</span>}
+              </p>
+              
+              {/* Grid / List Switcher */}
+              <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-0.5 shadow-xs">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`rounded-md p-1.5 transition ${
+                    viewMode === "grid"
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-400 hover:text-gray-650"
+                  }`}
+                  aria-label="Grid view"
+                >
+                  <Grid size={16} />
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`rounded-md p-1.5 transition ${
+                    viewMode === "list"
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-400 hover:text-gray-650"
+                  }`}
+                  aria-label="List view"
+                >
+                  <List size={16} />
+                </button>
+              </div>
+            </div>
 
             {paginated.length > 0 ? (
-              <div className="flex flex-col gap-5">
-                {paginated.map((blog) => (
-                  <BlogListCard key={blog.id} blog={blog} />
-                ))}
-              </div>
+              viewMode === "grid" ? (
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  {paginated.map((blog) => (
+                    <BlogCard key={blog.id} blog={blog} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-5">
+                  {paginated.map((blog) => (
+                    <BlogListCard key={blog.id} blog={blog} />
+                  ))}
+                </div>
+              )
             ) : (
               <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 py-20 text-center">
                 <span className="text-4xl">🔍</span>

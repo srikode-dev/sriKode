@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import BlogCard from "./BlogCard";
 
-const POSTS_PER_PAGE = 6;
+const POSTS_PER_PAGE = 8;
 
 export default function BlogGrid({ blogs }) {
   const [currentPage, setCurrentPage] = useState(1);

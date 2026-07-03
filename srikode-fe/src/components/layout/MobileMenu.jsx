@@ -5,7 +5,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { IoChevronDown, IoClose } from "react-icons/io5";
 
-import { navLinks, categories } from "@/data/navigation";
+import { navLinks } from "@/data/navigation";
 
 export default function MobileMenu({
   menuOpen,
@@ -77,43 +77,7 @@ export default function MobileMenu({
             </Link>
           ))}
 
-          {/* Categories */}
 
-          <div>
-            <button
-              onClick={() =>
-                setShowCategories(!showCategories)
-              }
-              className="flex w-full items-center justify-between"
-            >
-              Categories
-
-              <IoChevronDown
-                className={`transition-transform ${
-                  showCategories
-                    ? "rotate-180"
-                    : ""
-                }`}
-              />
-            </button>
-
-            {showCategories && (
-              <div className="ml-4 mt-3 space-y-3">
-                {categories.map((item) => (
-                  <Link
-                    key={item.slug}
-                    href={`/category/${item.slug}`}
-                    onClick={() =>
-                      setMenuOpen(false)
-                    }
-                    className="block text-sm"
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>
