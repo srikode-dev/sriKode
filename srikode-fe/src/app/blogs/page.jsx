@@ -26,7 +26,7 @@ function BlogListCard({ blog }) {
       {/* Thumbnail */}
       <Link
         href={`/blog/${blog.slug}`}
-        className="relative block h-52 w-full flex-shrink-0 overflow-hidden sm:h-auto sm:w-48"
+        className="relative block h-52 w-full shrink-0 overflow-hidden sm:h-auto sm:w-48"
       >
         <Image
           src={blog.coverImage}

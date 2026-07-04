@@ -17,7 +17,7 @@ export default function FeaturedPost({ blog }) {
 
       <Link href={`/blog/${blog.slug}`} className="group block p-4">
         {/* Cover image */}
-        <div className="relative mb-3 aspect-[16/9] w-full overflow-hidden rounded-lg">
+        <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-lg">
           <Image
             src={blog.coverImage}
             alt={blog.title}

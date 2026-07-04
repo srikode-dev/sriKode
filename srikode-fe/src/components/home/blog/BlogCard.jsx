@@ -13,7 +13,7 @@ export default function BlogCard({ blog }) {
       }}
     >
       {/* Thumbnail */}
-      <Link href={`/blog/${blog.slug}`} className="relative block aspect-[16/9] overflow-hidden">
+      <Link href={`/blog/${blog.slug}`} className="relative block aspect-video overflow-hidden">
         <Image
           src={blog.coverImage}
           alt={blog.title}

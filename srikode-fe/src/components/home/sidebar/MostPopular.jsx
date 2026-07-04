@@ -23,7 +23,7 @@ export default function MostPopular({ blogs }) {
           <li key={blog.id} className="group py-3">
             <Link href={`/blog/${blog.slug}`} className="flex items-start gap-3">
               {/* Thumbnail */}
-              <div className="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg">
+              <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg">
                 <Image
                   src={blog.coverImage}
                   alt={blog.title}

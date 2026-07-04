@@ -144,7 +144,7 @@ export default async function BlogDetailPage({ params }) {
               </div>
 
               {/* Cover Image Card */}
-              <div className="relative aspect-[21/9] w-full overflow-hidden rounded-2xl bg-sk-bg-subtle shadow-xs border border-sk-border mb-8">
+              <div className="relative aspect-21/9 w-full overflow-hidden rounded-2xl bg-sk-bg-subtle shadow-xs border border-sk-border mb-8">
                 <Image
                   src={blog.coverImage}
                   alt={blog.title}

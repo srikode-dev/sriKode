@@ -195,7 +195,7 @@ export default function AboutPage() {
               <div key={i} className="mb-10 relative last:mb-0">
                 {/* Dot */}
                 <span
-                  className="absolute -left-[41px] flex h-6 w-6 items-center justify-center rounded-full border-2 text-[10px] font-bold"
+                  className="absolute left-[-41px] flex h-6 w-6 items-center justify-center rounded-full border-2 text-[10px] font-bold"
                   style={{
                     borderColor: "var(--sk-primary)",
                     backgroundColor: "var(--sk-bg-card)",

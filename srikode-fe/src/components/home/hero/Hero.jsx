@@ -61,7 +61,7 @@ function HeroCard({ blog, type }) {
       />
 
       {/* Dark Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/35 to-transparent" />
 
       {/* Content overlay bottom-left */}
       <div className={`absolute bottom-0 left-0 w-full p-4 sm:p-5 text-white flex flex-col justify-end ${isLarge ? "sm:p-8" : ""}`}>
