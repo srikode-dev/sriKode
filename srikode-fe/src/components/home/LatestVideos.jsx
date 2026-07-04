@@ -39,7 +39,7 @@ function VideoCard({ video }) {
       href={video.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col overflow-hidden rounded-xl border border-[var(--sk-border)] bg-[var(--sk-bg-card)] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+      className="group flex flex-col overflow-hidden rounded-xl border border-(--sk-border) bg-(--sk-bg-card) shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
     >
       {/* Thumbnail */}
       <div className="relative aspect-video overflow-hidden">
@@ -68,10 +68,10 @@ function VideoCard({ video }) {
 
       {/* Info */}
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-2 text-sm font-bold leading-snug text-[var(--sk-text)] transition-colors group-hover:text-red-600 dark:group-hover:text-red-400">
+        <h3 className="line-clamp-2 text-sm font-bold leading-snug text-(--sk-text) transition-colors group-hover:text-red-600 dark:group-hover:text-red-400">
           {video.title}
         </h3>
-        <div className="mt-3 flex items-center gap-3 text-xs text-[var(--sk-text-faint)]">
+        <div className="mt-3 flex items-center gap-3 text-xs text-(--sk-text-faint)">
           <span className="flex items-center gap-1">
             <Eye size={12} />
             {video.views} views
@@ -88,13 +88,13 @@ function VideoCard({ video }) {
 
 export default function LatestVideos() {
   return (
-    <section className="py-14 bg-[var(--sk-bg-subtle)] border-t border-[var(--sk-border)]">
+    <section className="py-14 bg-(--sk-bg-subtle) border-t border-(--sk-border)">
       <Container>
         {/* Heading */}
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="h-5 w-1 rounded-full bg-red-600" />
-            <h2 className="text-lg font-bold uppercase tracking-widest text-[var(--sk-text)]">
+            <h2 className="text-lg font-bold uppercase tracking-widest text-(--sk-text)">
               Latest Videos
             </h2>
           </div>
@@ -102,7 +102,7 @@ export default function LatestVideos() {
             href="https://youtube.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-full border border-[var(--sk-border-strong)] px-4 py-1.5 text-xs font-semibold text-[var(--sk-text-muted)] transition hover:border-red-500 hover:text-red-600 dark:hover:border-red-500 dark:hover:text-red-400"
+            className="flex items-center gap-2 rounded-full border border-(--sk-border-strong) px-4 py-1.5 text-xs font-semibold text-(--sk-text-muted) transition hover:border-red-500 hover:text-red-600 dark:hover:border-red-500 dark:hover:text-red-400"
           >
             <Play size={12} fill="currentColor" />
             View Channel
