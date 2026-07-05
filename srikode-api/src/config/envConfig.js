@@ -25,3 +25,7 @@ export const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL;
 export const APP_NAME = process.env.APP_NAME;
 export const APP_URL = process.env.APP_URL;
 export const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+
+// youtube
+export const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+export const YOUTUBE_CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;

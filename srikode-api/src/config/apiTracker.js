@@ -3,6 +3,11 @@ import listEndpoints from "express-list-endpoints";
 import logger from "./logger.js";
 
 const apiTracker = (app) => {
+  // Workaround for Express v5 support in express-list-endpoints
+  if (!app._router && app.router) {
+    app._router = app.router;
+  }
+
   const endpoints = listEndpoints(app);
 
   let totalApis = 0;
@@ -18,7 +23,9 @@ const apiTracker = (app) => {
   endpoints.forEach((endpoint) => {
     totalApis += endpoint.methods.length;
 
-    const isPrivate = endpoint.middlewares.includes("authMiddleware");
+    const isPrivate = 
+      endpoint.middlewares.includes("authMiddleware") || 
+      endpoint.middlewares.includes("isAuthenticated");
 
     if (isPrivate) {
       privateApis += endpoint.methods.length;

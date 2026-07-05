@@ -6,6 +6,7 @@ import logger, { logStream } from "./config/logger.js";
 import { API_VERSION } from "./config/envConfig.js";
 import corsOptions from "./config/cors.js";
 import router from "./routes/index.js";
+import errorHandler from "./middlewares/errorHandler.js";
 
 const app = express();
 const apiVersion = API_VERSION;
@@ -50,7 +51,7 @@ app.get("/", (req, res) => {
 // api routes
 app.use(`/api/${apiVersion}`, router);
 
-// app.use(errorHandler);
+app.use(errorHandler);
 
 app.use((req, res) => {
   res.status(404).json({
