@@ -1,6 +1,7 @@
 import Comment from "../models/Comment.js";
 import Blog from "../models/Blog.js";
 import logger from "../config/logger.js";
+import { sendCommentThankYouEmail } from "../services/resendService.js";
 
 /**
  * Public: Get approved comments for a specific blog by slug
@@ -60,6 +61,9 @@ export const submitComment = async (req, res) => {
     });
 
     logger.info(`New guest comment submitted on blog: "${blog.title}" by ${name} (${email})`);
+
+    // Dispatch thank you email notification asynchronously
+    sendCommentThankYouEmail(email, name, blog.title);
 
     return res.status(201).json({
       success: true,
