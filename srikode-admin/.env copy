@@ -3,4 +3,4 @@ VITE_API_URL=http://localhost:5000/api/v1
 
 # ImageKit Media CDN configuration (Client-Side uploads)
 # Copy your public key from ImageKit.io Developer Options
-VITE_IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key_here
+VITE_IMAGEKIT_PUBLIC_KEY=public_nYsOZ+2I7aVBc79TzeVgwSLooqY=

@@ -115,6 +115,22 @@ const blogSchema = new mongoose.Schema({
     ref: "Blog" 
   }],
 
+  githubUrl: {
+    type: String,
+    trim: true,
+    default: ""
+  },
+  liveUrl: {
+    type: String,
+    trim: true,
+    default: ""
+  },
+  videoUrl: {
+    type: String,
+    trim: true,
+    default: ""
+  },
+
   isPublished: { 
     type: Boolean, 
     default: false 
