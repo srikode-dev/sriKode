@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Mail, Send, CheckCircle, MessageSquare } from "lucide-react";
 import { FaGithub, FaYoutube, FaTwitter, FaLinkedin } from "react-icons/fa";
+import { submitContact } from "@/lib/api";
 import Container from "@/components/shared/Container";
 
 export default function ContactUsPage() {
@@ -26,12 +27,25 @@ export default function ContactUsPage() {
     if (errors[e.target.name]) setErrors((err) => ({ ...err, [e.target.name]: "" }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    
     setLoading(true);
-    setTimeout(() => { setLoading(false); setSubmitted(true); }, 1100);
+    try {
+      const res = await submitContact(form);
+      if (res.success) {
+        setSubmitted(true);
+        setForm({ name: "", email: "", subject: "", message: "" });
+      } else {
+        alert(res.message || "Failed to submit query.");
+      }
+    } catch (error) {
+      alert("Failed to send message. Please verify network connection.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const socials = [

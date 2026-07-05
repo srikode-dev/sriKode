@@ -1,21 +1,24 @@
 import Link from "next/link";
-import { blogs } from "@/data/dummy-blog-data";
 
-// Build category list with counts from blog data
-function buildCategories() {
+export default function CategoryList({ blogs = [] }) {
   const countMap = {};
   blogs.forEach((blog) => {
     const cat = blog.category;
-    countMap[cat] = (countMap[cat] || 0) + 1;
+    if (cat) {
+      countMap[cat] = (countMap[cat] || 0) + 1;
+    }
   });
-  return Object.entries(countMap)
-    .map(([name, count]) => ({ name, count, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-") }))
+
+  const categoryList = Object.entries(countMap)
+    .map(([name, count]) => ({ 
+      name, 
+      count, 
+      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-") 
+    }))
     .sort((a, b) => b.count - a.count);
-}
 
-const categoryList = buildCategories();
+  if (categoryList.length === 0) return null;
 
-export default function CategoryList() {
   return (
     <div className="overflow-hidden rounded-xl border border-sk-border bg-sk-bg-card shadow-sm transition-all duration-300">
       {/* Heading */}

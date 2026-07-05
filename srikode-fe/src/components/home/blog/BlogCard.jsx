@@ -33,12 +33,7 @@ export default function BlogCard({ blog }) {
       {/* Content */}
       <div className="flex flex-1 flex-col p-5">
         <Link href={`/blog/${blog.slug}`}>
-          <h3
-            className="line-clamp-2 text-base font-bold leading-snug transition-colors"
-            style={{ color: "var(--sk-text)" }}
-            onMouseEnter={(e) => e.currentTarget.style.color = "var(--sk-primary)"}
-            onMouseLeave={(e) => e.currentTarget.style.color = "var(--sk-text)"}
-          >
+          <h3 className="line-clamp-2 text-base font-bold leading-snug text-sk-text hover:text-sk-primary transition-colors">
             {blog.title}
           </h3>
         </Link>
@@ -54,7 +49,7 @@ export default function BlogCard({ blog }) {
         >
           <span className="flex items-center gap-1">
             <Calendar size={12} />
-            {formatDate(blog.publishedAt)}
+            {formatDate(blog.publishedAt || blog.createdAt)}
           </span>
           <span className="flex items-center gap-1">
             <Clock size={12} />

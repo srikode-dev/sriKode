@@ -1,37 +1,79 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { blogs, getBlogsByCategory, getCategories, formatDate } from "@/data";
+import { formatDate } from "@/data";
+import { getBlogs } from "@/lib/api";
 import Container from "@/components/shared/Container";
 import Sidebar from "@/components/home/sidebar/Sidebar";
 import BlogCard from "@/components/home/blog/BlogCard";
 
+// Dynamic revalidation settings
+export const revalidate = 60; // 60 seconds
+
+// Build categories dynamically from listing response
+function buildCategories(blogs) {
+  const map = {};
+  blogs.forEach((b) => {
+    if (!b.category) return;
+    if (!map[b.category]) {
+      map[b.category] = {
+        name: b.category,
+        slug: b.category.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        count: 0,
+      };
+    }
+    map[b.category].count++;
+  });
+  return Object.values(map).sort((a, b) => b.count - a.count);
+}
+
 export async function generateStaticParams() {
-  const categories = getCategories();
-  return categories.map((cat) => ({ slug: cat.slug }));
+  try {
+    const res = await getBlogs({ limit: 100 });
+    const categories = buildCategories(res.blogs || []);
+    return categories.map((cat) => ({ slug: cat.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const categories = getCategories();
-  const cat = categories.find((c) => c.slug === slug);
-  if (!cat) return {};
-  return {
-    title: `${cat.name} Tutorials`,
-    description: `Browse all ${cat.name} tutorials and articles on SriKode.`,
-    alternates: {
-      canonical: `/category/${slug}`,
-    },
-  };
+  try {
+    const res = await getBlogs({ limit: 100 });
+    const categories = buildCategories(res.blogs || []);
+    const cat = categories.find((c) => c.slug === slug);
+    if (!cat) return {};
+    return {
+      title: `${cat.name} Tutorials`,
+      description: `Browse all ${cat.name} tutorials and articles on SriKode.`,
+      alternates: {
+        canonical: `/category/${slug}`,
+      },
+    };
+  } catch {
+    return {};
+  }
 }
 
 export default async function CategoryPage({ params }) {
   const { slug } = await params;
-  const categories = getCategories();
+  
+  let dbBlogs = [];
+  try {
+    const res = await getBlogs({ limit: 100 });
+    dbBlogs = res.blogs || [];
+  } catch (error) {
+    console.error("Failed to load category page logs in SSR: ", error);
+  }
+
+  const categories = buildCategories(dbBlogs);
   const cat = categories.find((c) => c.slug === slug);
   if (!cat) notFound();
 
-  const categoryBlogs = getBlogsByCategory(slug);
+  const categoryBlogs = dbBlogs.filter(
+    (b) => b.category?.toLowerCase().replace(/[^a-z0-9]+/g, "-") === slug
+  );
 
   return (
     <div className="py-10">
@@ -42,7 +84,7 @@ export default async function CategoryPage({ params }) {
           <ChevronRight size={12} />
           <Link href="/blogs" className="hover:text-blue-600 dark:hover:text-blue-400">Blogs</Link>
           <ChevronRight size={12} />
-          <span className="font-semibold text-gray-700 dark:text-zinc-305">{cat.name}</span>
+          <span className="font-semibold text-gray-700 dark:text-zinc-300">{cat.name}</span>
         </nav>
 
         {/* Page Header */}
@@ -81,7 +123,7 @@ export default async function CategoryPage({ params }) {
             {categoryBlogs.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 {categoryBlogs.map((blog) => (
-                  <BlogCard key={blog.id} blog={blog} />
+                  <BlogCard key={blog._id || blog.id} blog={blog} />
                 ))}
               </div>
             ) : (
@@ -97,7 +139,7 @@ export default async function CategoryPage({ params }) {
 
           {/* Sidebar */}
           <div className="lg:sticky lg:top-20 lg:self-start">
-            <Sidebar blogs={blogs} />
+            <Sidebar blogs={dbBlogs} />
           </div>
         </div>
       </Container>

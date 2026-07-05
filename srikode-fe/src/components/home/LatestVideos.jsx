@@ -34,9 +34,13 @@ const videos = [
 ];
 
 function VideoCard({ video }) {
+  const url = video.url || (video.youtubeId ? `https://www.youtube.com/watch?v=${video.youtubeId}` : "#");
+  const views = video.views || video.viewCount || "0";
+  const category = video.category || "YouTube";
+
   return (
     <a
-      href={video.url}
+      href={url}
       target="_blank"
       rel="noopener noreferrer"
       className="group flex flex-col overflow-hidden rounded-xl border border-(--sk-border) bg-(--sk-bg-card) shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
@@ -44,7 +48,7 @@ function VideoCard({ video }) {
       {/* Thumbnail */}
       <div className="relative aspect-video overflow-hidden">
         <Image
-          src={video.thumbnail}
+          src={video.thumbnail || "https://picsum.photos/seed/video/640/360"}
           alt={video.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -62,7 +66,7 @@ function VideoCard({ video }) {
         </span>
         {/* Category */}
         <span className="absolute left-3 top-3 rounded-full bg-red-600 px-3 py-1 text-[10px] font-semibold uppercase text-white">
-          {video.category}
+          {category}
         </span>
       </div>
 
@@ -74,7 +78,7 @@ function VideoCard({ video }) {
         <div className="mt-3 flex items-center gap-3 text-xs text-(--sk-text-faint)">
           <span className="flex items-center gap-1">
             <Eye size={12} />
-            {video.views} views
+            {views} views
           </span>
           <span className="flex items-center gap-1">
             <Clock size={12} />
@@ -86,7 +90,9 @@ function VideoCard({ video }) {
   );
 }
 
-export default function LatestVideos() {
+export default function LatestVideos({ videos = [] }) {
+  if (!videos || videos.length === 0) return null;
+
   return (
     <section className="py-14 bg-(--sk-bg-subtle) border-t border-(--sk-border)">
       <Container>
@@ -112,7 +118,7 @@ export default function LatestVideos() {
         {/* Grid */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {videos.map((video) => (
-            <VideoCard key={video.id} video={video} />
+            <VideoCard key={video._id || video.id} video={video} />
           ))}
         </div>
       </Container>

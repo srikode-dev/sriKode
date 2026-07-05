@@ -1,36 +1,32 @@
 "use client";
 
-import { useState } from "react";
-import { MessageCircle, Send, CheckCircle } from "lucide-react";
-
-const PLACEHOLDER_COMMENTS = [
-  {
-    id: "c1",
-    name: "Arjun Mehta",
-    date: "2026-06-28",
-    text: "Really well written! Loved the step-by-step explanations. Keep it up!",
-    avatar: "A",
-  },
-  {
-    id: "c2",
-    name: "Priya Sharma",
-    date: "2026-06-30",
-    text: "This helped me understand the concept so much better. Thank you SriKode!",
-    avatar: "P",
-  },
-];
+import { useEffect, useState } from "react";
+import { MessageCircle, Send, CheckCircle, Clock } from "lucide-react";
+import { getComments, submitComment } from "@/lib/api";
 
 function Comment({ comment }) {
+  const avatar = comment.name ? comment.name.charAt(0).toUpperCase() : "?";
+  const dateFormatted = comment.createdAt 
+    ? new Date(comment.createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : "";
+
   return (
     <div className="flex gap-3">
       {/* Avatar */}
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sk-primary text-sm font-bold text-white">
-        {comment.avatar}
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sk-primary text-sm font-bold text-white uppercase">
+        {avatar}
       </div>
       <div className="flex-1">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-sk-text">{comment.name}</span>
-          <span className="text-xs text-sk-text-faint">{comment.date}</span>
+          <span className="text-xs text-sk-text-faint flex items-center gap-1">
+            <Clock size={10} />
+            {dateFormatted}
+          </span>
         </div>
         <p className="mt-1 text-sm text-sk-text-muted">{comment.text}</p>
       </div>
@@ -38,22 +34,49 @@ function Comment({ comment }) {
   );
 }
 
-export default function CommentSection({ blogId }) {
-  const [comments, setComments] = useState(PLACEHOLDER_COMMENTS);
+export default function CommentSection({ blogId, slug }) {
+  const [comments, setComments] = useState([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    if (slug) {
+      async function loadComments() {
+        try {
+          const res = await getComments(slug);
+          setComments(res.comments || []);
+        } catch (error) {
+          console.error("Failed to fetch comments for blog detail: ", error);
+        } finally {
+          setFetching(false);
+        }
+      }
+      loadComments();
+    }
+  }, [slug]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !email || !message) return;
+    if (!name.trim() || !email.trim() || !message.trim()) return;
+    
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await submitComment(slug, { name, email, text: message });
+      if (res.success) {
+        setSubmitted(true);
+        setMessage("");
+      } else {
+        alert(res.message || "Failed to post comment.");
+      }
+    } catch (error) {
+      alert("Error posting comment. Please try again.");
+    } finally {
       setLoading(false);
-      setSubmitted(true);
-    }, 900);
+    }
   };
 
   return (
@@ -62,16 +85,22 @@ export default function CommentSection({ blogId }) {
       <div className="mb-6 flex items-center gap-3">
         <MessageCircle size={20} className="text-sk-primary" />
         <h2 className="text-xl font-bold text-sk-text">
-          Comments ({comments.length})
+          Comments ({fetching ? "..." : comments.length})
         </h2>
       </div>
 
       {/* Existing comments */}
-      <div className="mb-10 flex flex-col gap-6">
-        {comments.map((c) => (
-          <Comment key={c.id} comment={c} />
-        ))}
-      </div>
+      {fetching ? (
+        <div className="py-4 text-sm text-sk-text-faint italic">Loading comments...</div>
+      ) : comments.length === 0 ? (
+        <div className="mb-10 text-sm text-sk-text-faint italic">No comments approved yet. Be the first to share your thoughts!</div>
+      ) : (
+        <div className="mb-10 flex flex-col gap-6">
+          {comments.map((c) => (
+            <Comment key={c._id || c.id} comment={c} />
+          ))}
+        </div>
+      )}
 
       {/* Leave a comment */}
       <div className="rounded-xl border border-sk-border bg-sk-bg-subtle p-6">

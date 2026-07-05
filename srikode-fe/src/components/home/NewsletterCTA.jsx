@@ -2,20 +2,31 @@
 
 import { useState } from "react";
 import { Send, CheckCircle } from "lucide-react";
+import { subscribeNewsletter } from "@/lib/api";
 
 export default function NewsletterCTA() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email) return;
+    if (!email.trim()) return;
+
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await subscribeNewsletter(email);
+      if (res.success) {
+        setSubmitted(true);
+        setEmail("");
+      } else {
+        alert(res.message || "Failed to subscribe.");
+      }
+    } catch (error) {
+      alert("Failed to subscribe. Please verify network connection.");
+    } finally {
       setLoading(false);
-      setSubmitted(true);
-    }, 1000);
+    }
   };
 
   return (

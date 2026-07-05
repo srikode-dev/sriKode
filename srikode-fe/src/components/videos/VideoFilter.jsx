@@ -5,16 +5,20 @@ import Image from "next/image";
 import { Play, Clock, Eye } from "lucide-react";
 
 function VideoCard({ video }) {
+  const url = video.url || (video.youtubeId ? `https://www.youtube.com/watch?v=${video.youtubeId}` : "#");
+  const views = video.views || video.viewCount || "0";
+  const category = video.category || "YouTube";
+
   return (
     <a
-      href={video.url}
+      href={url}
       target="_blank"
       rel="noopener noreferrer"
       className="group flex flex-col overflow-hidden rounded-xl border border-sk-border bg-sk-bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
     >
       <div className="relative aspect-video overflow-hidden">
         <Image
-          src={video.thumbnail}
+          src={video.thumbnail || "https://picsum.photos/seed/video/640/360"}
           alt={video.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -29,7 +33,7 @@ function VideoCard({ video }) {
           {video.duration}
         </span>
         <span className="absolute left-3 top-3 rounded-full bg-sk-primary px-3 py-1 text-[10px] font-semibold uppercase text-white shadow">
-          {video.category}
+          {category}
         </span>
       </div>
       <div className="flex flex-1 flex-col p-4">
@@ -39,7 +43,7 @@ function VideoCard({ video }) {
         <div className="mt-3 flex items-center gap-3 text-xs text-sk-text-faint">
           <span className="flex items-center gap-1">
             <Eye size={12} />
-            {video.views} views
+            {views} views
           </span>
           <span className="flex items-center gap-1">
             <Clock size={12} />
@@ -52,10 +56,12 @@ function VideoCard({ video }) {
 }
 
 export default function VideoFilter({ videos }) {
-  const categories = ["All", ...Array.from(new Set(videos.map((v) => v.category)))];
+  const categories = ["All", ...Array.from(new Set(videos.map((v) => v.category || "YouTube")))];
   const [active, setActive] = useState("All");
 
-  const filtered = active === "All" ? videos : videos.filter((v) => v.category === active);
+  const filtered = active === "All" 
+    ? videos 
+    : videos.filter((v) => (v.category || "YouTube") === active);
 
   return (
     <>
@@ -80,7 +86,7 @@ export default function VideoFilter({ videos }) {
       {/* Grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((video) => (
-          <VideoCard key={video.id} video={video} />
+          <VideoCard key={video._id || video.id} video={video} />
         ))}
       </div>
 

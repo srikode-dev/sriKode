@@ -5,8 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Clock } from "lucide-react";
 import Container from "@/components/shared/Container";
-import { blogs, formatDate } from "@/data";
-
+import { formatDate } from "@/data";
 const statsData = [
   { value: 50, label: "Tutorials" },
   { value: 10, suffix: "K+", label: "Readers" },
@@ -111,11 +110,13 @@ function StatItem({ value, suffix, label, isLast }) {
   );
 }
 
-export default function Hero() {
+export default function Hero({ blogs = [] }) {
   const featuredBlog = blogs[0];
   const blog2 = blogs[1];
   const blog3 = blogs[2];
   const blog4 = blogs[3];
+
+  if (!featuredBlog) return null;
 
   return (
     <section className="pt-6 pb-8">
@@ -128,19 +129,25 @@ export default function Hero() {
           </div>
 
           {/* Card 2: Right Top Medium (2 cols wide on md, 6 cols wide on lg, 1 row high) */}
-          <div className="md:col-span-2 lg:col-span-6 lg:row-span-1">
-            <HeroCard blog={blog2} type="medium" />
-          </div>
+          {blog2 && (
+            <div className="md:col-span-2 lg:col-span-6 lg:row-span-1">
+              <HeroCard blog={blog2} type="medium" />
+            </div>
+          )}
 
           {/* Card 3: Right Bottom Left Small (1 col wide on md, 3 cols wide on lg, 1 row high) */}
-          <div className="md:col-span-1 lg:col-span-3 lg:row-span-1">
-            <HeroCard blog={blog3} type="small" />
-          </div>
+          {blog3 && (
+            <div className="md:col-span-1 lg:col-span-3 lg:row-span-1">
+              <HeroCard blog={blog3} type="small" />
+            </div>
+          )}
 
           {/* Card 4: Right Bottom Right Small (1 col wide on md, 3 cols wide on lg, 1 row high) */}
-          <div className="md:col-span-1 lg:col-span-3 lg:row-span-1">
-            <HeroCard blog={blog4} type="small" />
-          </div>
+          {blog4 && (
+            <div className="md:col-span-1 lg:col-span-3 lg:row-span-1">
+              <HeroCard blog={blog4} type="small" />
+            </div>
+          )}
         </div>
 
         {/* Minimalist Centered Inline Stats */}

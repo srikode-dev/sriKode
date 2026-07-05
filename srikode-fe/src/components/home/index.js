@@ -1,4 +1,3 @@
-import { blogs } from "@/data/dummy-blog-data";
 import Container from "@/components/shared/Container";
 import { Hero } from "./hero";
 import BlogGrid from "./blog/BlogGrid";
@@ -6,11 +5,11 @@ import Sidebar from "./sidebar/Sidebar";
 import LatestVideos from "./LatestVideos";
 import NewsletterCTA from "./NewsletterCTA";
 
-export default function HomeSection() {
+export default function HomeSection({ blogs = [], videos = [] }) {
   return (
     <>
       {/* ── Hero ── */}
-      <Hero />
+      <Hero blogs={blogs} />
 
       {/* ── Blog Grid + Sidebar ── */}
       <section className="py-12">
@@ -28,7 +27,7 @@ export default function HomeSection() {
       </section>
 
       {/* ── Latest Videos ── */}
-      <LatestVideos />
+      <LatestVideos videos={videos} />
 
       {/* ── Newsletter CTA ── */}
       <NewsletterCTA />

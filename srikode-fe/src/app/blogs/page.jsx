@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Search, X, Calendar, Clock, ArrowRight, Grid, List } from "lucide-react";
-import { blogs } from "@/data/dummy-blog-data";
+import { getBlogs } from "@/lib/api";
+import { formatDate } from "@/data";
 import Container from "@/components/shared/Container";
 import Sidebar from "@/components/home/sidebar/Sidebar";
 import BlogCard from "@/components/home/blog/BlogCard";
-
-// Derive unique categories from data
-const ALL_CATEGORIES = ["All", ...Array.from(new Set(blogs.map((b) => b.category)))];
 
 const POSTS_PER_PAGE = 8;
 
@@ -50,12 +48,7 @@ function BlogListCard({ blog }) {
             {blog.category}
           </span>
           <Link href={`/blog/${blog.slug}`}>
-            <h2
-              className="mt-2 line-clamp-2 text-base font-bold transition-colors"
-              style={{ color: "var(--sk-text)" }}
-              onMouseEnter={(e) => e.currentTarget.style.color = "var(--sk-primary)"}
-              onMouseLeave={(e) => e.currentTarget.style.color = "var(--sk-text)"}
-            >
+            <h2 className="mt-2 line-clamp-2 text-base font-bold text-sk-text hover:text-sk-primary transition-colors">
               {blog.title}
             </h2>
           </Link>
@@ -68,7 +61,7 @@ function BlogListCard({ blog }) {
           <div className="flex items-center gap-3 text-xs" style={{ color: "var(--sk-text-faint)" }}>
             <span className="flex items-center gap-1">
               <Calendar size={12} />
-              {blog.publishedAt}
+              {formatDate(blog.publishedAt || blog.createdAt)}
             </span>
             <span className="flex items-center gap-1">
               <Clock size={12} />
@@ -89,10 +82,30 @@ function BlogListCard({ blog }) {
 }
 
 export default function BlogsPage() {
+  const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState("grid");
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await getBlogs({ limit: 100 });
+        setBlogs(res.blogs || []);
+      } catch (error) {
+        console.error("Failed to load blogs on client list page:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  const ALL_CATEGORIES = useMemo(() => {
+    return ["All", ...Array.from(new Set(blogs.map((b) => b.category)))];
+  }, [blogs]);
 
   const filtered = useMemo(() => {
     return blogs.filter((b) => {
@@ -103,7 +116,7 @@ export default function BlogsPage() {
         b.excerpt.toLowerCase().includes(search.toLowerCase());
       return matchCat && matchSearch;
     });
-  }, [search, activeCategory]);
+  }, [blogs, search, activeCategory]);
 
   const totalPages = Math.ceil(filtered.length / POSTS_PER_PAGE);
   const paginated = filtered.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
@@ -230,17 +243,21 @@ export default function BlogsPage() {
               </div>
             </div>
 
-            {paginated.length > 0 ? (
+            {loading ? (
+              <div className="flex h-64 items-center justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-4" style={{ borderTopColor: "var(--sk-primary)", borderLeftColor: "var(--sk-border)", borderRightColor: "var(--sk-border)", borderBottomColor: "var(--sk-border)" }} />
+              </div>
+            ) : paginated.length > 0 ? (
               viewMode === "grid" ? (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                   {paginated.map((blog) => (
-                    <BlogCard key={blog.id} blog={blog} />
+                    <BlogCard key={blog._id || blog.id} blog={blog} />
                   ))}
                 </div>
               ) : (
                 <div className="flex flex-col gap-5">
                   {paginated.map((blog) => (
-                    <BlogListCard key={blog.id} blog={blog} />
+                    <BlogListCard key={blog._id || blog.id} blog={blog} />
                   ))}
                 </div>
               )

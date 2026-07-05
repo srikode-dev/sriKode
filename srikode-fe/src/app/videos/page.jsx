@@ -11,24 +11,33 @@ export const metadata = {
   },
 };
 
-// Static video data — will be replaced by API in Phase 5
-export const videos = [
-  { id: "v1", title: "Build a Responsive Navigation Bar in HTML CSS & JavaScript", thumbnail: "https://picsum.photos/seed/vid1/640/360", duration: "12:34", views: "24K", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", category: "HTML & CSS" },
-  { id: "v2", title: "Create a Beautiful Login Form with HTML CSS & JavaScript", thumbnail: "https://picsum.photos/seed/vid2/640/360", duration: "18:20", views: "18K", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", category: "JavaScript" },
-  { id: "v3", title: "Build a Full Stack Todo App with React & Node.js", thumbnail: "https://picsum.photos/seed/vid3/640/360", duration: "42:10", views: "31K", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", category: "React" },
-  { id: "v4", title: "Next.js 15 Full Course — App Router, Server Actions & More", thumbnail: "https://picsum.photos/seed/vid4/640/360", duration: "1:12:44", views: "45K", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", category: "Next.js" },
-  { id: "v5", title: "Complete CSS Flexbox & Grid Tutorial for Beginners", thumbnail: "https://picsum.photos/seed/vid5/640/360", duration: "28:05", views: "22K", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", category: "HTML & CSS" },
-  { id: "v6", title: "Build a REST API with Node.js & Express — Full Tutorial", thumbnail: "https://picsum.photos/seed/vid6/640/360", duration: "55:30", views: "37K", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", category: "Node.js" },
-  { id: "v7", title: "MongoDB & Mongoose Complete Guide 2026", thumbnail: "https://picsum.photos/seed/vid7/640/360", duration: "38:15", views: "19K", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", category: "MongoDB" },
-  { id: "v8", title: "Tailwind CSS v4 — Everything You Need to Know", thumbnail: "https://picsum.photos/seed/vid8/640/360", duration: "22:50", views: "29K", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", category: "Tailwind CSS" },
-  { id: "v9", title: "React Hooks Deep Dive — useState, useEffect, useRef & More", thumbnail: "https://picsum.photos/seed/vid9/640/360", duration: "46:00", views: "53K", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", category: "React" },
-];
+import { getVideos } from "@/lib/api";
 
-export default function VideosPage() {
-  const totalViews = videos.reduce((acc, v) => {
-    const n = parseFloat(v.views.replace("K", "")) * 1000;
-    return acc + n;
+// Enable dynamic revalidation for YouTube feeds updates
+export const revalidate = 300; // 5 minutes
+
+export default async function VideosPage() {
+  let dbVideos = [];
+  try {
+    const res = await getVideos();
+    dbVideos = res.videos || [];
+  } catch (error) {
+    console.error("Failed to load videos in Next.js SSR page: ", error);
+  }
+
+  const totalViews = dbVideos.reduce((acc, v) => {
+    const viewsStr = String(v.viewCount || "0").replace(/K/gi, "").replace(/M/gi, "");
+    const multiplier = String(v.viewCount || "0").toLowerCase().includes("k") ? 1000 : 
+                       String(v.viewCount || "0").toLowerCase().includes("m") ? 1000000 : 1;
+    const n = parseFloat(viewsStr) * multiplier;
+    return acc + (isNaN(n) ? 0 : n);
   }, 0);
+
+  const formattedViews = totalViews >= 1000000 
+    ? `${(totalViews / 1000000).toFixed(1)}M+` 
+    : totalViews >= 1000 
+      ? `${Math.round(totalViews / 1000)}K+` 
+      : `${totalViews}+`;
 
   return (
     <div className="py-10">
@@ -56,9 +65,9 @@ export default function VideosPage() {
         {/* Channel stats strip */}
         <div className="mb-10 grid grid-cols-3 divide-x divide-sk-border overflow-hidden rounded-xl border border-sk-border bg-sk-bg-card shadow-sm">
           {[
-            { label: "Total Videos", value: `${videos.length}+` },
-            { label: "Total Views", value: `${Math.round(totalViews / 1000)}K+` },
-            { label: "Subscribers", value: "500+" },
+            { label: "Total Videos", value: `${dbVideos.length}+` },
+            { label: "Total Views", value: formattedViews },
+            { label: "Subscribers", value: "1K+" },
           ].map(({ label, value }) => (
             <div key={label} className="flex flex-col items-center py-5">
               <span className="text-2xl font-extrabold" style={{ color: "var(--sk-text)" }}>{value}</span>
@@ -68,7 +77,7 @@ export default function VideosPage() {
         </div>
 
         {/* Client-side filter + grid */}
-        <VideoFilter videos={videos} />
+        <VideoFilter videos={dbVideos} />
       </Container>
     </div>
   );

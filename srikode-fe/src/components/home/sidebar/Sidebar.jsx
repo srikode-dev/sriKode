@@ -12,7 +12,7 @@ export default function Sidebar({ blogs }) {
       <SocialStats />
       <MostPopular blogs={blogs} />
       <FeaturedPost blog={featured} />
-      <CategoryList />
+      <CategoryList blogs={blogs} />
     </aside>
   );
 }

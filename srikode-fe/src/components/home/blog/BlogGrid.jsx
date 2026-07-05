@@ -35,7 +35,7 @@ export default function BlogGrid({ blogs }) {
       {/* Grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         {paginated.map((blog) => (
-          <BlogCard key={blog.id} blog={blog} />
+          <BlogCard key={blog._id || blog.id} blog={blog} />
         ))}
       </div>
 

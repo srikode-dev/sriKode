@@ -2,8 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Code2, Globe, Database, Server } from "lucide-react";
 import { FaGithub, FaYoutube, FaTwitter, FaLinkedin } from "react-icons/fa";
 import Container from "@/components/shared/Container";
-import { blogs, getCategories } from "@/data";
-
+import { getBlogs } from "@/lib/api";
 export const metadata = {
   title: "About",
   description: "Learn about Srikant Sahu — Full Stack Developer, educator, and founder of SriKode.",
@@ -40,9 +39,15 @@ const socials = [
   { icon: FaLinkedin, label: "LinkedIn", href: "https://linkedin.com", extraClass: "hover:bg-blue-700 hover:text-white" },
 ];
 
-export default function AboutPage() {
-  const categories = getCategories();
-  const totalViews = blogs.reduce((acc, b) => acc + (b.views || 0), 0);
+export default async function AboutPage() {
+  const res = await getBlogs({ limit: 100 }).catch(() => ({ blogs: [] }));
+  const blogs = res.blogs || [];
+  
+  const categoryMap = {};
+  blogs.forEach((b) => { if (b.category) categoryMap[b.category] = true; });
+  const categoriesCount = Object.keys(categoryMap).length;
+
+  const totalViews = blogs.reduce((acc, b) => acc + (b.viewCount || 0), 0);
 
   return (
     <div className="py-12" style={{ backgroundColor: "var(--sk-bg)" }}>
@@ -131,7 +136,7 @@ export default function AboutPage() {
               {[
                 { label: "Tutorials Published",   value: `${blogs.length}+`,                              icon: Code2 },
                 { label: "Total Reads",           value: `${(totalViews / 1000).toFixed(0)}K+`,           icon: Globe },
-                { label: "Categories Covered",    value: `${categories.length}`,                          icon: Database },
+                { label: "Categories Covered",    value: `${categoriesCount}`,                          icon: Database },
                 { label: "Years Building",        value: "7+",                                            icon: Server },
               ].map(({ label, value, icon: Icon }) => (
                 <div key={label} className="flex items-center gap-4">

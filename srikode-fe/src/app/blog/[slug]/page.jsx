@@ -3,9 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   Calendar, Clock, ArrowLeft, ArrowRight, Tag, User,
-  Eye, Heart, Bookmark, ChevronRight, ExternalLink, Code2
+  Eye, Heart, Bookmark, ChevronRight, ExternalLink, Code2, Play
 } from "lucide-react";
-import { blogs, getRelatedBlogs, formatDate } from "@/data";
+import { formatDate } from "@/data";
+import { getBlogs, getBlogBySlug } from "@/lib/api";
 import Container from "@/components/shared/Container";
 import Sidebar from "@/components/home/sidebar/Sidebar";
 import TableOfContents from "@/components/blog/TableOfContents";
@@ -13,36 +14,63 @@ import ArticleContent from "@/components/blog/ArticleContent";
 import CommentSection from "@/components/blog/CommentSection";
 
 export async function generateStaticParams() {
-  return blogs.map((b) => ({ slug: b.slug }));
+  try {
+    const res = await getBlogs({ limit: 100 });
+    return res.blogs?.map((b) => ({ slug: b.slug })) || [];
+  } catch (error) {
+    console.error("Error generating static params for blogs: ", error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const blog = blogs.find((b) => b.slug === slug);
-  if (!blog) return {};
-  return {
-    title: blog.title,
-    description: blog.excerpt,
-    alternates: {
-      canonical: `/blog/${slug}`,
-    },
-    openGraph: {
+  try {
+    const res = await getBlogBySlug(slug);
+    const blog = res.blog;
+    if (!blog) return {};
+    return {
       title: blog.title,
       description: blog.excerpt,
-      images: [{ url: blog.coverImage }],
-    },
-  };
+      alternates: {
+        canonical: `/blog/${slug}`,
+      },
+      openGraph: {
+        title: blog.title,
+        description: blog.excerpt,
+        images: [{ url: blog.coverImage }],
+      },
+    };
+  } catch {
+    return {};
+  }
 }
 
 export default async function BlogDetailPage({ params }) {
   const { slug } = await params;
-  const blog = blogs.find((b) => b.slug === slug);
+
+  let blog = null;
+  let prevBlog = null;
+  let nextBlog = null;
+  let dbBlogs = [];
+
+  try {
+    const res = await getBlogBySlug(slug);
+    blog = res.blog;
+
+    const listRes = await getBlogs({ limit: 100 });
+    dbBlogs = listRes.blogs || [];
+
+    const currentIndex = dbBlogs.findIndex((b) => b.slug === slug);
+    prevBlog = currentIndex > 0 ? dbBlogs[currentIndex - 1] : null;
+    nextBlog = currentIndex < dbBlogs.length - 1 ? dbBlogs[currentIndex + 1] : null;
+  } catch (error) {
+    console.error("Failed to load blog page dynamically: ", error);
+  }
+
   if (!blog) notFound();
 
-  const currentIndex = blogs.findIndex((b) => b.slug === slug);
-  const prevBlog = currentIndex > 0 ? blogs[currentIndex - 1] : null;
-  const nextBlog = currentIndex < blogs.length - 1 ? blogs[currentIndex + 1] : null;
-  const relatedBlogs = getRelatedBlogs(blog.id, blog.category, 3);
+  const relatedBlogs = blog.relatedPosts || [];
 
   // Dynamically generate table of contents items from headings inside the article content
   const tocItems = blog.content
@@ -60,11 +88,11 @@ export default async function BlogDetailPage({ params }) {
     "headline": blog.title,
     "description": blog.excerpt,
     "image": blog.coverImage,
-    "datePublished": blog.publishedAt,
-    "dateModified": blog.updatedAt || blog.publishedAt,
+    "datePublished": blog.createdAt,
+    "dateModified": blog.updatedAt || blog.createdAt,
     "author": {
       "@type": "Person",
-      "name": blog.author.name,
+      "name": blog.author?.name || "Srikant Sahu",
       "url": "https://srikode.dev/about"
     },
     "publisher": {
@@ -119,11 +147,11 @@ export default async function BlogDetailPage({ params }) {
               <div className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-sk-border pb-6 text-sm text-sk-text-muted">
                 <div className="flex items-center gap-2">
                   <User size={14} className="text-sk-text-faint" />
-                  <span className="font-semibold text-sk-text">{blog.author.name}</span>
+                  <span className="font-semibold text-sk-text">{blog.author?.name || "Srikant Sahu"}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Calendar size={14} className="text-sk-text-faint" />
-                  {formatDate(blog.publishedAt)}
+                  {formatDate(blog.createdAt)}
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Clock size={14} className="text-sk-text-faint" />
@@ -131,22 +159,14 @@ export default async function BlogDetailPage({ params }) {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Eye size={14} className="text-sk-text-faint" />
-                  {blog.views?.toLocaleString()} views
-                </div>
-                <div className="ml-auto flex items-center gap-3">
-                  <button aria-label="Like" className="flex items-center gap-1 rounded-full border border-sk-border px-3.5 py-1.5 text-xs font-semibold text-sk-text-muted transition hover:border-red-500 hover:text-red-500 hover:bg-red-500/10">
-                    <Heart size={13} /> {blog.likes}
-                  </button>
-                  <button aria-label="Bookmark" className="flex items-center gap-1 rounded-full border border-sk-border px-3.5 py-1.5 text-xs font-semibold text-sk-text-muted transition hover:border-sk-primary hover:text-sk-primary hover:bg-sk-primary-light">
-                    <Bookmark size={13} /> Save
-                  </button>
+                  {(blog.viewCount || 0).toLocaleString()} views
                 </div>
               </div>
 
               {/* Cover Image Card */}
               <div className="relative aspect-21/9 w-full overflow-hidden rounded-2xl bg-sk-bg-subtle shadow-xs border border-sk-border mb-8">
                 <Image
-                  src={blog.coverImage}
+                  src={blog.coverImage || "https://picsum.photos/seed/blog/800/400"}
                   alt={blog.title}
                   fill
                   priority
@@ -170,27 +190,54 @@ export default async function BlogDetailPage({ params }) {
               {/* Article body */}
               <ArticleContent content={blog.content} toc={tocItems} />
 
+              {/* Optional Video Walkthrough Section */}
+              {blog.videoUrl && (
+                <div className="mt-12 space-y-4">
+                  <h3 className="text-lg font-extrabold text-sk-text flex items-center gap-2">
+                    <Play className="text-red-500" size={20} fill="currentColor" />
+                    Video Walkthrough Tutorial
+                  </h3>
+                  <div className="overflow-hidden rounded-xl border border-sk-border">
+                    <div className="relative aspect-video">
+                      <iframe
+                        src={blog.videoUrl.replace("watch?v=", "embed/")}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="absolute inset-0 h-full w-full"
+                        title="Walkthrough video"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Action buttons (Live Demo & Source Code) */}
-              <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 rounded-2xl border border-sk-border bg-sk-bg-subtle p-6 select-none">
-                <a
-                  href={blog.demoUrl || "https://demo.srikode.dev"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-sk-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sk-primary-hover hover:shadow active:scale-[0.98]"
-                >
-                  <ExternalLink size={16} />
-                  Live Demo
-                </a>
-                <a
-                  href={blog.sourceCodeUrl || "https://github.com/srikode-dev/srikode-tutorials"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-sk-border bg-sk-bg-card px-6 py-3 text-sm font-semibold text-sk-text-muted shadow-xs transition hover:bg-sk-primary-light hover:text-sk-primary active:scale-[0.98]"
-                >
-                  <Code2 size={16} />
-                  Source Code
-                </a>
-              </div>
+              {(blog.liveUrl || blog.demoUrl || blog.githubUrl || blog.sourceCodeUrl) && (
+                <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 rounded-2xl border border-sk-border bg-sk-bg-subtle p-6 select-none">
+                  {(blog.liveUrl || blog.demoUrl) && (
+                    <a
+                      href={blog.liveUrl || blog.demoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-sk-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sk-primary-hover hover:shadow active:scale-[0.98]"
+                    >
+                      <ExternalLink size={16} />
+                      Live Demo
+                    </a>
+                  )}
+                  {(blog.githubUrl || blog.sourceCodeUrl) && (
+                    <a
+                      href={blog.githubUrl || blog.sourceCodeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-sk-border bg-sk-bg-card px-6 py-3 text-sm font-semibold text-sk-text-muted shadow-xs transition hover:bg-sk-primary-light hover:text-sk-primary active:scale-[0.98]"
+                    >
+                      <Code2 size={16} />
+                      Source Code
+                    </a>
+                  )}
+                </div>
+              )}
 
               {/* Tags */}
               {blog.tags?.length > 0 && (
@@ -250,14 +297,14 @@ export default async function BlogDetailPage({ params }) {
                   </div>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     {relatedBlogs.map((rb) => (
-                      <Link key={rb.id} href={`/blog/${rb.slug}`} className="group block overflow-hidden rounded-xl border border-sk-border bg-sk-bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+                      <Link key={rb._id || rb.id} href={`/blog/${rb.slug}`} className="group block overflow-hidden rounded-xl border border-sk-border bg-sk-bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-md">
                         <div className="relative aspect-video overflow-hidden">
-                          <Image src={rb.coverImage} alt={rb.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="300px" />
+                          <Image src={rb.coverImage || "https://picsum.photos/seed/related/300/200"} alt={rb.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="300px" />
                         </div>
                         <div className="p-3">
                           <span className="text-[10px] font-semibold uppercase text-sk-primary">{rb.category}</span>
                           <p className="mt-1 line-clamp-2 text-sm font-bold text-sk-text group-hover:text-sk-primary">{rb.title}</p>
-                          <p className="mt-1 text-[11px] text-sk-text-faint">{formatDate(rb.publishedAt)}</p>
+                          <p className="mt-1 text-[11px] text-sk-text-faint">{formatDate(rb.createdAt)}</p>
                         </div>
                       </Link>
                     ))}
@@ -266,7 +313,7 @@ export default async function BlogDetailPage({ params }) {
               )}
 
               {/* Comment Section */}
-              <CommentSection blogId={blog.id} />
+              <CommentSection blogId={blog._id || blog.id} slug={blog.slug} />
             </article>
 
             {/* ── Right: Sticky Sidebar ── */}
@@ -277,7 +324,7 @@ export default async function BlogDetailPage({ params }) {
                   <TableOfContents items={tocItems} />
                 </div>
               )}
-              <Sidebar blogs={blogs} />
+              <Sidebar blogs={dbBlogs} />
             </div>
           </div>
         </Container>

@@ -2,10 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { Calendar } from "lucide-react";
 
+import { formatDate } from "@/data";
+
 export default function MostPopular({ blogs }) {
   // Sort by views descending, take top 5
   const popular = [...blogs]
-    .sort((a, b) => (b.views || 0) - (a.views || 0))
+    .sort((a, b) => (b.viewCount || b.views || 0) - (a.viewCount || a.views || 0))
     .slice(0, 5);
 
   return (
@@ -20,12 +22,12 @@ export default function MostPopular({ blogs }) {
 
       <ul className="divide-y divide-sk-border px-4 py-2">
         {popular.map((blog) => (
-          <li key={blog.id} className="group py-3">
+          <li key={blog._id || blog.id} className="group py-3">
             <Link href={`/blog/${blog.slug}`} className="flex items-start gap-3">
               {/* Thumbnail */}
               <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg">
                 <Image
-                  src={blog.coverImage}
+                  src={blog.coverImage || "https://picsum.photos/seed/popular/150/100"}
                   alt={blog.title}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -40,7 +42,7 @@ export default function MostPopular({ blogs }) {
                 </p>
                 <span className="mt-1 flex items-center gap-1 text-[11px] text-sk-text-faint">
                   <Calendar size={11} />
-                  {blog.publishedAt}
+                  {formatDate(blog.publishedAt || blog.createdAt)}
                 </span>
               </div>
             </Link>
