@@ -5,7 +5,7 @@ import Container from "@/components/shared/Container";
 import { getBlogs } from "@/lib/api";
 export const metadata = {
   title: "About",
-  description: "Learn about Srikant Sahu — Full Stack Developer, educator, and founder of SriKode.",
+  description: "Learn about SriKode — A Developer Community and platform for modern web development tutorials.",
   alternates: {
     canonical: "/about",
   },
@@ -25,11 +25,9 @@ const techStack = [
 ];
 
 const timeline = [
-  { year: "2019", title: "Started Learning Web Dev", desc: "Picked up HTML & CSS out of curiosity. Never looked back." },
-  { year: "2021", title: "Built First MERN Project", desc: "Shipped a full-stack app with React, Node.js and MongoDB." },
-  { year: "2023", title: "Launched SriKode", desc: "Started documenting my journey and sharing tutorials publicly." },
-  { year: "2025", title: "10K+ Monthly Readers", desc: "The community grew. Real devs were learning from my content." },
-  { year: "2026", title: "Building in Public", desc: "Recording every project, blog and tutorial — transparency first." },
+  { year: "2026", title: "The Idea", desc: "Decided to build a centralized platform to share practical web development knowledge." },
+  { year: "2026", title: "Building in Public", desc: "Documented the entire process of building the platform from scratch." },
+  { year: "2026", title: "Launched SriKode", desc: "Officially launched the platform to the community. Day 1 starts now." },
 ];
 
 const socials = [
@@ -71,27 +69,27 @@ export default async function AboutPage() {
                   color: "var(--sk-primary-text)",
                 }}
               >
-                About Me
+                About Us
               </span>
               <h1
                 className="text-4xl font-extrabold md:text-5xl"
                 style={{ color: "var(--sk-text)" }}
               >
-                Hi, I&apos;m{" "}
-                <span style={{ color: "var(--sk-primary)" }}>Srikant Sahu</span>
+                Welcome to{" "}
+                <span style={{ color: "var(--sk-primary)" }}>SriKode</span>
               </h1>
               <p className="mt-2 text-lg font-medium" style={{ color: "var(--sk-text-muted)" }}>
-                Full Stack Developer & Educator
+                Developer Community & Educational Platform
               </p>
 
               <p className="mt-5 leading-relaxed" style={{ color: "var(--sk-text-muted)" }}>
-                I&apos;m a MERN & Next.js developer passionate about building practical web applications
-                and making web development accessible to everyone. SriKode is my platform to share
-                everything I learn — through detailed tutorials, real projects and honest writing.
+                SriKode is a platform passionate about building practical web applications
+                and making web development accessible to everyone. It is a place to share
+                everything about modern web dev — through detailed tutorials, real projects, and honest writing.
               </p>
               <p className="mt-4 leading-relaxed" style={{ color: "var(--sk-text-muted)" }}>
-                I believe the best way to learn is by building real things. Every tutorial on SriKode
-                is hands-on, step-by-step and based on what I actually use in production.
+                We believe the best way to learn is by building real things. Every tutorial on SriKode
+                is hands-on, step-by-step and based on what is actually used in production.
               </p>
 
               {/* Social links */}
@@ -120,7 +118,7 @@ export default async function AboutPage() {
                   href="/blogs"
                   className="inline-flex items-center gap-2 rounded-full bg-sk-primary hover:bg-sk-primary-hover px-6 py-3 text-sm font-semibold text-white shadow transition"
                 >
-                  Read My Tutorials <ArrowRight size={16} />
+                  Explore Our Tutorials <ArrowRight size={16} />
                 </Link>
               </div>
             </div>
@@ -137,7 +135,7 @@ export default async function AboutPage() {
                 { label: "Tutorials Published",   value: `${blogs.length}+`,                              icon: Code2 },
                 { label: "Total Reads",           value: `${(totalViews / 1000).toFixed(0)}K+`,           icon: Globe },
                 { label: "Categories Covered",    value: `${categoriesCount}`,                          icon: Database },
-                { label: "Years Building",        value: "7+",                                            icon: Server },
+                { label: "Active Since",          value: "2026",                                          icon: Server },
               ].map(({ label, value, icon: Icon }) => (
                 <div key={label} className="flex items-center gap-4">
                   <div
@@ -168,16 +166,16 @@ export default async function AboutPage() {
           <div className="mb-6 flex items-center gap-3">
             <span className="h-5 w-1 rounded-full" style={{ backgroundColor: "var(--sk-primary)" }} />
             <h2 className="text-xl font-bold uppercase tracking-widest" style={{ color: "var(--sk-text)" }}>
-              Tech Stack I Use
+              Tech Stack We Use
             </h2>
           </div>
           <div className="flex flex-wrap gap-3">
             {techStack.map(({ name, icon, lightColor, darkColor }) => (
               <span
                 key={name}
-                className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${lightColor} ${darkColor}`}
+                className={`group flex items-center gap-2.5 rounded-full border px-5 py-2.5 text-sm font-bold shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-default ${lightColor} ${darkColor}`}
               >
-                <span>{icon}</span>
+                <span className="transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-12">{icon}</span>
                 {name}
               </span>
             ))}
@@ -189,7 +187,7 @@ export default async function AboutPage() {
           <div className="mb-6 flex items-center gap-3">
             <span className="h-5 w-1 rounded-full" style={{ backgroundColor: "var(--sk-primary)" }} />
             <h2 className="text-xl font-bold uppercase tracking-widest" style={{ color: "var(--sk-text)" }}>
-              My Journey
+              Our Journey
             </h2>
           </div>
           <div

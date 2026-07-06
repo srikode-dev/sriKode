@@ -13,7 +13,8 @@ import {
   Heading,
   AlignLeft,
   Code,
-  AlertCircle
+  AlertCircle,
+  List
 } from "lucide-react";
 import useBlogStore from "../store/blogStore.js";
 
@@ -107,7 +108,8 @@ export default function BlogEditor() {
       code: { type: "code", language: "javascript", filename: "", code: "" },
       image: { type: "image", src: "", alt: "", caption: "" },
       callout: { type: "callout", variant: "info", title: "", text: "" },
-      quote: { type: "quote", text: "", author: "" }
+      quote: { type: "quote", text: "", author: "" },
+      list: { type: "list", style: "unordered", items: [""] }
     };
     setContent([...content, defaultBlocks[type]]);
   };
@@ -275,6 +277,7 @@ export default function BlogEditor() {
                       {block.type === "code" && <Code className="h-4 w-4 text-amber-500" />}
                       {block.type === "image" && <ImageIcon className="h-4 w-4 text-emerald-500" />}
                       {block.type === "callout" && <AlertCircle className="h-4 w-4 text-red-500" />}
+                      {block.type === "list" && <List className="h-4 w-4 text-pink-500" />}
                       {block.type} Block
                     </span>
                     
@@ -461,6 +464,56 @@ export default function BlogEditor() {
                         />
                       </div>
                     )}
+
+                    {/* 7. List Block */}
+                    {block.type === "list" && (
+                      <div className="space-y-3">
+                        <select
+                          value={block.style || "unordered"}
+                          onChange={(e) => updateBlock(index, { style: e.target.value })}
+                          className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-650"
+                        >
+                          <option value="unordered">Unordered (Bullets)</option>
+                          <option value="ordered">Ordered (Numbers)</option>
+                        </select>
+                        <div className="space-y-2">
+                          {(block.items || [""]).map((item, itemIdx) => (
+                            <div key={itemIdx} className="flex gap-2">
+                              <input
+                                type="text"
+                                value={item}
+                                onChange={(e) => {
+                                  const newItems = [...(block.items || [])];
+                                  newItems[itemIdx] = e.target.value;
+                                  updateBlock(index, { items: newItems });
+                                }}
+                                placeholder="List item..."
+                                className="flex-1 rounded-xl border border-slate-200 px-4 py-2 text-xs outline-none focus:border-blue-500"
+                              />
+                              <button
+                                onClick={() => {
+                                  const newItems = [...(block.items || [])];
+                                  newItems.splice(itemIdx, 1);
+                                  updateBlock(index, { items: newItems.length ? newItems : [""] });
+                                }}
+                                className="px-2 text-red-500 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <button
+                          onClick={() => {
+                            const newItems = [...(block.items || []), ""];
+                            updateBlock(index, { items: newItems });
+                          }}
+                          className="text-xs text-blue-600 font-bold hover:text-blue-500"
+                        >
+                          + Add Item
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -503,6 +556,12 @@ export default function BlogEditor() {
                 className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-800 text-xs font-bold text-slate-500 px-4 py-2.5 transition"
               >
                 <Plus className="h-3.5 w-3.5 text-slate-400" /> + Quote
+              </button>
+              <button 
+                onClick={() => addBlock("list")} 
+                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:text-slate-800 text-xs font-bold text-slate-500 px-4 py-2.5 transition"
+              >
+                <Plus className="h-3.5 w-3.5 text-slate-400" /> + List
               </button>
             </div>
           </div>

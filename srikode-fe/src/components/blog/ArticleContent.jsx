@@ -132,7 +132,7 @@ function CodeBlock({ language, filename, code }) {
         </div>
       </div>
       {/* Code body with line numbers */}
-      <div className="overflow-x-auto py-4">
+      <div className="overflow-auto py-4 max-h-[450px]">
         <table className="w-full border-collapse font-mono text-sm leading-relaxed text-zinc-100">
           <tbody>
             {lines.map((line, idx) => (
@@ -211,9 +211,7 @@ export default function ArticleContent({ content, toc = [] }) {
           }
           case "paragraph":
             return (
-              <p key={i} className="my-4 leading-relaxed text-sk-text-muted">
-                {block.text}
-              </p>
+              <p key={i} className="my-4 leading-relaxed text-sk-text-muted" dangerouslySetInnerHTML={{ __html: block.text }} />
             );
           case "code":
             return (
@@ -237,9 +235,7 @@ export default function ArticleContent({ content, toc = [] }) {
                   />
                 </div>
                 {block.caption && (
-                  <figcaption className="mt-2 text-center text-sm text-sk-text-faint italic">
-                    {block.caption}
-                  </figcaption>
+                  <figcaption className="mt-2 text-center text-sm text-sk-text-faint italic" dangerouslySetInnerHTML={{ __html: block.caption }} />
                 )}
               </figure>
             );
@@ -252,11 +248,11 @@ export default function ArticleContent({ content, toc = [] }) {
           case "list":
             return block.style === "ordered" ? (
               <ol key={i} className="my-4 list-decimal space-y-2 pl-6 text-sk-text-muted">
-                {block.items.map((item, j) => <li key={j}>{item}</li>)}
+                {block.items.map((item, j) => <li key={j} dangerouslySetInnerHTML={{ __html: item }} />)}
               </ol>
             ) : (
               <ul key={i} className="my-4 list-disc space-y-2 pl-6 text-sk-text-muted">
-                {block.items.map((item, j) => <li key={j}>{item}</li>)}
+                {block.items.map((item, j) => <li key={j} dangerouslySetInnerHTML={{ __html: item }} />)}
               </ul>
             );
           case "quote":
