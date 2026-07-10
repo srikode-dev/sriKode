@@ -1,5 +1,5 @@
 import resend from "../config/resend.js";
-import { RESEND_FROM_EMAIL, ADMIN_EMAIL } from "../config/envConfig.js";
+import { RESEND_FROM_EMAIL, ADMIN_EMAIL, APP_URL, APP_NAME } from "../config/envConfig.js";
 import logger from "../config/logger.js";
 import ejs from "ejs";
 import path from "path";
@@ -8,6 +8,10 @@ import { fileURLToPath } from "url";
 // Get directory name in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Construct the sender address using APP_NAME to prevent 'no-reply' from showing as the name
+const defaultAppName = APP_NAME || "SriKode";
+const senderAddress = RESEND_FROM_EMAIL ? `${defaultAppName} <${RESEND_FROM_EMAIL}>` : `${defaultAppName} <onboarding@resend.dev>`;
 
 // Helper to render EJS templates
 const renderTemplate = async (templateName, data) => {
@@ -41,8 +45,8 @@ export const sendContactEmail = async (name, email, subject, message) => {
     const htmlContent = await renderTemplate("contactEmail", { name, email, subject, message });
 
     const { data, error } = await resend.emails.send({
-      from: RESEND_FROM_EMAIL || "SriKode <onboarding@resend.dev>",
-      to: ADMIN_EMAIL || "srikantsahu.dev@gmail.com",
+      from: senderAddress,
+      to: ADMIN_EMAIL || "srikode.hq@gmail.com",
       subject: `📩 SriKode Contact Query: ${subject}`,
       html: htmlContent
     });
@@ -73,7 +77,7 @@ export const sendCommentThankYouEmail = async (email, name, blogTitle) => {
     const htmlContent = await renderTemplate("commentThankYouEmail", { name, blogTitle });
 
     const { data, error } = await resend.emails.send({
-      from: RESEND_FROM_EMAIL || "SriKode <onboarding@resend.dev>",
+      from: senderAddress,
       to: email,
       subject: `💬 Thank you for commenting on SriKode!`,
       html: htmlContent
@@ -105,7 +109,7 @@ export const sendNewsletterWelcomeEmail = async (email) => {
     const htmlContent = await renderTemplate("newsletterWelcomeEmail", {});
 
     const { data, error } = await resend.emails.send({
-      from: RESEND_FROM_EMAIL || "SriKode <onboarding@resend.dev>",
+      from: senderAddress,
       to: email,
       subject: `🚀 Welcome to the SriKode Newsletter!`,
       html: htmlContent
@@ -138,12 +142,15 @@ export const sendNewBlogNotificationEmail = async (blogTitle, blogSlug, bccEmail
 
     // Unescape title because xss-sanitizer saved it as HTML entities in MongoDB
     const cleanTitle = unescapeHtml(blogTitle);
-    const blogUrl = `https://sri-kode.vercel.app/blogs/${blogSlug}`;
+    // Use APP_URL explicitly since CLIENT_URLS order is not guaranteed.
+    // Ensure you set APP_URL="https://sri-kode-fe.vercel.app" in your production .env!
+    const frontendDomain = APP_URL || "https://sri-kode-fe.vercel.app";
+    const blogUrl = `${frontendDomain}/blogs/${blogSlug}`;
     const htmlContent = await renderTemplate("newBlogNotificationEmail", { blogTitle: cleanTitle, blogUrl });
 
     // Use Batch API so every subscriber sees their own email in the "To" field
     const emailsToSend = bccEmailsArray.map(email => ({
-      from: RESEND_FROM_EMAIL || "SriKode <onboarding@resend.dev>",
+      from: senderAddress,
       to: email,
       subject: `✨ New Blog Post: ${cleanTitle}`,
       html: htmlContent
