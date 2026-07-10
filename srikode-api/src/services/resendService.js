@@ -1,6 +1,19 @@
 import resend from "../config/resend.js";
 import { RESEND_FROM_EMAIL, ADMIN_EMAIL } from "../config/envConfig.js";
 import logger from "../config/logger.js";
+import ejs from "ejs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Get directory name in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Helper to render EJS templates
+const renderTemplate = async (templateName, data) => {
+  const templatePath = path.join(__dirname, `../templates/emails/${templateName}.ejs`);
+  return await ejs.renderFile(templatePath, data);
+};
 
 /**
  * Sends a notification email to the admin when a new contact query is submitted.
@@ -12,23 +25,13 @@ export const sendContactEmail = async (name, email, subject, message) => {
       return null;
     }
 
+    const htmlContent = await renderTemplate("contactEmail", { name, email, subject, message });
+
     const { data, error } = await resend.emails.send({
       from: RESEND_FROM_EMAIL || "SriKode <onboarding@resend.dev>",
       to: ADMIN_EMAIL || "srikantsahu.dev@gmail.com",
       subject: `📩 SriKode Contact Query: ${subject}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-          <h2 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px; margin-top: 0;">New Contact Form Message</h2>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
-          <p><strong>Subject:</strong> ${subject}</p>
-          <div style="margin-top: 20px; padding: 15px; background-color: #f9fafb; border-left: 4px solid #d1d5db; border-radius: 4px;">
-            <p style="margin: 0; white-space: pre-wrap;">${message}</p>
-          </div>
-          <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
-          <p style="font-size: 11px; color: #9ca3af; text-align: center; margin-bottom: 0;">This notification was generated automatically by the SriKode API server.</p>
-        </div>
-      `
+      html: htmlContent
     });
 
     if (error) {
@@ -40,7 +43,6 @@ export const sendContactEmail = async (name, email, subject, message) => {
     return data;
   } catch (error) {
     logger.error(`Resend sendContactEmail error: ${error.message}`);
-    // Graceful fallback: we don't crash the request if email sending fails
     return null;
   }
 };
@@ -55,21 +57,13 @@ export const sendCommentThankYouEmail = async (email, name, blogTitle) => {
       return null;
     }
 
+    const htmlContent = await renderTemplate("commentThankYouEmail", { name, blogTitle });
+
     const { data, error } = await resend.emails.send({
       from: RESEND_FROM_EMAIL || "SriKode <onboarding@resend.dev>",
       to: email,
       subject: `💬 Thank you for commenting on SriKode!`,
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-          <h2 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px; margin-top: 0;">Thanks for your comment, ${name}!</h2>
-          <p>We appreciate you taking the time to share your thoughts on our article: <strong>"${blogTitle}"</strong>.</p>
-          <p>To keep our coding community friendly and spam-free, all comments go through a quick manual check. Your comment is currently <strong>pending moderation</strong> and will appear live on the blog as soon as it is verified by the admin.</p>
-          <p>Happy Coding!</p>
-          <p>— The SriKode Team</p>
-          <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
-          <p style="font-size: 11px; color: #9ca3af; text-align: center; margin-bottom: 0;">This email was sent because you submitted a comment on <a href="https://srikantsahu.in">SriKode</a>.</p>
-        </div>
-      `
+      html: htmlContent
     });
 
     if (error) {
@@ -95,27 +89,13 @@ export const sendNewsletterWelcomeEmail = async (email) => {
       return null;
     }
 
+    const htmlContent = await renderTemplate("newsletterWelcomeEmail", {});
+
     const { data, error } = await resend.emails.send({
       from: RESEND_FROM_EMAIL || "SriKode <onboarding@resend.dev>",
       to: email,
       subject: `🚀 Welcome to the SriKode Newsletter!`,
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-          <h2 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px; margin-top: 0;">You're in! Welcome to SriKode.</h2>
-          <p>Thank you for subscribing to our newsletter! You'll now be the first to receive updates on:</p>
-          <ul>
-            <li>Modern Frontend tutorials (React, Next.js, CSS layouts)</li>
-            <li>Full Stack coding projects and source code</li>
-            <li>Guides, checklists, and career tips for developers</li>
-          </ul>
-          <p>We promise to only send high-quality development content. No spam, ever.</p>
-          <br/>
-          <p>Best regards,</p>
-          <p><strong>Srikant Sahu</strong><br/>Creator of SriKode</p>
-          <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
-          <p style="font-size: 11px; color: #9ca3af; text-align: center; margin-bottom: 0;">You are receiving this email because you subscribed to the SriKode newsletter.</p>
-        </div>
-      `
+      html: htmlContent
     });
 
     if (error) {
@@ -127,6 +107,42 @@ export const sendNewsletterWelcomeEmail = async (email) => {
     return data;
   } catch (error) {
     logger.error(`Resend sendNewsletterWelcomeEmail error: ${error.message}`);
+    return null;
+  }
+};
+
+/**
+ * Sends an email notification to all active subscribers when a new blog is published.
+ */
+export const sendNewBlogNotificationEmail = async (blogTitle, blogSlug, bccEmailsArray) => {
+  try {
+    if (!process.env.RESEND_API_KEY) {
+      logger.warn("Resend email API key is not set. Skipping new blog notification dispatch.");
+      return null;
+    }
+
+    if (!bccEmailsArray || bccEmailsArray.length === 0) return null;
+
+    const blogUrl = `https://sri-kode.vercel.app/blogs/${blogSlug}`;
+    const htmlContent = await renderTemplate("newBlogNotificationEmail", { blogTitle, blogUrl });
+
+    const { data, error } = await resend.emails.send({
+      from: RESEND_FROM_EMAIL || "SriKode <onboarding@resend.dev>",
+      to: ADMIN_EMAIL || "srikantsahu.dev@gmail.com", 
+      bcc: bccEmailsArray, 
+      subject: `✨ New Blog Post: ${blogTitle}`,
+      html: htmlContent
+    });
+
+    if (error) {
+      logger.error(`Resend sendNewBlogNotificationEmail error details: ${JSON.stringify(error)}`);
+      return null;
+    }
+
+    logger.info(`New blog notification email sent to ${bccEmailsArray.length} subscribers. ID: ${data?.id}`);
+    return data;
+  } catch (error) {
+    logger.error(`Resend sendNewBlogNotificationEmail error: ${error.message}`);
     return null;
   }
 };

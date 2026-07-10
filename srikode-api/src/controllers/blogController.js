@@ -1,5 +1,7 @@
 import Blog from "../models/Blog.js";
+import Subscriber from "../models/Subscriber.js";
 import logger from "../config/logger.js";
+import { sendNewBlogNotificationEmail } from "../services/resendService.js";
 
 // Helper to slugify a string
 const slugify = (text) => {
@@ -254,6 +256,18 @@ export const updateBlogAdmin = async (req, res) => {
       { $set: updateData },
       { new: true, runValidators: true }
     );
+
+    // If it was just published (Draft -> Published), notify subscribers asynchronously
+    if (updateData.isPublished === true && blog.isPublished === false) {
+      Subscriber.find({ isActive: true })
+        .then(subscribers => {
+          const emails = subscribers.map(sub => sub.email);
+          if (emails.length > 0) {
+            sendNewBlogNotificationEmail(updatedBlog.title, updatedBlog.slug, emails);
+          }
+        })
+        .catch(err => logger.error(`Error fetching subscribers for blog notification: ${err.message}`));
+    }
 
     logger.info(`Blog updated by admin: "${updatedBlog.title}"`);
 
