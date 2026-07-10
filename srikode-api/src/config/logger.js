@@ -9,7 +9,8 @@ const logFormat = printf(({ level, message, timestamp }) => {
 // Vercel sets process.env.VERCEL = "1" automatically in its environment.
 // File transports are only added locally — Vercel's filesystem is read-only
 // and would throw EROFS at startup if we tried to write log files there.
-const isVercel = process.env.VERCEL === "1";
+// The safest check is to rely on NODE_ENV.
+const isProduction = process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
 
 const transports = [
   new winston.transports.Console({
@@ -23,7 +24,7 @@ const transports = [
 
 const exceptionHandlers = [];
 
-if (!isVercel) {
+if (!isProduction) {
   // local file logging
   transports.push(
     new winston.transports.File({ filename: "src/logs/combined.log" }),
