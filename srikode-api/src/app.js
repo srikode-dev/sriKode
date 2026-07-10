@@ -8,7 +8,7 @@ import corsOptions from "./config/cors.js";
 import router from "./routes/index.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import mongoSanitize from "express-mongo-sanitize";
-import xss from "xss-clean";
+import { xss } from "express-xss-sanitizer";
 import hpp from "hpp";
 import { globalLimiter } from "./middlewares/rateLimiter.js";
 const app = express();
@@ -33,7 +33,12 @@ app.use(
 );
 
 // Data sanitization against NoSQL query injection
-app.use(mongoSanitize());
+app.use((req, res, next) => {
+  if (req.body) mongoSanitize.sanitize(req.body);
+  if (req.params) mongoSanitize.sanitize(req.params);
+  if (req.query) mongoSanitize.sanitize(req.query);
+  next();
+});
 
 // Data sanitization against XSS
 app.use(xss());
