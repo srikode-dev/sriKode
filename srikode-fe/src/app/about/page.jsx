@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Code2, Globe, Database, Server } from "lucide-react";
 import { FaGithub, FaYoutube, FaTwitter, FaLinkedin } from "react-icons/fa";
 import Container from "@/components/shared/Container";
+import TimelineSection from "@/components/about/TimelineSection";
 import { getBlogs } from "@/lib/api";
 export const metadata = {
   title: "About",
@@ -12,7 +13,7 @@ export const metadata = {
 };
 
 const techStack = [
-  { name: "HTML & CSS",    icon: "🎨", lightColor: "bg-orange-50 text-orange-700 border-orange-200",    darkColor: "dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800/40" },
+  { name: "HTML & CSS",    icon: "🎨", lightColor: "bg-orange-50 text-orange-800 border-orange-200",    darkColor: "dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800/40" },
   { name: "JavaScript",   icon: "⚡", lightColor: "bg-yellow-50 text-yellow-700 border-yellow-200",    darkColor: "dark:bg-yellow-950/30 dark:text-yellow-300 dark:border-yellow-800/40" },
   { name: "React",         icon: "⚛️", lightColor: "bg-blue-50 text-blue-700 border-blue-200",          darkColor: "dark:bg-blue-950/30 dark:text-blue-300 dark:border-blue-800/40" },
   { name: "Next.js",       icon: "▲",  lightColor: "bg-gray-50 text-gray-700 border-gray-200",          darkColor: "dark:bg-zinc-800/60 dark:text-zinc-300 dark:border-zinc-700/60" },
@@ -28,7 +29,8 @@ const timeline = [
   { year: "2026", title: "The Idea", desc: "Decided to build a centralized platform to share practical web development knowledge." },
   { year: "2026", title: "Building in Public", desc: "Documented the entire process of building the platform from scratch." },
   { year: "2026", title: "Launched SriKode", desc: "Officially launched the platform to the community. Day 1 starts now." },
-];
+  { year: "2026", title: "Our First Blog", desc: "Officially launched the platform to the community. Day 1 starts now." },
+]
 
 const socials = [
   { icon: FaGithub,   label: "GitHub",   href: "https://github.com",   extraClass: "hover:bg-gray-900 hover:text-white dark:hover:bg-zinc-700" },
@@ -104,7 +106,6 @@ export default async function AboutPage() {
                     className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${extraClass}`}
                     style={{
                       borderColor: "var(--sk-border-strong)",
-                      color: "var(--sk-text-muted)",
                     }}
                   >
                     <Icon size={16} />
@@ -183,49 +184,7 @@ export default async function AboutPage() {
         </section>
 
         {/* ── Timeline ── */}
-        <section className="mb-16">
-          <div className="mb-6 flex items-center gap-3">
-            <span className="h-5 w-1 rounded-full" style={{ backgroundColor: "var(--sk-primary)" }} />
-            <h2 className="text-xl font-bold uppercase tracking-widest" style={{ color: "var(--sk-text)" }}>
-              Our Journey
-            </h2>
-          </div>
-          <div
-            className="relative ml-4 pl-8"
-            style={{ borderLeft: "2px solid var(--sk-border-strong)" }}
-          >
-            {timeline.map(({ year, title, desc }, i) => (
-              <div key={i} className="mb-10 relative last:mb-0">
-                {/* Dot */}
-                <span
-                  className="absolute left-[-41px] flex h-6 w-6 items-center justify-center rounded-full border-2 text-[10px] font-bold"
-                  style={{
-                    borderColor: "var(--sk-primary)",
-                    backgroundColor: "var(--sk-bg-card)",
-                    color: "var(--sk-primary)",
-                  }}
-                >
-                  ●
-                </span>
-                <span
-                  className="mb-1 inline-block rounded-full px-3 py-0.5 text-xs font-bold"
-                  style={{
-                    backgroundColor: "var(--sk-primary-light)",
-                    color: "var(--sk-primary-text)",
-                  }}
-                >
-                  {year}
-                </span>
-                <h3 className="mt-1 text-base font-bold" style={{ color: "var(--sk-text)" }}>
-                  {title}
-                </h3>
-                <p className="mt-1 text-sm" style={{ color: "var(--sk-text-muted)" }}>
-                  {desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
+        <TimelineSection timeline={timeline} />
 
         {/* ── Mission ── */}
         <section
