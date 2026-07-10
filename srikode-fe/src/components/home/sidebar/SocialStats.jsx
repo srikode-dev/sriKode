@@ -3,24 +3,24 @@ import { FaFacebook, FaInstagram, FaYoutube } from "react-icons/fa";
 const stats = [
   {
     icon: FaFacebook,
-    label: "Fans",
+    label: "Facebook",
     count: "2,000",
     color: "bg-[#1877F2]",
-    href: "https://facebook.com",
+    href: "https://www.facebook.com/profile.php?id=61590879907360",
   },
   {
     icon: FaInstagram,
-    label: "Followers",
+    label: "Instagram",
     count: "10,000",
     color: "bg-gradient-to-br from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]",
-    href: "https://instagram.com",
+    href: "https://www.instagram.com/srikode.dev/",
   },
   {
     icon: FaYoutube,
-    label: "Subscribers",
+    label: "YouTube",
     count: "500",
     color: "bg-[#FF0000]",
-    href: "https://youtube.com",
+    href: "https://www.youtube.com/@srikode",
   },
 ];
 
@@ -31,7 +31,7 @@ export default function SocialStats() {
       <div className="flex items-center gap-3 border-b border-sk-border px-4 py-3">
         <span className="h-4 w-1 rounded-full bg-sk-primary" />
         <h3 className="text-sm font-bold uppercase tracking-widest text-sk-text">
-          Follow Us
+          Join Our Journey 🚀
         </h3>
       </div>
 
@@ -44,11 +44,12 @@ export default function SocialStats() {
             rel="noopener noreferrer"
             className="group flex flex-col items-center gap-2 px-2 py-3 transition-opacity hover:opacity-80"
           >
-            <span className={`flex h-10 w-10 items-center justify-center rounded-full text-white text-xl ${color} shadow`}>
+            <span className={`flex h-10 w-10 items-center justify-center rounded-full text-white text-xl ${color} shadow-sm transition-transform duration-300 group-hover:-translate-y-1 group-hover:shadow-md`}>
               <Icon />
             </span>
-            <span className="text-base font-bold text-sk-text">{count}</span>
-            <span className="text-[11px] uppercase tracking-wide text-sk-text-faint">{label}</span>
+            {/* Hidden counts for launch phase */}
+            <span className="mt-1.5 text-sm font-extrabold text-sk-text transition-colors group-hover:text-sk-primary">Support</span>
+            <span className="w-full truncate px-1 text-center text-[10px] uppercase tracking-wider text-sk-text-faint">{label}</span>
           </a>
         ))}
       </div>
