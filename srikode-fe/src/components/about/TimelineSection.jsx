@@ -46,7 +46,7 @@ export default function TimelineSection({ timeline }) {
         onMouseLeave={handleMouseLeave}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
-        className={`relative flex flex-col md:flex-row md:overflow-x-auto md:pb-8 md:pt-4 md:gap-0 gap-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] select-none ${isDown ? 'cursor-grabbing' : 'cursor-grab'}`}
+        className={`relative flex flex-col md:flex-row md:overflow-x-auto md:pb-8 md:pt-4 md:gap-0 gap-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none select-none ${isDown ? 'cursor-grabbing' : 'cursor-grab'}`}
       >
         {timeline.map(({ year, title, desc }, i) => (
           <div 

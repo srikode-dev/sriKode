@@ -77,7 +77,7 @@ export default function Contacts() {
                     ? "border-blue-500 bg-blue-50/20 shadow-sm"
                     : contact.isRead
                       ? "border-slate-200 bg-white hover:bg-slate-50"
-                      : "border-blue-100 bg-blue-500/[0.02] hover:bg-blue-500/[0.04]"
+                      : "border-blue-100 bg-blue-500/2 hover:bg-blue-500/4"
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
