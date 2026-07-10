@@ -7,7 +7,10 @@ import { API_VERSION } from "./config/envConfig.js";
 import corsOptions from "./config/cors.js";
 import router from "./routes/index.js";
 import errorHandler from "./middlewares/errorHandler.js";
-
+import mongoSanitize from "express-mongo-sanitize";
+import xss from "xss-clean";
+import hpp from "hpp";
+import { globalLimiter } from "./middlewares/rateLimiter.js";
 const app = express();
 const apiVersion = API_VERSION;
 
@@ -28,6 +31,18 @@ app.use(
     extended: true,
   }),
 );
+
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Data sanitization against XSS
+app.use(xss());
+
+// Prevent HTTP parameter pollution
+app.use(hpp());
+
+// Apply global rate limiting
+app.use(globalLimiter);
 
 // health route
 app.get("/", (req, res) => {

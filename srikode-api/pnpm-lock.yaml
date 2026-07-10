@@ -23,9 +23,18 @@ importers:
       express-list-endpoints:
         specifier: ^7.1.1
         version: 7.1.1
+      express-mongo-sanitize:
+        specifier: ^2.2.0
+        version: 2.2.0
+      express-rate-limit:
+        specifier: ^8.5.2
+        version: 8.5.2(express@5.2.1)
       helmet:
         specifier: ^8.2.0
         version: 8.2.0
+      hpp:
+        specifier: ^0.2.3
+        version: 0.2.3
       imagekit:
         specifier: ^6.0.0
         version: 6.0.0
@@ -44,6 +53,9 @@ importers:
       winston:
         specifier: ^3.19.0
         version: 3.19.0
+      xss-clean:
+        specifier: ^0.1.4
+        version: 0.1.4
     devDependencies:
       nodemon:
         specifier: ^3.1.14
@@ -268,6 +280,16 @@ packages:
     resolution: {integrity: sha512-SA6YHH1r6DrioJ4fFJNqiwu1FweGFqJZO9KBApMzwPosoSGPOX2AW0wiMepOXjojjEXDuP9whIvckomheErbJA==}
     engines: {node: '>=18'}
 
+  express-mongo-sanitize@2.2.0:
+    resolution: {integrity: sha512-PZBs5nwhD6ek9ZuP+W2xmpvcrHwXZxD5GdieX2dsjPbAbH4azOkrHbycBud2QRU+YQF1CT+pki/lZGedHgo/dQ==}
+    engines: {node: '>=10'}
+
+  express-rate-limit@8.5.2:
+    resolution: {integrity: sha512-5Kb34ipNX694DH48vN9irak1Qx30nb0PLYHXfJgw4YEjiC3ZEmZJhwOp+VfiCYwFzvFTdB9QkArYS5kXa2cx2A==}
+    engines: {node: '>= 16'}
+    peerDependencies:
+      express: '>= 4.11'
+
   express@5.2.1:
     resolution: {integrity: sha512-hIS4idWWai69NezIdRt2xFVofaF4j+6INOpJlVOLDO8zXGpUVEVzIYk12UUi2JzjEzWL3IOAxcTubgz9Po0yXw==}
     engines: {node: '>= 18'}
@@ -357,6 +379,10 @@ packages:
     resolution: {integrity: sha512-DRgTIUgnWcJ62KyarxxziuqYxKGnR6Rgg19BlbucN/dpmJbl1XOit6qvoOX0ZT+HhWe5OUVhU/a1zpGyc1xA0Q==}
     engines: {node: '>=18.0.0'}
 
+  hpp@0.2.3:
+    resolution: {integrity: sha512-4zDZypjQcxK/8pfFNR7jaON7zEUpXZxz4viyFmqjb3kWNWAHsLEUmWXcdn25c5l76ISvnD6hbOGO97cXUI3Ryw==}
+    engines: {node: '>=0.10.0'}
+
   http-errors@2.0.1:
     resolution: {integrity: sha512-4FbRdAX+bSdmo4AUFuS0WNiPz8NgFt+r8ThgNWmlrjQjt1Q7ZR9+zTlce2859x4KSXrwIsaeTqDoKQmtP8pLmQ==}
     engines: {node: '>= 0.8'}
@@ -379,6 +405,10 @@ packages:
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
+
+  ip-address@10.2.0:
+    resolution: {integrity: sha512-/+S6j4E9AHvW9SWMSEY9Xfy66O5PWvVEJ08O0y5JGyEKQpojb0K0GKpz/v5HJ/G0vi3D2sjGK78119oXZeE0qA==}
+    engines: {node: '>= 12'}
 
   ipaddr.js@1.9.1:
     resolution: {integrity: sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==}
@@ -455,6 +485,10 @@ packages:
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
+
+  media-typer@0.3.0:
+    resolution: {integrity: sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==}
+    engines: {node: '>= 0.6'}
 
   media-typer@1.1.0:
     resolution: {integrity: sha512-aisnrDP4GNe06UcKFnV5bfMNPBUw4jsLGaWwWfnH3v02GnBuXX2MCVn5RbrWo0j3pczUilYblq7fQ7Nw2t5XKw==}
@@ -743,6 +777,10 @@ packages:
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
+  type-is@1.6.18:
+    resolution: {integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==}
+    engines: {node: '>= 0.6'}
+
   type-is@2.1.0:
     resolution: {integrity: sha512-faYHw0anBbc/kWF3zFTEnxSFOAGUX9GFbOBthvDdLsIlEoWOFOtS0zgCiQYwIskL9iGXZL3kAXD8OoZ4GmMATA==}
     engines: {node: '>= 18'}
@@ -784,6 +822,13 @@ packages:
 
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
+
+  xss-clean@0.1.4:
+    resolution: {integrity: sha512-4hArTFHYxrifK9VXOu/zFvwjTXVjKByPi6woUHb1IqxlX0Z4xtFBRjOhTKuYV/uE1VswbYsIh5vUEYp7MmoISQ==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+
+  xss-filters@1.2.7:
+    resolution: {integrity: sha512-KzcmYT/f+YzcYrYRqw6mXxd25BEZCxBQnf+uXTopQDIhrmiaLwO+f+yLsIvvNlPhYvgff8g3igqrBxYh9k8NbQ==}
 
 snapshots:
 
@@ -996,6 +1041,13 @@ snapshots:
 
   express-list-endpoints@7.1.1: {}
 
+  express-mongo-sanitize@2.2.0: {}
+
+  express-rate-limit@8.5.2(express@5.2.1):
+    dependencies:
+      express: 5.2.1
+      ip-address: 10.2.0
+
   express@5.2.1:
     dependencies:
       accepts: 2.0.0
@@ -1109,6 +1161,11 @@ snapshots:
 
   helmet@8.2.0: {}
 
+  hpp@0.2.3:
+    dependencies:
+      lodash: 4.18.1
+      type-is: 1.6.18
+
   http-errors@2.0.1:
     dependencies:
       depd: 2.0.0
@@ -1143,6 +1200,8 @@ snapshots:
       - supports-color
 
   inherits@2.0.4: {}
+
+  ip-address@10.2.0: {}
 
   ipaddr.js@1.9.1: {}
 
@@ -1216,6 +1275,8 @@ snapshots:
       triple-beam: 1.4.1
 
   math-intrinsics@1.1.0: {}
+
+  media-typer@0.3.0: {}
 
   media-typer@1.1.0: {}
 
@@ -1493,6 +1554,11 @@ snapshots:
 
   tslib@2.8.1: {}
 
+  type-is@1.6.18:
+    dependencies:
+      media-typer: 0.3.0
+      mime-types: 2.1.35
+
   type-is@2.1.0:
     dependencies:
       content-type: 2.0.0
@@ -1537,3 +1603,9 @@ snapshots:
       winston-transport: 4.9.0
 
   wrappy@1.0.2: {}
+
+  xss-clean@0.1.4:
+    dependencies:
+      xss-filters: 1.2.7
+
+  xss-filters@1.2.7: {}
