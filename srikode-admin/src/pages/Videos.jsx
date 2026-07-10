@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Video, RefreshCw, Eye, EyeOff, Loader } from "lucide-react";
 import useVideoStore from "../store/videoStore.js";
+import toast from "react-hot-toast";
 
 export default function Videos() {
   const { videos, loading, error, fetchVideos, syncYouTube, toggleVisibility } = useVideoStore();
@@ -15,16 +16,18 @@ export default function Videos() {
     const res = await syncYouTube();
     setSyncing(false);
     if (res.success) {
-      alert("YouTube channel videos successfully synchronized!");
+      toast.success("YouTube channel videos successfully synchronized!");
     } else {
-      alert(`Sync failed: ${res.message}`);
+      toast.error(`Sync failed: ${res.message}`);
     }
   };
 
   const handleToggleHide = async (id, currentHiddenState) => {
     const res = await toggleVisibility(id, !currentHiddenState);
     if (!res.success) {
-      alert(res.message);
+      toast.error(res.message);
+    } else {
+      toast.success(currentHiddenState ? "Video is now visible on frontend" : "Video is hidden from frontend");
     }
   };
 
