@@ -170,5 +170,9 @@ blogSchema.pre("save", function() {
   }
 });
 
+// Performance Indexing
+blogSchema.index({ isPublished: 1, createdAt: -1 }); // Optimizes main blog feed
+blogSchema.index({ category: 1 }); // Optimizes category filtering
+
 const Blog = mongoose.model("Blog", blogSchema);
 export default Blog;

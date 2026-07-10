@@ -50,14 +50,15 @@ export const getAllBlogsPublic = async (req, res) => {
       ];
     }
 
-    const skipIndex = (page - 1) * limit;
+    const safeLimit = Math.min(Number(limit) || 8, 100);
+    const skipIndex = (Number(page) - 1) * safeLimit;
 
     // Fetch blogs sorted by published date (updatedAt or createdAt) descending
     const blogs = await Blog.find(query)
       .select("-content -faq -tableOfContents -seo") // Exclude heavy detail fields for listings
       .sort({ createdAt: -1 })
       .skip(skipIndex)
-      .limit(Number(limit));
+      .limit(safeLimit);
 
     const total = await Blog.countDocuments(query);
 
