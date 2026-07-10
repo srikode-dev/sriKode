@@ -49,10 +49,10 @@ export default function ContactUsPage() {
   };
 
   const socials = [
-    { icon: FaGithub, label: "GitHub", handle: "@srikant-sahu", href: "https://github.com", color: "hover:border-zinc-800 hover:bg-zinc-900 hover:text-white dark:hover:bg-zinc-800" },
-    { icon: FaYoutube, label: "YouTube", handle: "SriKode", href: "https://youtube.com", color: "hover:border-red-500 hover:bg-red-600 hover:text-white dark:hover:bg-red-950/20" },
-    { icon: FaTwitter, label: "Twitter / X", handle: "@srikantdev", href: "https://twitter.com", color: "hover:border-sky-400 hover:bg-sky-500 hover:text-white dark:hover:bg-sky-950/20" },
-    { icon: FaLinkedin, label: "LinkedIn", handle: "Srikant Sahu", href: "https://linkedin.com", color: "hover:border-blue-600 hover:bg-blue-700 hover:text-white dark:hover:bg-blue-950/20" },
+    { icon: FaGithub, label: "GitHub", handle: "@srikode-dev", href: "https://github.com/srikode-dev", baseColor: "text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800", hoverColor: "hover:bg-zinc-900 hover:text-white hover:border-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white" },
+    { icon: FaYoutube, label: "YouTube", handle: "@srikode", href: "https://www.youtube.com/@srikode", baseColor: "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50", hoverColor: "hover:bg-red-600 hover:text-white hover:border-red-600 dark:hover:bg-red-600" },
+    { icon: FaTwitter, label: "Twitter / X", handle: "@srikode_dev", href: "https://x.com/srikode_dev", baseColor: "text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/20 border-sky-200 dark:border-sky-900/50", hoverColor: "hover:bg-sky-500 hover:text-white hover:border-sky-500 dark:hover:bg-sky-500" },
+    { icon: FaLinkedin, label: "LinkedIn", handle: "@srikode", href: "https://www.linkedin.com/company/srikode", baseColor: "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/50", hoverColor: "hover:bg-blue-700 hover:text-white hover:border-blue-700 dark:hover:bg-blue-600" },
   ];
 
   return (
@@ -119,7 +119,7 @@ export default function ContactUsPage() {
                       type="text"
                       value={form.name}
                       onChange={handleChange}
-                      placeholder="Srikant Sahu"
+                      placeholder="Enter Your Name"
                       className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-sk-primary/20 ${errors.name ? "border-red-400 focus:border-red-400" : "border-sk-border-strong focus:border-sk-primary"}`}
                       style={{
                         backgroundColor: "var(--sk-bg)",
@@ -233,11 +233,11 @@ export default function ContactUsPage() {
               <h3 className="font-bold" style={{ color: "var(--sk-text)" }}>Email Directly</h3>
               <p className="mt-1 text-sm" style={{ color: "var(--sk-text-muted)" }}>Prefer email? Reach me at:</p>
               <a
-                href="mailto:hello@srikode.dev"
+                href="mailto:srikode.hq@gmail.com"
                 className="mt-2 block text-sm font-semibold hover:underline"
                 style={{ color: "var(--sk-primary)" }}
               >
-                hello@srikode.dev
+                srikode.hq@gmail.com
               </a>
               <p className="mt-3 text-xs" style={{ color: "var(--sk-text-faint)" }}>I typically reply within 24–48 hours.</p>
             </div>
@@ -252,21 +252,17 @@ export default function ContactUsPage() {
             >
               <h3 className="mb-4 font-bold" style={{ color: "var(--sk-text)" }}>Connect on Social</h3>
               <div className="flex flex-col gap-3">
-                {socials.map(({ icon: Icon, label, handle, href, color }) => (
+                {socials.map(({ icon: Icon, label, handle, href, baseColor, hoverColor }) => (
                   <a
                     key={label}
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`group flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition ${color}`}
-                    style={{
-                      borderColor: "var(--sk-border-strong)",
-                      color: "var(--sk-text-muted)",
-                    }}
+                    className={`group flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${baseColor} ${hoverColor}`}
                   >
-                    <Icon size={18} />
+                    <Icon size={18} className="transition-transform group-hover:scale-110" />
                     <span className="flex-1">{label}</span>
-                    <span className="text-xs" style={{ color: "var(--sk-text-faint)" }}>{handle}</span>
+                    <span className="text-xs font-medium opacity-80 group-hover:opacity-100">{handle}</span>
                   </a>
                 ))}
               </div>
