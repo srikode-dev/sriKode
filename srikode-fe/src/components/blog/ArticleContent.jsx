@@ -132,7 +132,7 @@ function CodeBlock({ language, filename, code }) {
         </div>
       </div>
       {/* Code body with line numbers */}
-      <div className="overflow-auto py-4 max-h-[450px]">
+      <div className="code-scrollbar overflow-auto py-4 max-h-[450px]">
         <table className="w-full border-collapse font-mono text-sm leading-relaxed text-zinc-100">
           <tbody>
             {lines.map((line, idx) => (

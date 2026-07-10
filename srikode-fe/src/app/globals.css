@@ -238,4 +238,25 @@
   .blog-prose code {
     @apply text-sm;
   }
+
+  /* Custom Code Block Scrollbar */
+  .code-scrollbar::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+  }
+  .code-scrollbar::-webkit-scrollbar-track {
+    background: #1e1e1e; /* matches code block background */
+    border-radius: 0 0 12px 12px;
+  }
+  .code-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #3f3f46; /* subtle zinc color */
+    border-radius: 10px;
+    border: 3px solid #1e1e1e; /* matches track for padding effect */
+  }
+  .code-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #52525b;
+  }
+  .code-scrollbar::-webkit-scrollbar-corner {
+    background: #1e1e1e;
+  }
 }
