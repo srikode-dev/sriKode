@@ -15,6 +15,19 @@ const renderTemplate = async (templateName, data) => {
   return await ejs.renderFile(templatePath, data);
 };
 
+// Helper to unescape HTML entities saved in the DB by xss-sanitizer
+const unescapeHtml = (str) => {
+  if (!str) return '';
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&#x2F;/g, '/');
+};
+
 /**
  * Sends a notification email to the admin when a new contact query is submitted.
  */
@@ -123,16 +136,20 @@ export const sendNewBlogNotificationEmail = async (blogTitle, blogSlug, bccEmail
 
     if (!bccEmailsArray || bccEmailsArray.length === 0) return null;
 
+    // Unescape title because xss-sanitizer saved it as HTML entities in MongoDB
+    const cleanTitle = unescapeHtml(blogTitle);
     const blogUrl = `https://sri-kode.vercel.app/blogs/${blogSlug}`;
-    const htmlContent = await renderTemplate("newBlogNotificationEmail", { blogTitle, blogUrl });
+    const htmlContent = await renderTemplate("newBlogNotificationEmail", { blogTitle: cleanTitle, blogUrl });
 
-    const { data, error } = await resend.emails.send({
+    // Use Batch API so every subscriber sees their own email in the "To" field
+    const emailsToSend = bccEmailsArray.map(email => ({
       from: RESEND_FROM_EMAIL || "SriKode <onboarding@resend.dev>",
-      to: ADMIN_EMAIL || "srikantsahu.dev@gmail.com", 
-      bcc: bccEmailsArray, 
-      subject: `✨ New Blog Post: ${blogTitle}`,
+      to: email,
+      subject: `✨ New Blog Post: ${cleanTitle}`,
       html: htmlContent
-    });
+    }));
+
+    const { data, error } = await resend.batch.send(emailsToSend);
 
     if (error) {
       logger.error(`Resend sendNewBlogNotificationEmail error details: ${JSON.stringify(error)}`);
