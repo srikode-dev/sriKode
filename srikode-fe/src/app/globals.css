@@ -115,6 +115,12 @@
     color: var(--sk-text);
     @apply antialiased;
     font-family: var(--font-inter, system-ui, sans-serif);
+    
+    /* Subtle modern dot pattern for empty space */
+    background-image: radial-gradient(var(--sk-border-strong) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: -12px -12px;
+    background-attachment: fixed;
   }
 
   /* Smooth transitions on all themeable elements */
