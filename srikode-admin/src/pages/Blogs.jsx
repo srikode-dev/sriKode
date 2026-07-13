@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FileText, Plus, Eye, Edit2, Trash2, Loader, BookOpen } from "lucide-react";
+import { FileText, Plus, Eye, EyeOff, Edit2, Trash2, Loader, BookOpen } from "lucide-react";
 import useBlogStore from "../store/blogStore.js";
+import toast from "react-hot-toast";
 
 export default function Blogs() {
   const { blogs, loading, error, fetchBlogs, deleteBlog } = useBlogStore();
@@ -15,8 +16,19 @@ export default function Blogs() {
     if (window.confirm(`Are you sure you want to permanently delete "${title}"?`)) {
       const res = await deleteBlog(id);
       if (!res.success) {
-        alert(res.message);
+        toast.error(res.message);
+      } else {
+        toast.success(`Deleted "${title}"`);
       }
+    }
+  };
+
+  const handleTogglePublish = async (blog) => {
+    const res = await useBlogStore.getState().updateBlog(blog._id, { isPublished: !blog.isPublished });
+    if (!res.success) {
+      toast.error(res.message);
+    } else {
+      toast.success(blog.isPublished ? "Article is now hidden from site" : "Article is now published to site");
     }
   };
 
@@ -107,6 +119,26 @@ export default function Blogs() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="inline-flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleTogglePublish(blog)}
+                          className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition duration-200 ${
+                            blog.isPublished
+                              ? "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-200"
+                              : "bg-amber-50 border-amber-100 text-amber-600 hover:bg-amber-600 hover:text-white"
+                          }`}
+                          title={blog.isPublished ? "Hide from frontend" : "Publish to frontend"}
+                        >
+                          {blog.isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                        <a
+                          href={`${import.meta.env.VITE_CLIENT_URL || "https://sri-kode-fe.vercel.app"}/blog/${blog.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white transition duration-200"
+                          title="View Live"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </a>
                         <Link
                           to={`/blogs/edit/${blog._id}`}
                           className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 border border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition duration-200"

@@ -700,25 +700,41 @@ export default function BlogEditor() {
             <hr className="border-slate-100" />
 
             {/* Publish & Featured Toggles */}
-            <div className="space-y-4">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isPublished}
-                  onChange={(e) => setIsPublished(e.target.checked)}
-                  className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-xs font-bold text-slate-700">Publish immediately (Live on site)</span>
+            <div className="space-y-3">
+              {/* Modern Toggle Switch: Publish */}
+              <label className="flex items-center justify-between cursor-pointer rounded-xl border border-slate-200 p-4 hover:bg-slate-50 transition group">
+                <div>
+                  <div className="text-sm font-bold text-slate-800">Publish immediately</div>
+                  <div className="text-xs font-semibold text-slate-400 mt-0.5">Make this article live on the site</div>
+                </div>
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={isPublished}
+                    onChange={(e) => setIsPublished(e.target.checked)}
+                  />
+                  <div className={`block h-6 w-11 rounded-full transition-colors duration-300 ${isPublished ? 'bg-blue-600' : 'bg-slate-250 group-hover:bg-slate-300'}`}></div>
+                  <div className={`absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-300 ${isPublished ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                </div>
               </label>
 
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isFeatured}
-                  onChange={(e) => setIsFeatured(e.target.checked)}
-                  className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-xs font-bold text-slate-700">Pin to homepage Hero stats</span>
+              {/* Modern Toggle Switch: Featured */}
+              <label className="flex items-center justify-between cursor-pointer rounded-xl border border-slate-200 p-4 hover:bg-slate-50 transition group">
+                <div>
+                  <div className="text-sm font-bold text-slate-800">Pin to homepage Hero</div>
+                  <div className="text-xs font-semibold text-slate-400 mt-0.5">Feature this post in the hero stats</div>
+                </div>
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={isFeatured}
+                    onChange={(e) => setIsFeatured(e.target.checked)}
+                  />
+                  <div className={`block h-6 w-11 rounded-full transition-colors duration-300 ${isFeatured ? 'bg-blue-600' : 'bg-slate-250 group-hover:bg-slate-300'}`}></div>
+                  <div className={`absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-300 ${isFeatured ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                </div>
               </label>
             </div>
           </div>
