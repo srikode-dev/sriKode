@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, X, Calendar, Clock, ArrowRight, Grid, List } from "lucide-react";
+import { Search, X, Calendar, Clock, ArrowRight, Grid, List, FileText } from "lucide-react";
 import { getBlogs } from "@/lib/api";
 import { formatDate } from "@/data";
 import Container from "@/components/shared/Container";
@@ -132,7 +132,7 @@ export default function BlogsPage() {
   };
 
   return (
-    <div className="py-10">
+    <div className="pt-5 pb-10">
       <Container>
         {/* Page Header */}
         <div className="mb-8">
@@ -253,6 +253,21 @@ export default function BlogsPage() {
                   {paginated.map((blog) => (
                     <BlogCard key={blog._id || blog.id} blog={blog} />
                   ))}
+                  {/* Fill empty grid space if odd number of items */}
+                  {paginated.length % 2 !== 0 && (
+                    <div 
+                      className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center shadow-sm" 
+                      style={{ borderColor: 'var(--sk-border-strong)', backgroundColor: 'var(--sk-bg-subtle)' }}
+                    >
+                      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50/50 text-blue-600 dark:bg-blue-900/10 dark:text-blue-400">
+                        <FileText size={28} />
+                      </div>
+                      <h3 className="mb-2 text-xl font-bold" style={{ color: 'var(--sk-text)' }}>More Content Incoming!</h3>
+                      <p className="text-sm leading-relaxed max-w-xs" style={{ color: 'var(--sk-text-muted)' }}>
+                        I'm currently writing more amazing tutorials and articles. Stay tuned or subscribe to the newsletter!
+                      </p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex flex-col gap-5">

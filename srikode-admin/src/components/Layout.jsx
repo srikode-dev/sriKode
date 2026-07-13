@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
+  BarChart2,
   FileText, 
   Video, 
   MessageSquare, 
@@ -22,6 +23,7 @@ export default function Layout() {
 
   const menuItems = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Analytics", href: "/analytics", icon: BarChart2 },
     { name: "Blogs", href: "/blogs", icon: FileText },
     { name: "Videos", href: "/videos", icon: Video },
     { name: "Comments", href: "/comments", icon: MessageSquare },

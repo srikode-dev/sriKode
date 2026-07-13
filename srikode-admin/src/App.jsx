@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 // Pages
 import Login from "./pages/Login.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import Analytics from "./pages/Analytics.jsx";
 import Blogs from "./pages/Blogs.jsx";
 import BlogEditor from "./pages/BlogEditor.jsx";
 import Videos from "./pages/Videos.jsx";
@@ -46,6 +47,8 @@ export default function App() {
         >
           {/* Main Dashboard home stats */}
           <Route index element={<Dashboard />} />
+          
+          <Route path="analytics" element={<Analytics />} />
 
           {/* Blogs CRUD routes */}
           <Route path="blogs" element={<Blogs />} />

@@ -116,7 +116,7 @@ export default async function BlogDetailPage({ params }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       {/* ── Breadcrumb & Title Area ── */}
-      <div className="py-8 border-b border-sk-border">
+      <div className="pt-4 pb-8 border-b border-sk-border">
         <Container>
           {/* Breadcrumbs */}
           <nav className="mb-6 flex items-center gap-2 text-xs text-sk-text-faint font-medium">

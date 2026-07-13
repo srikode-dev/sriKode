@@ -1,5 +1,6 @@
 import Blog from "../models/Blog.js";
 import Subscriber from "../models/Subscriber.js";
+import BlogAnalytics from "../models/BlogAnalytics.js";
 import logger from "../config/logger.js";
 import { sendNewBlogNotificationEmail } from "../services/resendService.js";
 
@@ -118,6 +119,19 @@ export const getBlogBySlug = async (req, res) => {
     // Increment viewCount asynchronously
     blog.viewCount += 1;
     await blog.save();
+
+    // Async Analytics Tracking (Vercel automatic geolocation headers)
+    const country = req.headers["x-vercel-ip-country"] || "Unknown";
+    const city = req.headers["x-vercel-ip-city"] || "Unknown";
+    
+    const today = new Date();
+    const formattedDate = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
+
+    BlogAnalytics.findOneAndUpdate(
+      { blog: blog._id, date: formattedDate, country, city },
+      { $inc: { views: 1 } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).catch(err => logger.error(`BlogAnalytics track error: ${err.message}`));
 
     return res.status(200).json({
       success: true,
@@ -305,6 +319,44 @@ export const deleteBlogAdmin = async (req, res) => {
     });
   } catch (error) {
     logger.error(`deleteBlogAdmin error: ${error.message}`);
+    return res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+/**
+ * Admin: Get aggregated blog analytics
+ */
+export const getAnalyticsAdmin = async (req, res) => {
+  try {
+    // 1. Group by Date for the Line Chart (e.g., last 30 days)
+    const dailyViews = await BlogAnalytics.aggregate([
+      {
+        $group: {
+          _id: "$date",
+          views: { $sum: "$views" }
+        }
+      },
+      { $sort: { _id: 1 } } // Sort by date ascending (assuming DD-MM-YYYY formats properly when string sorted if we enforce format, wait DD-MM-YYYY sorts by day first. Let's fix that in frontend or return raw data).
+    ]);
+
+    // 2. Group by Country for the Map
+    const countryViews = await BlogAnalytics.aggregate([
+      {
+        $group: {
+          _id: "$country",
+          views: { $sum: "$views" }
+        }
+      },
+      { $sort: { views: -1 } }
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      dailyViews,
+      countryViews
+    });
+  } catch (error) {
+    logger.error(`getAnalyticsAdmin error: ${error.message}`);
     return res.status(500).json({ success: false, message: "Server Error" });
   }
 };

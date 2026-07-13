@@ -40,8 +40,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Data sanitization against XSS
-app.use(xss());
+// Data sanitization against XSS (Whitelist fields that need to retain HTML/special characters)
+app.use(xss({ allowedKeys: ['content', 'faq', 'title', 'excerpt', 'category', 'description', 'seo', 'seo.title', 'seo.description', 'seo.keywords', 'tags'] }));
 
 // Prevent HTTP parameter pollution
 app.use(hpp());

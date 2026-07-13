@@ -7,7 +7,8 @@ import {
   getBlogByIdAdmin,
   createBlogAdmin,
   updateBlogAdmin,
-  deleteBlogAdmin
+  deleteBlogAdmin,
+  getAnalyticsAdmin
 } from "../controllers/blogController.js";
 import { getImageKitAuthParams } from "../controllers/imagekitController.js";
 import { isAuthenticated, authorizeRoles } from "../middlewares/auth.js";
@@ -24,6 +25,7 @@ router.get("/post/:slug", getBlogBySlug); // /api/v1/blogs/post/:slug
 router.use(isAuthenticated, authorizeRoles("admin"));
 
 router.get("/admin/imagekit/auth", getImageKitAuthParams);
+router.get("/admin/analytics", getAnalyticsAdmin);
 router.get("/admin/all", getAllBlogsAdmin);
 router.get("/admin/post/:id", getBlogByIdAdmin);
 router.post("/admin/post", createBlogAdmin);
