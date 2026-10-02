@@ -188,9 +188,9 @@ export default function ImageCropperModal({
               <CropIcon className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-800">Crop & Optimize Image</h3>
+              <h3 className="text-base font-bold text-slate-800">Crop Image</h3>
               <p className="text-xs text-slate-500">
-                Adjust cropping frame and auto-convert to lightweight WebP format.
+                Adjust the crop box to frame your image.
               </p>
             </div>
           </div>
@@ -290,41 +290,34 @@ export default function ImageCropperModal({
           </ReactCrop>
         </div>
 
-        {/* Footer info & Actions */}
-        <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-slate-100">
-          <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-medium bg-emerald-50 border border-emerald-200/70 px-3 py-1.5 rounded-xl">
-            <Sparkles className="h-4 w-4 text-emerald-600 shrink-0" />
-            <span>Format: <strong>WebP (lossy compression ~88%)</strong> for minimal cloud storage.</span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isProcessing || isUploading}
-              className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSaveCrop}
-              disabled={isProcessing || isUploading || !currentWidth}
-              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-sm hover:shadow transition disabled:opacity-50 cursor-pointer"
-            >
-              {isProcessing || isUploading ? (
-                <>
-                  <Loader className="h-4 w-4 animate-spin" />
-                  {isUploading ? "Uploading to Cloud..." : "Optimizing WebP..."}
-                </>
-              ) : (
-                <>
-                  <Check className="h-4 w-4" />
-                  Crop & Save WebP
-                </>
-              )}
-            </button>
-          </div>
+        {/* Footer Actions */}
+        <div className="flex items-center justify-end gap-3 px-6 py-4 bg-white border-t border-slate-100">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isProcessing || isUploading}
+            className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveCrop}
+            disabled={isProcessing || isUploading || !currentWidth}
+            className="flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-sm hover:shadow transition disabled:opacity-50 cursor-pointer"
+          >
+            {isProcessing || isUploading ? (
+              <>
+                <Loader className="h-4 w-4 animate-spin" />
+                {isUploading ? "Uploading..." : "Processing..."}
+              </>
+            ) : (
+              <>
+                <Check className="h-4 w-4" />
+                Apply Crop
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

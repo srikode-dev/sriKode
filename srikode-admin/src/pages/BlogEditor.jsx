@@ -443,13 +443,10 @@ export default function BlogEditor() {
                     {/* 4. Image Block */}
                     {block.type === "image" && (
                       <div className="space-y-3">
-                        {/* Size Indicator Badge & Format Info */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2">
-                          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-blue-700">
-                            📐 Recommended Size: <strong className="font-mono text-blue-900">1080 × 1080 px (1:1)</strong> or <strong className="font-mono text-blue-900">1200 × 800 px</strong>
-                          </span>
-                          <span className="text-[10px] text-slate-500 font-medium">
-                            Auto-crops & saves in lightweight <strong className="text-emerald-600">.webp</strong> format
+                        {/* Size Indicator Badge */}
+                        <div className="flex items-center justify-between bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2">
+                          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-700">
+                            📐 Recommended Size: <strong className="font-mono text-blue-700">1080 × 1080 px (1:1)</strong> or <strong className="font-mono text-blue-700">1200 × 800 px</strong>
                           </span>
                         </div>
 
@@ -486,9 +483,6 @@ export default function BlogEditor() {
                               alt={block.alt || "Block preview"}
                               className="max-h-44 w-auto object-contain rounded-lg shadow-xs"
                             />
-                            <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/70 backdrop-blur-xs text-white text-[10px] font-mono px-2 py-0.5 rounded-md shadow-xs">
-                              WEBP • Active
-                            </div>
                           </div>
                         )}
 
@@ -721,9 +715,6 @@ export default function BlogEditor() {
               <div className="space-y-3">
                 <div className="relative aspect-video rounded-xl bg-slate-900 border border-slate-200 overflow-hidden group">
                   <img src={coverImage} alt="Cover image preview" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
-                  <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
-                    WEBP • Cover
-                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 py-2 text-xs font-semibold text-slate-700 cursor-pointer transition shadow-xs">
@@ -751,19 +742,16 @@ export default function BlogEditor() {
                 {uploadingCover ? (
                   <>
                     <Loader className="h-8 w-8 text-blue-500 animate-spin mb-2" />
-                    <span className="text-xs font-semibold text-slate-500">Uploading WebP to ImageKit...</span>
+                    <span className="text-xs font-semibold text-slate-500">Uploading to ImageKit...</span>
                   </>
                 ) : (
                   <>
                     <div className="p-3 rounded-full bg-blue-50 text-blue-600 group-hover:scale-110 transition mb-2">
                       <Crop className="h-5 w-5" />
                     </div>
-                    <span className="text-xs font-bold text-slate-700">Upload & Crop Cover Image</span>
+                    <span className="text-xs font-bold text-slate-700">Upload Cover Image</span>
                     <span className="inline-block mt-2 px-2.5 py-1 rounded-md bg-white border border-blue-200 text-[11px] font-mono font-bold text-blue-700 shadow-2xs">
                       1200 × 630 px (16:9)
-                    </span>
-                    <span className="text-[10px] text-slate-400 mt-1.5">
-                      Auto-crops & converts to WebP before cloud storage
                     </span>
                   </>
                 )}
