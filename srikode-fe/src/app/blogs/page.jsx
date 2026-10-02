@@ -27,7 +27,7 @@ function BlogListCard({ blog }) {
         className="relative block h-52 w-full shrink-0 overflow-hidden sm:h-auto sm:w-48"
       >
         <Image
-          src={blog.coverImage}
+          src={blog.coverImage || "/placeholder-banner.webp"}
           alt={blog.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"

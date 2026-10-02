@@ -45,7 +45,7 @@ function HeroCard({ blog, type }) {
     >
       {/* Background Image */}
       <Image
-        src={blog.coverImage}
+        src={blog.coverImage || "/placeholder-banner.webp"}
         alt={blog.title}
         fill
         priority={isLarge}

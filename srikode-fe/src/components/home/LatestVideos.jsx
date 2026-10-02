@@ -48,7 +48,7 @@ function VideoCard({ video }) {
       {/* Thumbnail */}
       <div className="relative aspect-video overflow-hidden">
         <Image
-          src={video.thumbnail || "https://picsum.photos/seed/video/640/360"}
+          src={video.thumbnail || "/placeholder-banner.webp"}
           alt={video.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"

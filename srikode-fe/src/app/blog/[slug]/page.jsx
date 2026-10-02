@@ -38,7 +38,7 @@ export async function generateMetadata({ params }) {
       openGraph: {
         title: blog.title,
         description: blog.excerpt,
-        images: [{ url: blog.coverImage }],
+        images: [{ url: blog.coverImage || "/placeholder-banner.webp" }],
       },
     };
   } catch {
@@ -87,7 +87,7 @@ export default async function BlogDetailPage({ params }) {
     "@type": "BlogPosting",
     "headline": blog.title,
     "description": blog.excerpt,
-    "image": blog.coverImage,
+    "image": blog.coverImage || "https://srikode.dev/placeholder-banner.webp",
     "datePublished": blog.createdAt,
     "dateModified": blog.updatedAt || blog.createdAt,
     "author": {
@@ -166,7 +166,7 @@ export default async function BlogDetailPage({ params }) {
               {/* Cover Image Card */}
               <div className="relative aspect-21/9 w-full overflow-hidden rounded-2xl bg-sk-bg-subtle shadow-xs border border-sk-border mb-8">
                 <Image
-                  src={blog.coverImage || "https://picsum.photos/seed/blog/800/400"}
+                  src={blog.coverImage || "/placeholder-banner.webp"}
                   alt={blog.title}
                   fill
                   priority
@@ -299,7 +299,7 @@ export default async function BlogDetailPage({ params }) {
                     {relatedBlogs.map((rb) => (
                       <Link key={rb._id || rb.id} href={`/blog/${rb.slug}`} className="group block overflow-hidden rounded-xl border border-sk-border bg-sk-bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-md">
                         <div className="relative aspect-video overflow-hidden">
-                          <Image src={rb.coverImage || "https://picsum.photos/seed/related/300/200"} alt={rb.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="300px" />
+                          <Image src={rb.coverImage || "/placeholder-banner.webp"} alt={rb.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="300px" />
                         </div>
                         <div className="p-3">
                           <span className="text-[10px] font-semibold uppercase text-sk-primary">{rb.category}</span>
