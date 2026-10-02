@@ -3,7 +3,7 @@ import { ArrowRight, Code2, Globe, Database, Server } from "lucide-react";
 import { FaGithub, FaYoutube, FaTwitter, FaLinkedin } from "react-icons/fa";
 import Container from "@/components/shared/Container";
 import TimelineSection from "@/components/about/TimelineSection";
-import { getBlogs } from "@/lib/api";
+import { getBlogs, getCmsConfig } from "@/lib/api";
 export const metadata = {
   title: "About",
   description: "Learn about SriKode — A Developer Community and platform for modern web development tutorials.",
@@ -12,7 +12,7 @@ export const metadata = {
   },
 };
 
-const techStack = [
+const defaultTechStack = [
   { name: "HTML & CSS",    icon: "🎨", lightColor: "bg-orange-50 text-orange-800 border-orange-200",    darkColor: "dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800/40" },
   { name: "JavaScript",   icon: "⚡", lightColor: "bg-yellow-50 text-yellow-700 border-yellow-200",    darkColor: "dark:bg-yellow-950/30 dark:text-yellow-300 dark:border-yellow-800/40" },
   { name: "React",         icon: "⚛️", lightColor: "bg-blue-50 text-blue-700 border-blue-200",          darkColor: "dark:bg-blue-950/30 dark:text-blue-300 dark:border-blue-800/40" },
@@ -25,29 +25,57 @@ const techStack = [
   { name: "Git & GitHub",  icon: "🐙", lightColor: "bg-purple-50 text-purple-700 border-purple-200",    darkColor: "dark:bg-purple-950/30 dark:text-purple-300 dark:border-purple-800/40" },
 ];
 
-const timeline = [
+const defaultTimeline = [
   { year: "2026", title: "The Idea", desc: "Decided to build a centralized platform to share practical web development knowledge." },
   { year: "2026", title: "Building in Public", desc: "Documented the entire process of building the platform from scratch." },
   { year: "2026", title: "Launched SriKode", desc: "Officially launched the platform to the community. Day 1 starts now." },
   { year: "2026", title: "Our First Blog", desc: "Officially launched the platform to the community. Day 1 starts now." },
-]
-
-const socials = [
-  { icon: FaGithub,   label: "GitHub",   href: "https://github.com",   extraClass: "hover:bg-gray-900 hover:text-white dark:hover:bg-zinc-700" },
-  { icon: FaYoutube,  label: "YouTube",  href: "https://youtube.com",  extraClass: "hover:bg-red-600 hover:text-white" },
-  { icon: FaTwitter,  label: "Twitter",  href: "https://twitter.com",  extraClass: "hover:bg-sky-500 hover:text-white" },
-  { icon: FaLinkedin, label: "LinkedIn", href: "https://linkedin.com", extraClass: "hover:bg-blue-700 hover:text-white" },
 ];
 
 export default async function AboutPage() {
-  const res = await getBlogs({ limit: 100 }).catch(() => ({ blogs: [] }));
-  const blogs = res.blogs || [];
+  const [blogsRes, cmsRes] = await Promise.allSettled([
+    getBlogs({ limit: 100 }),
+    getCmsConfig(),
+  ]);
+
+  const blogs = blogsRes.status === "fulfilled" ? (blogsRes.value?.blogs || []) : [];
+  const cmsAbout = cmsRes.status === "fulfilled" ? cmsRes.value?.about : null;
   
   const categoryMap = {};
   blogs.forEach((b) => { if (b.category) categoryMap[b.category] = true; });
   const categoriesCount = Object.keys(categoryMap).length;
 
   const totalViews = blogs.reduce((acc, b) => acc + (b.viewCount || 0), 0);
+
+  const badge = cmsAbout?.badge || "About Us";
+  const title = cmsAbout?.title || cmsAbout?.heading || "Welcome to SriKode";
+  const role = cmsAbout?.role || "Developer Community & Educational Platform";
+  const bioP1 = cmsAbout?.bio || cmsAbout?.bioP1 || "SriKode is a platform passionate about building practical web applications and making web development accessible to everyone. It is a place to share everything about modern web dev — through detailed tutorials, real projects, and honest writing.";
+  const bioP2 = cmsAbout?.bioP2 || "";
+  const missionTitle = cmsAbout?.missionTitle || "What SriKode is About";
+  const missionText = cmsAbout?.missionText || "SriKode is a developer blog focused on practical, hands-on web development tutorials. No fluff, no gatekeeping — just real code and real explanations. The goal is simple: help you build things you're proud of.";
+
+  const timeline = (cmsAbout?.timeline && Array.isArray(cmsAbout.timeline) && cmsAbout.timeline.length > 0)
+    ? cmsAbout.timeline
+    : (cmsAbout?.milestones && Array.isArray(cmsAbout.milestones) && cmsAbout.milestones.length > 0)
+    ? cmsAbout.milestones
+    : defaultTimeline;
+
+  // Custom skills or default tech stack
+  const skillsArray = cmsAbout?.skillsList
+    ? cmsAbout.skillsList.split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
+
+  const customSkills = (cmsAbout?.skills && Array.isArray(cmsAbout.skills) && cmsAbout.skills.length > 0)
+    ? cmsAbout.skills
+    : (skillsArray.length > 0 ? skillsArray.map((s) => ({ name: s, icon: "⚡" })) : null);
+
+  const dynamicSocials = [
+    { icon: FaGithub, label: "GitHub", href: cmsAbout?.githubUrl || "https://github.com", extraClass: "hover:bg-gray-900 hover:text-white dark:hover:bg-zinc-700" },
+    { icon: FaYoutube, label: "YouTube", href: cmsAbout?.youtubeUrl || "https://youtube.com", extraClass: "hover:bg-red-600 hover:text-white" },
+    { icon: FaTwitter, label: "Twitter", href: cmsAbout?.twitterUrl || "https://twitter.com", extraClass: "hover:bg-sky-500 hover:text-white" },
+    { icon: FaLinkedin, label: "LinkedIn", href: cmsAbout?.linkedinUrl || "https://linkedin.com", extraClass: "hover:bg-blue-700 hover:text-white" },
+  ];
 
   return (
     <div className="py-12" style={{ backgroundColor: "var(--sk-bg)" }}>
@@ -71,32 +99,37 @@ export default async function AboutPage() {
                   color: "var(--sk-primary-text)",
                 }}
               >
-                About Us
+                {badge}
               </span>
               <h1
                 className="text-4xl font-extrabold md:text-5xl"
                 style={{ color: "var(--sk-text)" }}
               >
-                Welcome to{" "}
-                <span style={{ color: "var(--sk-primary)" }}>SriKode</span>
+                {title.includes("SriKode") ? (
+                  <>
+                    {title.replace("SriKode", "")}{" "}
+                    <span style={{ color: "var(--sk-primary)" }}>SriKode</span>
+                  </>
+                ) : (
+                  title
+                )}
               </h1>
               <p className="mt-2 text-lg font-medium" style={{ color: "var(--sk-text-muted)" }}>
-                Developer Community & Educational Platform
+                {role}
               </p>
 
               <p className="mt-5 leading-relaxed" style={{ color: "var(--sk-text-muted)" }}>
-                SriKode is a platform passionate about building practical web applications
-                and making web development accessible to everyone. It is a place to share
-                everything about modern web dev — through detailed tutorials, real projects, and honest writing.
+                {bioP1}
               </p>
-              <p className="mt-4 leading-relaxed" style={{ color: "var(--sk-text-muted)" }}>
-                We believe the best way to learn is by building real things. Every tutorial on SriKode
-                is hands-on, step-by-step and based on what is actually used in production.
-              </p>
+              {bioP2 && (
+                <p className="mt-4 leading-relaxed" style={{ color: "var(--sk-text-muted)" }}>
+                  {bioP2}
+                </p>
+              )}
 
               {/* Social links */}
               <div className="mt-8 flex flex-wrap gap-3">
-                {socials.map(({ icon: Icon, label, href, extraClass }) => (
+                {dynamicSocials.map(({ icon: Icon, label, href, extraClass }) => (
                   <a
                     key={label}
                     href={href}
@@ -171,15 +204,27 @@ export default async function AboutPage() {
             </h2>
           </div>
           <div className="flex flex-wrap gap-3">
-            {techStack.map(({ name, icon, lightColor, darkColor }) => (
-              <span
-                key={name}
-                className={`group flex items-center gap-2.5 rounded-full border px-5 py-2.5 text-sm font-bold shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-default ${lightColor} ${darkColor}`}
-              >
-                <span className="transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-12">{icon}</span>
-                {name}
-              </span>
-            ))}
+            {customSkills ? (
+              customSkills.map(({ name, icon }) => (
+                <span
+                  key={name}
+                  className="group flex items-center gap-2 rounded-full border border-sk-border-strong bg-sk-bg-card px-5 py-2.5 text-sm font-bold shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-sk-primary hover:text-sk-primary"
+                >
+                  <span className="text-base">{icon || "⚡"}</span>
+                  {name}
+                </span>
+              ))
+            ) : (
+              defaultTechStack.map(({ name, icon, lightColor, darkColor }) => (
+                <span
+                  key={name}
+                  className={`group flex items-center gap-2.5 rounded-full border px-5 py-2.5 text-sm font-bold shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-default ${lightColor} ${darkColor}`}
+                >
+                  <span className="transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-12">{icon}</span>
+                  {name}
+                </span>
+              ))
+            )}
           </div>
         </section>
 
@@ -188,16 +233,14 @@ export default async function AboutPage() {
 
         {/* ── Mission ── */}
         <section
-          className="rounded-2xl p-8 text-center md:p-12"
+          className="rounded-2xl p-8 text-center md:p-12 text-white"
           style={{ backgroundColor: "var(--sk-primary)" }}
         >
           <h2 className="text-2xl font-extrabold text-white md:text-3xl">
-            What SriKode is About
+            {missionTitle}
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-white/80">
-            SriKode is a developer blog focused on practical, hands-on web development tutorials.
-            No fluff, no gatekeeping — just real code and real explanations. The goal is simple:
-            help you build things you&apos;re proud of.
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-white/90">
+            {missionText}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link

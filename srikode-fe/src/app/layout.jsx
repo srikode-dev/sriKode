@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { getCmsConfig } from "@/lib/api";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,12 +61,51 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  let theme = null;
+  try {
+    const cms = await getCmsConfig();
+    if (cms?.theme) {
+      theme = cms.theme;
+    }
+  } catch (err) {
+    // Graceful fallback to default CSS theme
+  }
+
+  const primaryColor = theme?.primaryColor || "#2563eb";
+  const primaryHover = theme?.primaryHover || "#1d4ed8";
+  const primaryLight = theme?.primaryLight || "#eff6ff";
+  const primaryText = theme?.primaryText || "#1d4ed8";
+
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              :root {
+                --sk-primary: ${primaryColor} !important;
+                --sk-primary-hover: ${primaryHover} !important;
+                --sk-primary-light: ${primaryLight} !important;
+                --sk-primary-text: ${primaryText} !important;
+                --primary: var(--sk-primary) !important;
+                --primary-hover: var(--sk-primary-hover) !important;
+              }
+              .dark {
+                --sk-primary: ${primaryColor} !important;
+                --sk-primary-hover: ${primaryHover} !important;
+                --sk-primary-light: ${primaryLight.startsWith('#') ? `${primaryLight}25` : primaryLight} !important;
+                --sk-primary-text: ${primaryText} !important;
+                --primary: var(--sk-primary) !important;
+                --primary-hover: var(--sk-primary-hover) !important;
+              }
+            `,
+          }}
+        />
+      </head>
       <body>
         <ThemeProvider>
           <Header />

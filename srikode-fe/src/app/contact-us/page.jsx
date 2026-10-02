@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mail, Send, CheckCircle, MessageSquare } from "lucide-react";
 import { FaGithub, FaYoutube, FaTwitter, FaLinkedin } from "react-icons/fa";
-import { submitContact } from "@/lib/api";
+import { submitContact, getCmsConfig } from "@/lib/api";
 import Container from "@/components/shared/Container";
 
 export default function ContactUsPage() {
@@ -11,6 +11,15 @@ export default function ContactUsPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [cmsContact, setCmsContact] = useState(null);
+
+  useEffect(() => {
+    getCmsConfig()
+      .then((cfg) => {
+        if (cfg?.contact) setCmsContact(cfg.contact);
+      })
+      .catch(() => {});
+  }, []);
 
   const validate = () => {
     const e = {};
@@ -48,12 +57,72 @@ export default function ContactUsPage() {
     }
   };
 
-  const socials = [
-    { icon: FaGithub, label: "GitHub", handle: "@srikode-dev", href: "https://github.com/srikode-dev", baseColor: "text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800", hoverColor: "hover:bg-zinc-900 hover:text-white hover:border-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white" },
-    { icon: FaYoutube, label: "YouTube", handle: "@srikode", href: "https://www.youtube.com/@srikode", baseColor: "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50", hoverColor: "hover:bg-red-600 hover:text-white hover:border-red-600 dark:hover:bg-red-600" },
-    { icon: FaTwitter, label: "Twitter / X", handle: "@srikode_dev", href: "https://x.com/srikode_dev", baseColor: "text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/20 border-sky-200 dark:border-sky-900/50", hoverColor: "hover:bg-sky-500 hover:text-white hover:border-sky-500 dark:hover:bg-sky-500" },
-    { icon: FaLinkedin, label: "LinkedIn", handle: "@srikode", href: "https://www.linkedin.com/company/srikode", baseColor: "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/50", hoverColor: "hover:bg-blue-700 hover:text-white hover:border-blue-700 dark:hover:bg-blue-600" },
+  const getSocialColors = (platform = "") => {
+    const p = platform.toLowerCase();
+    if (p.includes("git")) return { baseColor: "text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800", hoverColor: "hover:bg-zinc-900 hover:text-white hover:border-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white", icon: FaGithub };
+    if (p.includes("you") || p.includes("yt")) return { baseColor: "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50", hoverColor: "hover:bg-red-600 hover:text-white hover:border-red-600 dark:hover:bg-red-600", icon: FaYoutube };
+    if (p.includes("twit") || p.includes("x")) return { baseColor: "text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/20 border-sky-200 dark:border-sky-900/50", hoverColor: "hover:bg-sky-500 hover:text-white hover:border-sky-500 dark:hover:bg-sky-500", icon: FaTwitter };
+    if (p.includes("link")) return { baseColor: "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/50", hoverColor: "hover:bg-blue-700 hover:text-white hover:border-blue-700 dark:hover:bg-blue-600", icon: FaLinkedin };
+    return { baseColor: "text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/40 border-slate-200", hoverColor: "hover:bg-slate-900 hover:text-white", icon: FaGithub };
+  };
+
+  const defaultSocials = [
+    {
+      icon: FaGithub,
+      label: "GitHub",
+      handle: "@srikode-dev",
+      href: "https://github.com/srikode-dev",
+      baseColor: "text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800",
+      hoverColor: "hover:bg-zinc-900 hover:text-white hover:border-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white",
+    },
+    {
+      icon: FaYoutube,
+      label: "YouTube",
+      handle: "@srikode",
+      href: "https://www.youtube.com/@srikode",
+      baseColor: "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50",
+      hoverColor: "hover:bg-red-600 hover:text-white hover:border-red-600 dark:hover:bg-red-600",
+    },
+    {
+      icon: FaTwitter,
+      label: "Twitter / X",
+      handle: "@srikode_dev",
+      href: "https://x.com/srikode_dev",
+      baseColor: "text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/20 border-sky-200 dark:border-sky-900/50",
+      hoverColor: "hover:bg-sky-500 hover:text-white hover:border-sky-500 dark:hover:bg-sky-500",
+    },
+    {
+      icon: FaLinkedin,
+      label: "LinkedIn",
+      handle: "@srikode",
+      href: "https://www.linkedin.com/company/srikode",
+      baseColor: "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/50",
+      hoverColor: "hover:bg-blue-700 hover:text-white hover:border-blue-700 dark:hover:bg-blue-600",
+    },
   ];
+
+  const socials = (cmsContact?.socials && Array.isArray(cmsContact.socials) && cmsContact.socials.length > 0)
+    ? cmsContact.socials.map((s) => {
+        const { baseColor, hoverColor, icon } = getSocialColors(s.platform);
+        return {
+          icon,
+          label: s.platform,
+          handle: s.handle || `@${s.platform.toLowerCase()}`,
+          href: s.href || "#",
+          baseColor,
+          hoverColor,
+        };
+      })
+    : defaultSocials;
+
+  const badge = cmsContact?.badge || "Contact";
+  const heading = cmsContact?.heading || "Get in Touch";
+  const subtitle = cmsContact?.subheading || cmsContact?.subtitle || "Have a question, suggestion, or want to collaborate? Drop me a message — I read every one.";
+  const directEmail = cmsContact?.email || "srikode.hq@gmail.com";
+  const responseTime = cmsContact?.responseTime || "I typically reply within 24–48 hours.";
+  const guestPostTitle = cmsContact?.guestPostTitle || "Write for SriKode";
+  const guestPostText = cmsContact?.guestPostDesc || cmsContact?.guestPostText || "Got something valuable to share with the dev community? I welcome quality guest posts on web development topics.";
+  const guestPostSubject = cmsContact?.guestPostSubject || "Guest Post";
 
   return (
     <div className="py-12" style={{ backgroundColor: "var(--sk-bg)" }}>
@@ -67,11 +136,11 @@ export default function ContactUsPage() {
               color: "var(--sk-primary-text)",
             }}
           >
-            Contact
+            {badge}
           </span>
-          <h1 className="text-3xl font-extrabold md:text-4xl" style={{ color: "var(--sk-text)" }}>Get in Touch</h1>
+          <h1 className="text-3xl font-extrabold md:text-4xl" style={{ color: "var(--sk-text)" }}>{heading}</h1>
           <p className="mx-auto mt-3 max-w-lg text-sm" style={{ color: "var(--sk-text-muted)" }}>
-            Have a question, suggestion, or want to collaborate? Drop me a message — I read every one.
+            {subtitle}
           </p>
         </div>
 
@@ -233,13 +302,13 @@ export default function ContactUsPage() {
               <h3 className="font-bold" style={{ color: "var(--sk-text)" }}>Email Directly</h3>
               <p className="mt-1 text-sm" style={{ color: "var(--sk-text-muted)" }}>Prefer email? Reach me at:</p>
               <a
-                href="mailto:srikode.hq@gmail.com"
+                href={`mailto:${directEmail}`}
                 className="mt-2 block text-sm font-semibold hover:underline"
                 style={{ color: "var(--sk-primary)" }}
               >
-                srikode.hq@gmail.com
+                {directEmail}
               </a>
-              <p className="mt-3 text-xs" style={{ color: "var(--sk-text-faint)" }}>I typically reply within 24–48 hours.</p>
+              <p className="mt-3 text-xs" style={{ color: "var(--sk-text-faint)" }}>{responseTime}</p>
             </div>
 
             {/* Social connect */}
@@ -276,11 +345,13 @@ export default function ContactUsPage() {
                 borderColor: "var(--sk-primary)",
               }}
             >
-              <h3 className="font-bold" style={{ color: "var(--sk-primary-text)" }}>Write for SriKode</h3>
+              <h3 className="font-bold" style={{ color: "var(--sk-primary-text)" }}>{guestPostTitle}</h3>
               <p className="mt-2 text-sm" style={{ color: "var(--sk-primary-text)" }}>
-                Got something valuable to share with the dev community? I welcome quality guest posts on web development topics.
+                {guestPostText}
               </p>
-              <p className="mt-3 text-xs opacity-75" style={{ color: "var(--sk-primary-text)" }}>Use the contact form with subject: <strong>&quot;Guest Post&quot;</strong></p>
+              <p className="mt-3 text-xs opacity-75" style={{ color: "var(--sk-primary-text)" }}>
+                Use the contact form with subject: <strong>&quot;{guestPostSubject}&quot;</strong>
+              </p>
             </div>
           </div>
         </div>

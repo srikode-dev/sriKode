@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Video, RefreshCw, Eye, EyeOff, Loader } from "lucide-react";
 import useVideoStore from "../store/videoStore.js";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export default function Videos() {
   const { videos, loading, error, fetchVideos, syncYouTube, toggleVisibility } = useVideoStore();

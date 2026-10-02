@@ -4,10 +4,16 @@ import { useState } from "react";
 import { Send, CheckCircle } from "lucide-react";
 import { subscribeNewsletter } from "@/lib/api";
 
-export default function NewsletterCTA() {
+export default function NewsletterCTA({ data }) {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const heading = data?.heading || "Never Miss a Tutorial";
+  const subtitle = data?.subheading || data?.subtitle || "Get the latest web development tutorials, projects and tips delivered straight to your inbox. No spam — ever.";
+  const buttonText = data?.buttonText || "Subscribe";
+  const disclaimer = data?.disclaimer || "Join 10,000+ developers learning with SriKode. Unsubscribe anytime.";
+  const badge = data?.badge;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,18 +53,31 @@ export default function NewsletterCTA() {
           <Send size={24} />
         </div>
 
+        {badge && (
+          <div className="mb-2">
+            <span
+              className="inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider"
+              style={{
+                backgroundColor: "var(--sk-primary-light)",
+                color: "var(--sk-primary-text)",
+              }}
+            >
+              {badge}
+            </span>
+          </div>
+        )}
+
         <h2
           className="text-3xl font-extrabold md:text-4xl"
           style={{ color: "var(--sk-text)" }}
         >
-          Never Miss a Tutorial
+          {heading}
         </h2>
         <p
           className="mt-3 text-base"
           style={{ color: "var(--sk-text-muted)" }}
         >
-          Get the latest web development tutorials, projects and tips delivered
-          straight to your inbox. No spam — ever.
+          {subtitle}
         </p>
 
         {submitted ? (
@@ -108,7 +127,7 @@ export default function NewsletterCTA() {
               ) : (
                 <>
                   <Send size={15} />
-                  Subscribe
+                  {buttonText}
                 </>
               )}
             </button>
@@ -119,7 +138,7 @@ export default function NewsletterCTA() {
           className="mt-4 text-xs"
           style={{ color: "var(--sk-text-faint)" }}
         >
-          Join 10,000+ developers learning with SriKode. Unsubscribe anytime.
+          {disclaimer}
         </p>
       </div>
     </section>

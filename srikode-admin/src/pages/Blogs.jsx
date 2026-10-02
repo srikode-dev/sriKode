@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FileText, Plus, Eye, EyeOff, Edit2, Trash2, Loader, BookOpen } from "lucide-react";
 import useBlogStore from "../store/blogStore.js";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export default function Blogs() {
   const { blogs, loading, error, fetchBlogs, deleteBlog } = useBlogStore();

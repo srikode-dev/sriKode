@@ -110,11 +110,13 @@ function StatItem({ value, suffix, label, isLast }) {
   );
 }
 
-export default function Hero({ blogs = [] }) {
+export default function Hero({ blogs = [], stats }) {
   const featuredBlog = blogs[0];
   const blog2 = blogs[1];
   const blog3 = blogs[2];
   const blog4 = blogs[3];
+
+  const activeStats = (stats && Array.isArray(stats) && stats.length > 0) ? stats : statsData;
 
   if (!featuredBlog) return null;
 
@@ -152,11 +154,11 @@ export default function Hero({ blogs = [] }) {
 
         {/* Minimalist Centered Inline Stats */}
         <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs sm:text-sm text-sk-text-muted font-bold select-none">
-          {statsData.map((s, idx) => (
+          {activeStats.map((s, idx) => (
             <StatItem
               key={idx}
               {...s}
-              isLast={idx === statsData.length - 1}
+              isLast={idx === activeStats.length - 1}
             />
           ))}
         </div>

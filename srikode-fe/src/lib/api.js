@@ -94,3 +94,17 @@ export async function subscribeNewsletter(email) {
     body: JSON.stringify({ email }),
   });
 }
+
+/**
+ * Fetch dynamic CMS site configuration (Stats, Social Card, Newsletter, About, Contact, Theme).
+ */
+export async function getCmsConfig() {
+  try {
+    const res = await fetchJson("/cms", { cache: "no-store" });
+    return res?.config || res?.data || null;
+  } catch (error) {
+    console.error("Failed to load CMS config:", error.message);
+    return null;
+  }
+}
+
