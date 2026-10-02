@@ -14,9 +14,11 @@ import {
   AlignLeft,
   Code,
   AlertCircle,
-  List
+  List,
+  Crop
 } from "lucide-react";
 import useBlogStore from "../store/blogStore.js";
+import ImageCropperModal from "../components/ImageCropperModal.jsx";
 
 export default function BlogEditor() {
   const { id } = useParams();
@@ -84,20 +86,84 @@ export default function BlogEditor() {
     }
   }, [id, isEdit, fetchBlogById]);
 
-  // Image Upload helper (ImageKit root /srikode)
-  const handleImageUpload = async (e, callback, setUploadLoading) => {
-    const file = e.target.files[0];
+  // Image Cropper Modal State
+  const [cropperState, setCropperState] = useState({
+    isOpen: false,
+    imageSrc: null,
+    fileName: "",
+    defaultAspect: 16 / 9,
+    recommendedDimensions: "1200 × 630 px (16:9)",
+    onCropSuccess: null,
+    setLoadingState: null,
+  });
+
+  const handleSelectCoverFile = (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploadLoading(true);
-    const res = await uploadImage(file);
-    setUploadLoading(false);
+    const previewUrl = URL.createObjectURL(file);
+    setCropperState({
+      isOpen: true,
+      imageSrc: previewUrl,
+      fileName: file.name,
+      defaultAspect: 16 / 9,
+      recommendedDimensions: "1200 × 630 px (16:9)",
+      onCropSuccess: (url) => setCoverImage(url),
+      setLoadingState: setUploadingCover,
+    });
+    e.target.value = "";
+  };
 
-    if (res.success) {
-      callback(res.url);
-    } else {
-      alert(res.message);
+  const handleSelectBlockFile = (e, index) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const previewUrl = URL.createObjectURL(file);
+    setCropperState({
+      isOpen: true,
+      imageSrc: previewUrl,
+      fileName: file.name,
+      defaultAspect: 1, // 1080x1080 square or user can switch to 16:9, 4:3, Free
+      recommendedDimensions: "1080 × 1080 px (1:1) or 1200 × 800 px (3:2)",
+      onCropSuccess: (url) => updateBlock(index, { src: url }),
+      setLoadingState: (loading) => setUploadingBlockIndex(loading ? index : null),
+    });
+    e.target.value = "";
+  };
+
+  const handleCropComplete = async (webpFile) => {
+    if (!cropperState.onCropSuccess) return;
+
+    if (cropperState.setLoadingState) {
+      cropperState.setLoadingState(true);
     }
+
+    try {
+      const res = await uploadImage(webpFile);
+      if (res.success) {
+        cropperState.onCropSuccess(res.url);
+        if (cropperState.imageSrc) {
+          URL.revokeObjectURL(cropperState.imageSrc);
+        }
+        setCropperState((prev) => ({ ...prev, isOpen: false, imageSrc: null }));
+      } else {
+        alert(res.message || "Image upload failed");
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Failed to upload cropped image.");
+    } finally {
+      if (cropperState.setLoadingState) {
+        cropperState.setLoadingState(false);
+      }
+    }
+  };
+
+  const handleCloseCropper = () => {
+    if (cropperState.imageSrc) {
+      URL.revokeObjectURL(cropperState.imageSrc);
+    }
+    setCropperState((prev) => ({ ...prev, isOpen: false, imageSrc: null }));
   };
 
   // Block Manipulation Helpers
@@ -377,25 +443,55 @@ export default function BlogEditor() {
                     {/* 4. Image Block */}
                     {block.type === "image" && (
                       <div className="space-y-3">
+                        {/* Size Indicator Badge & Format Info */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2">
+                          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-blue-700">
+                            📐 Recommended Size: <strong className="font-mono text-blue-900">1080 × 1080 px (1:1)</strong> or <strong className="font-mono text-blue-900">1200 × 800 px</strong>
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-medium">
+                            Auto-crops & saves in lightweight <strong className="text-emerald-600">.webp</strong> format
+                          </span>
+                        </div>
+
                         <div className="flex items-center gap-3">
                           <input
                             type="text"
                             value={block.src || ""}
                             onChange={(e) => updateBlock(index, { src: e.target.value })}
-                            placeholder="Image URL (from CDN) or upload..."
+                            placeholder="Image URL (from CDN) or click Upload & Crop..."
                             className="flex-1 rounded-xl border border-slate-200 px-4 py-2 text-xs outline-none focus:border-blue-500"
                           />
-                          <label className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-600 px-4 py-2 cursor-pointer transition shrink-0">
-                            {isUploadingThisBlock ? <Loader className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-                            Upload
+                          <label className="flex items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-xs font-bold text-blue-700 px-4 py-2 cursor-pointer transition shrink-0 shadow-xs">
+                            {isUploadingThisBlock ? (
+                              <Loader className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Crop className="h-3.5 w-3.5" />
+                            )}
+                            Upload & Crop
                             <input
                               type="file"
                               accept="image/*"
-                              onChange={(e) => handleImageUpload(e, (url) => updateBlock(index, { src: url }), (loadingState) => setUploadingBlockIndex(loadingState ? index : null))}
+                              onChange={(e) => handleSelectBlockFile(e, index)}
                               className="hidden"
+                              disabled={isUploadingThisBlock}
                             />
                           </label>
                         </div>
+
+                        {/* Thumbnail preview if an image URL exists */}
+                        {block.src && (
+                          <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50 max-h-48 flex items-center justify-center group p-2">
+                            <img
+                              src={block.src}
+                              alt={block.alt || "Block preview"}
+                              className="max-h-44 w-auto object-contain rounded-lg shadow-xs"
+                            />
+                            <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/70 backdrop-blur-xs text-white text-[10px] font-mono px-2 py-0.5 rounded-md shadow-xs">
+                              WEBP • Active
+                            </div>
+                          </div>
+                        )}
+
                         <input
                           type="text"
                           value={block.alt || ""}
@@ -614,36 +710,67 @@ export default function BlogEditor() {
         <div className="space-y-6">
           {/* Cover Image Upload Card */}
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Cover Image</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Cover Media</h3>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-50 text-amber-800 text-[10px] font-bold border border-amber-200/70">
+                📐 1200 × 630 px (16:9)
+              </span>
+            </div>
             
             {coverImage ? (
-              <div className="relative aspect-video rounded-xl bg-slate-900 border overflow-hidden">
-                <img src={coverImage} alt="Cover image preview" className="h-full w-full object-cover" />
-                <button
-                  onClick={() => setCoverImage("")}
-                  className="absolute top-2 right-2 rounded-lg bg-red-650/80 hover:bg-red-600 text-white p-1.5 transition text-xs font-semibold"
-                >
-                  Remove
-                </button>
+              <div className="space-y-3">
+                <div className="relative aspect-video rounded-xl bg-slate-900 border border-slate-200 overflow-hidden group">
+                  <img src={coverImage} alt="Cover image preview" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                  <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
+                    WEBP • Cover
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 py-2 text-xs font-semibold text-slate-700 cursor-pointer transition shadow-xs">
+                    <Crop className="h-3.5 w-3.5 text-blue-600" />
+                    Change & Crop
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleSelectCoverFile}
+                      className="hidden"
+                      disabled={uploadingCover}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setCoverImage("")}
+                    className="rounded-xl border border-rose-150 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-100 transition cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
             ) : (
-              <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-250 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 aspect-video rounded-xl cursor-pointer transition select-none">
+              <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-250 bg-slate-50 hover:bg-blue-50/50 hover:border-blue-400 aspect-video rounded-xl cursor-pointer transition select-none group p-4 text-center">
                 {uploadingCover ? (
                   <>
                     <Loader className="h-8 w-8 text-blue-500 animate-spin mb-2" />
-                    <span className="text-xs font-semibold text-slate-500">Uploading to ImageKit...</span>
+                    <span className="text-xs font-semibold text-slate-500">Uploading WebP to ImageKit...</span>
                   </>
                 ) : (
                   <>
-                    <Upload className="h-8 w-8 text-slate-350 mb-2" />
-                    <span className="text-xs font-bold text-slate-600">Upload cover image</span>
-                    <span className="text-[10px] text-slate-400 mt-1">Direct upload to /srikode</span>
+                    <div className="p-3 rounded-full bg-blue-50 text-blue-600 group-hover:scale-110 transition mb-2">
+                      <Crop className="h-5 w-5" />
+                    </div>
+                    <span className="text-xs font-bold text-slate-700">Upload & Crop Cover Image</span>
+                    <span className="inline-block mt-2 px-2.5 py-1 rounded-md bg-white border border-blue-200 text-[11px] font-mono font-bold text-blue-700 shadow-2xs">
+                      1200 × 630 px (16:9)
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-1.5">
+                      Auto-crops & converts to WebP before cloud storage
+                    </span>
                   </>
                 )}
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleImageUpload(e, setCoverImage, setUploadingCover)}
+                  onChange={handleSelectCoverFile}
                   className="hidden"
                   disabled={uploadingCover}
                 />
@@ -811,6 +938,18 @@ export default function BlogEditor() {
           </div>
         </div>
       </div>
+
+      {/* Modern Image Cropper Modal with WebP conversion */}
+      <ImageCropperModal
+        isOpen={cropperState.isOpen}
+        imageSrc={cropperState.imageSrc}
+        fileName={cropperState.fileName}
+        defaultAspect={cropperState.defaultAspect}
+        recommendedDimensions={cropperState.recommendedDimensions}
+        onClose={handleCloseCropper}
+        onCropComplete={handleCropComplete}
+        isUploading={uploadingCover || uploadingBlockIndex !== null}
+      />
     </div>
   );
 }
