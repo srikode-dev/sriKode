@@ -139,6 +139,10 @@ const blogSchema = new mongoose.Schema({
     type: Boolean, 
     default: false 
   },
+  adsEnabled: {
+    type: Boolean,
+    default: true
+  },
   viewCount: { 
     type: Number, 
     default: 0 

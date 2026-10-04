@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 const useCmsStore = create((set, get) => ({
   config: null,
+  liveStats: null,
   loading: false,
   saving: false,
   error: null,
@@ -12,8 +13,12 @@ const useCmsStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await axiosInstance.get("/cms");
-      set({ config: response.data.config, loading: false });
-      return { success: true, config: response.data.config };
+      set({ 
+        config: response.data.config, 
+        liveStats: response.data.liveStats || null,
+        loading: false 
+      });
+      return { success: true, config: response.data.config, liveStats: response.data.liveStats };
     } catch (error) {
       const message = error.response?.data?.message || "Failed to load CMS configuration.";
       set({ error: message, loading: false });
@@ -25,8 +30,11 @@ const useCmsStore = create((set, get) => ({
     set({ saving: true });
     try {
       const response = await axiosInstance.put("/cms", updatedPayload);
-      set({ config: response.data.config, saving: false });
-      toast.success("CMS sections updated successfully!");
+      set({ 
+        config: response.data.config, 
+        liveStats: response.data.liveStats || null,
+        saving: false 
+      });
       return { success: true };
     } catch (error) {
       const message = error.response?.data?.message || "Failed to save CMS configuration.";

@@ -25,6 +25,38 @@ const siteConfigSchema = new mongoose.Schema(
         { value: 5, label: "Years Exp", suffix: "" },
       ],
     },
+    useRealtimeStats: {
+      type: Boolean,
+      default: false,
+    },
+
+    // 1b. Custom Sponsors / Direct Ads Management
+    sponsors: {
+      type: [
+        {
+          title: { type: String, required: true },
+          description: { type: String, default: "" },
+          badge: { type: String, default: "Sponsor" },
+          ctaText: { type: String, default: "Learn More" },
+          targetUrl: { type: String, default: "#" },
+          imageUrl: { type: String, default: "" },
+          slot: { type: String, enum: ["all", "header", "inArticle", "sidebar", "footer"], default: "all" },
+          isActive: { type: Boolean, default: true },
+        }
+      ],
+      default: [
+        {
+          title: "Build Faster with Modern Web Stack",
+          description: "Explore curated templates, boilerplate kits, and verified libraries for rapid React & Next.js production delivery.",
+          badge: "Featured Partner",
+          ctaText: "Explore Now →",
+          targetUrl: "https://srikode.com",
+          imageUrl: "",
+          slot: "all",
+          isActive: true,
+        }
+      ],
+    },
 
     // 2. Sidebar Social Card Section
     socialCard: {

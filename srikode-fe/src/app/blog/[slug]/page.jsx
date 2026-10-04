@@ -6,7 +6,7 @@ import {
   Eye, Heart, Bookmark, ChevronRight, ExternalLink, Code2, Play, Sparkles
 } from "lucide-react";
 import { formatDate } from "@/data";
-import { getBlogs, getBlogBySlug } from "@/lib/api";
+import { getBlogs, getBlogBySlug, getCmsConfig } from "@/lib/api";
 import Container from "@/components/shared/Container";
 import Sidebar from "@/components/home/sidebar/Sidebar";
 import TableOfContents from "@/components/blog/TableOfContents";
@@ -62,6 +62,7 @@ export default async function BlogDetailPage({ params, searchParams }) {
   let nextBlog = null;
   let dbBlogs = [];
 
+  let cmsConfig = null;
   try {
     const res = await getBlogBySlug(slug, isPreview);
     blog = res.blog;
@@ -72,11 +73,27 @@ export default async function BlogDetailPage({ params, searchParams }) {
     const currentIndex = dbBlogs.findIndex((b) => b.slug === slug);
     prevBlog = currentIndex > 0 ? dbBlogs[currentIndex - 1] : null;
     nextBlog = currentIndex < dbBlogs.length - 1 ? dbBlogs[currentIndex + 1] : null;
+
+    cmsConfig = await getCmsConfig();
   } catch (error) {
     console.error("Failed to load blog page dynamically: ", error);
   }
 
   if (!blog) notFound();
+
+  // Active custom sponsors from CMS
+  const sponsors = cmsConfig?.sponsors || [];
+  const mapSponsor = (s) => s ? {
+    title: s.title,
+    desc: s.description,
+    badge: s.badge,
+    cta: s.ctaText,
+    link: s.targetUrl
+  } : null;
+
+  const headerSponsor = mapSponsor(sponsors.find(s => s.isActive && (s.slot === 'header' || s.slot === 'all')));
+  const inArticleSponsor = mapSponsor(sponsors.find(s => s.isActive && (s.slot === 'inArticle' || s.slot === 'all')));
+  const preCommentsSponsor = mapSponsor(sponsors.find(s => s.isActive && (s.slot === 'footer' || s.slot === 'all')));
 
   const relatedBlogs = blog.relatedPosts || [];
 
@@ -139,25 +156,36 @@ export default async function BlogDetailPage({ params, searchParams }) {
             <span className="text-sk-text-muted line-clamp-1 max-w-[200px] sm:max-w-xs">{blog.title}</span>
           </nav>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="inline-block rounded-full bg-sk-primary-light px-3 py-1 text-[11px] font-black uppercase tracking-wider text-sk-primary-text border border-sk-primary/20">
-              {blog.category}
-            </span>
-            {blog.difficulty && (
-              <span className="inline-block rounded-full bg-sk-bg-subtle border border-sk-border px-3 py-1 text-[11px] font-bold text-sk-text-muted">
-                {blog.difficulty}
-              </span>
-            )}
-            {isPreview && (
-              <span className="inline-block rounded-full bg-amber-500/10 border border-amber-500/30 px-3 py-1 text-[11px] font-bold text-amber-600 dark:text-amber-400">
-                Draft Preview Mode
-              </span>
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 items-center">
+            <div>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <span className="inline-block rounded-full bg-sk-primary-light px-3 py-1 text-[11px] font-black uppercase tracking-wider text-sk-primary-text border border-sk-primary/20">
+                  {blog.category}
+                </span>
+                {blog.difficulty && (
+                  <span className="inline-block rounded-full bg-sk-bg-subtle border border-sk-border px-3 py-1 text-[11px] font-bold text-sk-text-muted">
+                    {blog.difficulty}
+                  </span>
+                )}
+                {isPreview && (
+                  <span className="inline-block rounded-full bg-amber-500/10 border border-amber-500/30 px-3 py-1 text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                    Draft Preview Mode
+                  </span>
+                )}
+              </div>
+
+              <h1 className="mt-3 text-3xl font-black leading-tight tracking-tight text-sk-text sm:text-4xl md:text-5xl">
+                {blog.title}
+              </h1>
+            </div>
+
+            {/* Top-Right Ad Banner / Featured Sponsor slot */}
+            {blog.adsEnabled !== false && (
+              <div className="hidden lg:block">
+                <AdBanner slot="header" customSponsor={headerSponsor} />
+              </div>
             )}
           </div>
-
-          <h1 className="mt-3 text-3xl font-black leading-tight tracking-tight text-sk-text sm:text-4xl md:text-5xl max-w-4xl">
-            {blog.title}
-          </h1>
         </Container>
       </div>
 
@@ -221,7 +249,7 @@ export default async function BlogDetailPage({ params, searchParams }) {
               <ArticleContent content={blog.content} toc={tocItems} />
 
               {/* Mid-Article In-Content Ad Banner Slot */}
-              <AdBanner slot="in-article" />
+              {blog.adsEnabled !== false && <AdBanner slot="in-article" customSponsor={inArticleSponsor} />}
 
               {/* Optional Video Walkthrough Section */}
               {blog.videoUrl && (
@@ -335,7 +363,7 @@ export default async function BlogDetailPage({ params, searchParams }) {
               </div>
 
               {/* Pre-Comments / Wide Leaderboard Ad Slot */}
-              <AdBanner slot="pre-comments" />
+              {blog.adsEnabled !== false && <AdBanner slot="pre-comments" customSponsor={preCommentsSponsor} />}
 
               {/* Related Posts */}
               {relatedBlogs.length > 0 && (

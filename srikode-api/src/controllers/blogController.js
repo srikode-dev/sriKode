@@ -181,7 +181,7 @@ export const getBlogBySlug = async (req, res) => {
 export const getAllBlogsAdmin = async (req, res) => {
   try {
     const blogs = await Blog.find({})
-      .select("title slug category isPublished isFeatured viewCount readingTime createdAt")
+      .select("title slug category isPublished isFeatured adsEnabled viewCount readingTime createdAt")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({

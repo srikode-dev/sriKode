@@ -236,14 +236,29 @@ export function parseBlogInput(rawInput) {
     }
 
     // ── IMAGE ───────────────────────────────────────────────
-    // e.g. ![alt text](https://example.com/pic.jpg "caption")
+    // e.g. ![alt text | Prompt: artistic prompt](https://example.com/pic.jpg "caption")
+    // or ![alt text]( "caption")
     const imgMatch = trimmedLine.match(/^!\[(.*?)\]\((.*?)(?:\s+["'](.*?)["'])?\)$/);
     if (imgMatch) {
+      let rawAlt = imgMatch[1] || "";
+      let imagePrompt = "";
+      
+      // Extract prompt if embedded in alt: "Alt text | Prompt: ..."
+      if (rawAlt.includes("| Prompt:") || rawAlt.includes("| prompt:")) {
+        const parts = rawAlt.split(/\|\s*prompt:\s*/i);
+        rawAlt = parts[0].trim();
+        imagePrompt = parts.slice(1).join(" ").trim();
+      } else if (rawAlt.toLowerCase().startsWith("prompt:")) {
+        imagePrompt = rawAlt.replace(/^prompt:\s*/i, "").trim();
+        rawAlt = "Diagram / Illustration";
+      }
+
       contentBlocks.push({
         type: "image",
-        alt: imgMatch[1] || "",
+        alt: rawAlt,
         src: imgMatch[2] || "",
         caption: parseInlineMarkdown(imgMatch[3] || ""),
+        imagePrompt: imagePrompt || undefined,
       });
       i++;
       continue;
@@ -427,6 +442,7 @@ export function parseBlogInput(rawInput) {
       ? frontmatter.difficulty
       : "Beginner",
     coverImage: frontmatter.coverImage || "",
+    coverImagePrompt: frontmatter.coverImagePrompt || frontmatter.imagePrompt || "",
     githubUrl: frontmatter.githubUrl || "",
     liveUrl: frontmatter.liveUrl || "",
     videoUrl: frontmatter.videoUrl || "",
@@ -476,7 +492,11 @@ CRITICAL FORMATTING RULES FOR SRIKODE PARSER:
 3. For Inline Formatting: Always format bold terms cleanly with **bold** and inline code with \`code\`. Never leave unbalanced asterisks.
 4. For Code Blocks: ALWAYS specify the language AND filename attribute (e.g. \`\`\`jsx filename="src/components/MyComponent.jsx" or \`\`\`javascript filename="server/index.js"). Provide COMPLETE, functioning code, not placeholders like "// write code here".
 5. For Tips & Callouts: Use GitHub-style blockquotes (e.g. > [!NOTE], > [!TIP], > [!WARNING], > [!CAUTION]).
-6. For FAQ Section: End the article with "## Frequently Asked Questions" followed by individual questions formatted as "### Question Here" followed by the clear, practical answer.
+6. For Visual Diagrams & AI Image Generation:
+   - Provide a creative 16:9 Cover Image prompt in frontmatter (\`coverImagePrompt\`).
+   - Include 1-2 in-article diagram placeholders with detailed AI image generation prompts inside the alt tag using:
+     \`![Diagram Title | Prompt: Detailed art direction prompt for Midjourney/DALL-E, 1:1 or 3:2 aspect ratio, modern dark tech UI aesthetic]( "Figure 1: Diagram Caption")\`
+7. For FAQ Section: End the article with "## Frequently Asked Questions" followed by individual questions formatted as "### Question Here" followed by the clear, practical answer.
 
 EXACT FRONTMATTER FORMAT REQUIRED:
 ---
@@ -487,6 +507,7 @@ category: "${category}"
 difficulty: "${difficulty}"
 tags: ["${category}", "Tutorial", "WebDev", "FullStack"]
 coverImage: ""
+coverImagePrompt: "A vibrant 16:9 technical concept art illustration of ${topic}, sleek dark-mode background, neon accents, isometric 3D developer aesthetic, 1200x630"
 isFeatured: false
 isPublished: false
 ---
@@ -497,6 +518,8 @@ Explain the real-world problem and why it matters in modern web applications.
 
 ## Key Concepts & Architecture Overview
 Include an architectural explanation or Markdown comparison table.
+
+![System Architecture Overview | Prompt: Clean technical flow diagram showing ${topic} step-by-step workflow, sleek dark mode aesthetic, vibrant accents, 16:9]( "Figure 1: Architectural System Overview")
 
 ## Prerequisites
 - List tools, packages, and prerequisites

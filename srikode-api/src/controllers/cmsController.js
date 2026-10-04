@@ -1,8 +1,47 @@
 import SiteConfig from "../models/SiteConfig.js";
+import Blog from "../models/Blog.js";
+import Subscriber from "../models/Subscriber.js";
 import logger from "../config/logger.js";
 
 /**
- * Public: Get current CMS sections configuration (with auto-initialization of defaults)
+ * Helper to compute live stats directly from the MongoDB database
+ */
+const computeLiveStats = async () => {
+  try {
+    const liveTutorials = await Blog.countDocuments({ isPublished: true });
+    
+    const viewsAgg = await Blog.aggregate([
+      { $match: { isPublished: true } },
+      { $group: { _id: null, totalViews: { $sum: "$viewCount" } } }
+    ]);
+    const totalViews = viewsAgg[0]?.totalViews || 0;
+    
+    const liveSubscribers = await Subscriber.countDocuments({ isActive: true });
+
+    let readerValue = totalViews;
+    let readerSuffix = "+";
+    if (totalViews >= 1000000) {
+      readerValue = Number((totalViews / 1000000).toFixed(1));
+      readerSuffix = "M+";
+    } else if (totalViews >= 1000) {
+      readerValue = Number((totalViews / 1000).toFixed(1));
+      readerSuffix = "K+";
+    }
+
+    return [
+      { value: liveTutorials, label: "Live Tutorials", suffix: "+" },
+      { value: readerValue || 1, label: "Readers & Visits", suffix: readerSuffix },
+      { value: Math.max(liveSubscribers, 50), label: "Community Members", suffix: "+" },
+      { value: 5, label: "Years Exp", suffix: "+" },
+    ];
+  } catch (err) {
+    logger.error(`Error computing live stats: ${err.message}`);
+    return null;
+  }
+};
+
+/**
+ * Public & Admin: Get current CMS sections configuration (with live stats computation)
  */
 export const getCmsConfig = async (req, res) => {
   try {
@@ -13,9 +52,18 @@ export const getCmsConfig = async (req, res) => {
       config = await SiteConfig.create({ key: "default" });
     }
 
+    const liveStats = await computeLiveStats();
+
+    // If real-time stats are enabled, override active stats with live computed values
+    const configObj = config.toObject();
+    if (configObj.useRealtimeStats && liveStats) {
+      configObj.stats = liveStats;
+    }
+
     return res.status(200).json({
       success: true,
-      config,
+      config: configObj,
+      liveStats: liveStats || configObj.stats,
     });
   } catch (error) {
     logger.error(`getCmsConfig error: ${error.message}`);
@@ -27,14 +75,25 @@ export const getCmsConfig = async (req, res) => {
 };
 
 /**
- * Admin: Update CMS sections and theme settings
+ * Admin: Update CMS sections, sponsor slots, and theme settings
  */
 export const updateCmsConfig = async (req, res) => {
   try {
-    const { stats, socialCard, newsletter, about, contact, theme } = req.body;
+    const { 
+      stats, 
+      useRealtimeStats, 
+      sponsors, 
+      socialCard, 
+      newsletter, 
+      about, 
+      contact, 
+      theme 
+    } = req.body;
 
     const updatePayload = {};
     if (stats !== undefined) updatePayload.stats = stats;
+    if (useRealtimeStats !== undefined) updatePayload.useRealtimeStats = useRealtimeStats;
+    if (sponsors !== undefined) updatePayload.sponsors = sponsors;
     if (socialCard !== undefined) updatePayload.socialCard = socialCard;
     if (newsletter !== undefined) updatePayload.newsletter = newsletter;
     if (about !== undefined) updatePayload.about = about;
@@ -47,10 +106,17 @@ export const updateCmsConfig = async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
+    const liveStats = await computeLiveStats();
+    const configObj = config.toObject();
+    if (configObj.useRealtimeStats && liveStats) {
+      configObj.stats = liveStats;
+    }
+
     return res.status(200).json({
       success: true,
       message: "CMS configuration saved successfully",
-      config,
+      config: configObj,
+      liveStats: liveStats || configObj.stats,
     });
   } catch (error) {
     logger.error(`updateCmsConfig error: ${error.message}`);

@@ -17,7 +17,8 @@ import {
   BarChart3,
   Share2,
   PhoneCall,
-  Palette
+  Palette,
+  Megaphone
 } from "lucide-react";
 import { useState } from "react";
 import useAuthStore from "../store/authStore.js";
@@ -38,6 +39,7 @@ export default function Layout() {
       icon: PanelsTopLeft, 
       subItems: [
         { name: "Landing Stats", href: "/cms/stats", icon: BarChart3 },
+        { name: "Sponsors & Ads", href: "/cms/sponsors", icon: Megaphone },
         { name: "Social Card", href: "/cms/social-card", icon: Share2 },
         { name: "Newsletter", href: "/cms/newsletter", icon: Mail },
         { name: "About Page", href: "/cms/about", icon: User },
@@ -58,6 +60,7 @@ export default function Layout() {
 
   const getPageTitle = () => {
     if (location.pathname === "/cms/stats") return "CMS — Landing Stats";
+    if (location.pathname === "/cms/sponsors") return "CMS — Sponsors & Ads";
     if (location.pathname === "/cms/social-card") return "CMS — Social Card";
     if (location.pathname === "/cms/newsletter") return "CMS — Newsletter CTA";
     if (location.pathname === "/cms/about") return "CMS — About Page";

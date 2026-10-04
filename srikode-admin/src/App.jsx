@@ -19,6 +19,7 @@ import Newsletter from "./pages/Newsletter.jsx";
 
 // CMS Individual Section Pages
 import CmsStats from "./pages/cms/CmsStats.jsx";
+import CmsSponsors from "./pages/cms/CmsSponsors.jsx";
 import CmsSocialCard from "./pages/cms/CmsSocialCard.jsx";
 import CmsNewsletter from "./pages/cms/CmsNewsletter.jsx";
 import CmsAbout from "./pages/cms/CmsAbout.jsx";
@@ -79,6 +80,7 @@ export default function App() {
           <Route path="cms" element={<Navigate to="/cms/stats" replace />} />
           <Route path="cms/sections" element={<Navigate to="/cms/stats" replace />} />
           <Route path="cms/stats" element={<CmsStats />} />
+          <Route path="cms/sponsors" element={<CmsSponsors />} />
           <Route path="cms/social-card" element={<CmsSocialCard />} />
           <Route path="cms/newsletter" element={<CmsNewsletter />} />
           <Route path="cms/about" element={<CmsAbout />} />

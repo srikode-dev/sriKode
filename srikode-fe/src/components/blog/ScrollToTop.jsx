@@ -2,14 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { ArrowUp } from "lucide-react";
+import { useLenis } from "@/components/shared/SmoothScrollProvider";
 
 export default function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const lenis = useLenis();
 
   useEffect(() => {
     const handleScroll = () => {
-      const totalScroll = document.documentElement.scrollTop;
+      const totalScroll = document.documentElement.scrollTop || window.scrollY;
       const windowHeight =
         document.documentElement.scrollHeight -
         document.documentElement.clientHeight;
@@ -22,24 +24,32 @@ export default function ScrollToTop() {
         setScrollProgress(progress);
       }
 
-      if (totalScroll > 320) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
-      }
+      setIsVisible(totalScroll > 320);
     };
 
+    // Listen to both native scroll and Lenis scroll events
     window.addEventListener("scroll", handleScroll, { passive: true });
+
+    if (lenis) {
+      lenis.on("scroll", handleScroll);
+    }
+
     handleScroll();
 
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (lenis) {
+        lenis.off("scroll", handleScroll);
+      }
+    };
+  }, [lenis]);
 
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    if (lenis) {
+      lenis.scrollTo(0, { duration: 1.2 });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   if (!isVisible) return null;
@@ -93,3 +103,4 @@ export default function ScrollToTop() {
     </div>
   );
 }
+

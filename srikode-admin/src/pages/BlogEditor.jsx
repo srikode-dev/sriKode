@@ -23,7 +23,8 @@ import {
   ExternalLink,
   Table as TableIcon,
   Minus,
-  Quote
+  Quote,
+  DollarSign
 } from "lucide-react";
 import useBlogStore from "../store/blogStore.js";
 import ImageCropperModal from "../components/ImageCropperModal.jsx";
@@ -57,6 +58,7 @@ export default function BlogEditor() {
   
   // Cover Image
   const [coverImage, setCoverImage] = useState("");
+  const [coverImagePrompt, setCoverImagePrompt] = useState("");
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingBlockIndex, setUploadingBlockIndex] = useState(null);
 
@@ -65,6 +67,7 @@ export default function BlogEditor() {
   const [faq, setFaq] = useState([]);
   const [isPublished, setIsPublished] = useState(false);
   const [isFeatured, setIsFeatured] = useState(false);
+  const [adsEnabled, setAdsEnabled] = useState(true);
 
   // SEO details
   const [seoTitle, setSeoTitle] = useState("");
@@ -97,6 +100,7 @@ export default function BlogEditor() {
           setFaq(blog.faq || []);
           setIsPublished(blog.isPublished || false);
           setIsFeatured(blog.isFeatured || false);
+          setAdsEnabled(blog.adsEnabled !== undefined ? blog.adsEnabled : true);
           setSeoTitle(blog.seo?.title || "");
           setSeoDescription(blog.seo?.description || "");
           setSeoKeywords(blog.seo?.keywords?.join(", ") || "");
@@ -259,6 +263,7 @@ export default function BlogEditor() {
     }
     if (parsed.difficulty) setDifficulty(parsed.difficulty);
     if (parsed.coverImage) setCoverImage(parsed.coverImage);
+    if (parsed.coverImagePrompt) setCoverImagePrompt(parsed.coverImagePrompt);
     if (parsed.githubUrl) setGithubUrl(parsed.githubUrl);
     if (parsed.liveUrl) setLiveUrl(parsed.liveUrl);
     if (parsed.videoUrl) setVideoUrl(parsed.videoUrl);
@@ -333,6 +338,7 @@ export default function BlogEditor() {
       faq,
       isPublished: finalPublishState,
       isFeatured,
+      adsEnabled,
       seo: {
         title: seoTitle || title,
         description: seoDescription || finalExcerpt,
@@ -758,6 +764,31 @@ export default function BlogEditor() {
                             📐 Recommended Size: <strong className="font-mono text-blue-700">1080 × 1080 px (1:1)</strong> or <strong className="font-mono text-blue-700">1200 × 800 px</strong>
                           </span>
                         </div>
+
+                        {/* AI Generated Diagram / Art Direction Prompt */}
+                        {block.imagePrompt && (
+                          <div className="rounded-xl border border-indigo-200 bg-indigo-50/70 p-3 text-xs space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-indigo-900 flex items-center gap-1.5 text-[11px]">
+                                <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                                AI Diagram Prompt
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(block.imagePrompt);
+                                  toast.success("Diagram prompt copied to clipboard!");
+                                }}
+                                className="px-2 py-0.5 rounded-md bg-white border border-indigo-200 text-[10px] font-bold text-indigo-700 hover:bg-indigo-100 transition cursor-pointer"
+                              >
+                                Copy Prompt
+                              </button>
+                            </div>
+                            <p className="text-slate-650 font-mono text-[11px] leading-relaxed break-words bg-white/80 p-2 rounded-lg border border-indigo-100/80 select-all">
+                              {block.imagePrompt}
+                            </p>
+                          </div>
+                        )}
 
                         <div className="flex items-center gap-3">
                           <input
@@ -1288,6 +1319,49 @@ export default function BlogEditor() {
                 </div>
               )}
             </div>
+
+            <hr className="border-slate-100" />
+
+            {/* Monetization / In-Article Ads Toggle */}
+            <div className={`p-3.5 rounded-xl border transition ${
+              adsEnabled 
+                ? "bg-emerald-50/70 border-emerald-200" 
+                : "bg-slate-50/60 border-slate-200"
+            }`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                    <DollarSign className={`h-4 w-4 ${adsEnabled ? "text-emerald-600" : "text-slate-400"}`} />
+                    Article Monetization / Ads
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Display top banner, in-article, and sponsor slots for this post.
+                  </p>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={adsEnabled}
+                    onChange={(e) => setAdsEnabled(e.target.checked)}
+                  />
+                  <div className={`block h-5 w-9 rounded-full transition-colors duration-200 ${
+                    adsEnabled ? "bg-emerald-600" : "bg-slate-300"
+                  }`}></div>
+                  <div className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-xs transition-transform duration-200 ${
+                    adsEnabled ? "translate-x-4" : "translate-x-0"
+                  }`}></div>
+                </label>
+              </div>
+
+              {!adsEnabled && (
+                <div className="mt-2.5 pt-2 border-t border-slate-200/70 flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                  Ads completely disabled on this article
+                </div>
+              )}
+            </div>
           </div>
 
           {/* 2. Cover Image Upload Card */}
@@ -1299,6 +1373,31 @@ export default function BlogEditor() {
               </span>
             </div>
             
+            {/* AI Generated Prompt for Cover Image */}
+            {coverImagePrompt && (
+              <div className="rounded-xl border border-indigo-200 bg-indigo-50/70 p-3 text-xs space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-indigo-900 flex items-center gap-1.5 text-[11px]">
+                    <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                    AI Cover Prompt
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(coverImagePrompt);
+                      toast.success("Cover image prompt copied to clipboard!");
+                    }}
+                    className="px-2 py-0.5 rounded-md bg-white border border-indigo-200 text-[10px] font-bold text-indigo-700 hover:bg-indigo-100 transition cursor-pointer"
+                  >
+                    Copy Prompt
+                  </button>
+                </div>
+                <p className="text-slate-650 font-mono text-[11px] leading-relaxed break-words bg-white/80 p-2 rounded-lg border border-indigo-100/80 select-all">
+                  {coverImagePrompt}
+                </p>
+              </div>
+            )}
+
             {coverImage ? (
               <div className="space-y-3">
                 <div className="relative aspect-video rounded-xl bg-slate-900 border border-slate-200 overflow-hidden group">

@@ -33,6 +33,42 @@ export default function AdBanner({
     }
   }, [adClient, adSlot]);
 
+  // Header compact ad/sponsor card
+  if (slot === "header") {
+    return (
+      <div className={`relative overflow-hidden rounded-2xl border border-dashed border-sk-border bg-sk-bg-card p-3.5 shadow-2xs text-left ${className}`}>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-bold tracking-widest text-sk-text-faint uppercase">
+            {customSponsor?.badge || "Featured Sponsor"}
+          </span>
+          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-500/10 text-sk-primary">
+            <Zap size={10} />
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-tr from-blue-600 to-indigo-600 text-white shadow-xs">
+            <Sparkles size={16} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold text-sk-text truncate">
+              {customSponsor?.title || "Master Modern Full-Stack"}
+            </p>
+            <p className="text-[11px] text-sk-text-muted truncate">
+              {customSponsor?.desc || "Explore SriKode dev guides & starter code"}
+            </p>
+          </div>
+        </div>
+        <a
+          href={customSponsor?.link || "/blogs"}
+          className="mt-2.5 flex items-center justify-between rounded-lg bg-sk-bg-subtle px-3 py-1.5 text-[11px] font-bold text-sk-primary hover:bg-sk-primary-light transition"
+        >
+          <span>{customSponsor?.cta || "Explore Free Tutorials"}</span>
+          <ArrowUpRight size={12} />
+        </a>
+      </div>
+    );
+  }
+
   // Sidebar compact ad slot (300x250)
   if (slot === "sidebar") {
     return (

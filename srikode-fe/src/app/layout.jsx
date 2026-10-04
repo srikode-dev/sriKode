@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { ThemeProvider } from "@/context/ThemeContext";
+import SmoothScrollProvider from "@/components/shared/SmoothScrollProvider";
 import { getCmsConfig } from "@/lib/api";
 
 const geistSans = Geist({
@@ -80,7 +81,7 @@ export default async function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
       <head>
         <style
@@ -108,9 +109,11 @@ export default async function RootLayout({ children }) {
       </head>
       <body>
         <ThemeProvider>
-          <Header />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
+          <SmoothScrollProvider>
+            <Header />
+            <main className="min-h-screen">{children}</main>
+            <Footer />
+          </SmoothScrollProvider>
         </ThemeProvider>
       </body>
     </html>

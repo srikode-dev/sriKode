@@ -1,10 +1,23 @@
 import { useState, useEffect } from "react";
-import { BarChart3, Save, Plus, Trash2, Loader, Sparkles } from "lucide-react";
+import { 
+  BarChart3, 
+  Save, 
+  Plus, 
+  Trash2, 
+  Loader, 
+  Sparkles, 
+  Radio, 
+  RefreshCw,
+  Zap,
+  SlidersHorizontal,
+  CheckCircle2
+} from "lucide-react";
 import useCmsStore from "../../store/cmsStore.js";
 import { toast } from "sonner";
 
 export default function CmsStats() {
-  const { config, loading, saving, fetchConfig, updateConfig } = useCmsStore();
+  const { config, liveStats, loading, saving, fetchConfig, updateConfig } = useCmsStore();
+  const [useRealtimeStats, setUseRealtimeStats] = useState(false);
   const [stats, setStats] = useState([]);
 
   useEffect(() => {
@@ -12,15 +25,25 @@ export default function CmsStats() {
   }, [fetchConfig]);
 
   useEffect(() => {
-    if (config?.stats) {
-      setStats(JSON.parse(JSON.stringify(config.stats)));
+    if (config) {
+      setUseRealtimeStats(!!config.useRealtimeStats);
+      if (config.stats) {
+        setStats(JSON.parse(JSON.stringify(config.stats)));
+      }
     }
   }, [config]);
 
   const handleSave = async () => {
-    const res = await updateConfig({ stats });
+    const res = await updateConfig({ 
+      stats, 
+      useRealtimeStats 
+    });
     if (res.success) {
-      toast.success("Landing Stats saved successfully!");
+      toast.success(
+        useRealtimeStats
+          ? "Saved! Homepage is now showing live real-time metrics."
+          : "Saved! Homepage is now showing your custom stat values."
+      );
     }
   };
 
@@ -33,6 +56,13 @@ export default function CmsStats() {
 
   const handleRemoveStat = (index) => {
     setStats((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleCopyLiveValues = () => {
+    if (liveStats && liveStats.length > 0) {
+      setStats(JSON.parse(JSON.stringify(liveStats)));
+      toast.success("Copied real-time numbers into custom fields!");
+    }
   };
 
   if (loading || !config) {
@@ -55,7 +85,7 @@ export default function CmsStats() {
             <h1 className="text-xl font-bold text-slate-900">Landing Page Stats</h1>
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            Configure the highlight numbers, suffixes, and labels displayed directly below the hero section.
+            Toggle between automated real-time database counts and custom highlight overrides for the homepage counter.
           </p>
         </div>
 
@@ -69,13 +99,116 @@ export default function CmsStats() {
         </button>
       </div>
 
-      {/* Stats List */}
+      {/* Mode Selection Card */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Real-time Mode Card */}
+        <div 
+          onClick={() => setUseRealtimeStats(true)}
+          className={`p-5 rounded-2xl border-2 transition-all cursor-pointer ${
+            useRealtimeStats 
+              ? "bg-blue-50/50 border-blue-600 shadow-sm" 
+              : "bg-white border-slate-200 hover:border-slate-300"
+          }`}
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className={`p-2.5 rounded-xl ${useRealtimeStats ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"}`}>
+                <Zap className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm">Real-Time Dynamic Stats</h3>
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Live from Database
+                </span>
+              </div>
+            </div>
+            <div className={`h-5 w-5 rounded-full border flex items-center justify-center ${
+              useRealtimeStats ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300"
+            }`}>
+              {useRealtimeStats && <CheckCircle2 className="h-3.5 w-3.5" />}
+            </div>
+          </div>
+          <p className="text-xs text-slate-500 mt-3 leading-relaxed">
+            Automatically queries published articles and total page visits from MongoDB so stats grow dynamically with your traffic.
+          </p>
+        </div>
+
+        {/* Custom Override Mode Card */}
+        <div 
+          onClick={() => setUseRealtimeStats(false)}
+          className={`p-5 rounded-2xl border-2 transition-all cursor-pointer ${
+            !useRealtimeStats 
+              ? "bg-blue-50/50 border-blue-600 shadow-sm" 
+              : "bg-white border-slate-200 hover:border-slate-300"
+          }`}
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className={`p-2.5 rounded-xl ${!useRealtimeStats ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"}`}>
+                <SlidersHorizontal className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm">Custom Manual Values</h3>
+                <span className="text-[11px] font-semibold text-slate-500">
+                  Custom Marketing Numbers
+                </span>
+              </div>
+            </div>
+            <div className={`h-5 w-5 rounded-full border flex items-center justify-center ${
+              !useRealtimeStats ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300"
+            }`}>
+              {!useRealtimeStats && <CheckCircle2 className="h-3.5 w-3.5" />}
+            </div>
+          </div>
+          <p className="text-xs text-slate-500 mt-3 leading-relaxed">
+            Specify marketing target numbers (e.g. 50+ Tutorials, 10K+ Readers) directly without relying on database view totals.
+          </p>
+        </div>
+      </div>
+
+      {/* Live Stats Preview Box if in Real-time Mode */}
+      {useRealtimeStats && liveStats && (
+        <div className="bg-linear-to-r from-blue-900 to-indigo-950 text-white rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-blue-400" />
+              <h3 className="font-bold text-sm">Live MongoDB Telemetry (Active on Site)</h3>
+            </div>
+            <button
+              type="button"
+              onClick={handleCopyLiveValues}
+              className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-blue-200 font-semibold transition cursor-pointer"
+            >
+              Copy to Custom Fields
+            </button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {liveStats.map((item, idx) => (
+              <div key={idx} className="bg-white/10 backdrop-blur-md rounded-xl p-3.5 border border-white/10 text-center">
+                <div className="text-2xl font-black text-blue-300 tracking-tight font-mono">
+                  {item.value}{item.suffix}
+                </div>
+                <div className="text-xs text-slate-300 font-medium mt-1">
+                  {item.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Custom Stats List (always editable so user can tweak overrides) */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-bold text-slate-800 text-base">Metrics & Counters</h3>
+            <h3 className="font-bold text-slate-800 text-base">
+              {useRealtimeStats ? "Custom Override Fallbacks" : "Active Custom Stats"}
+            </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              These counts animate smoothly when visitors view the SriKode homepage.
+              {useRealtimeStats 
+                ? "These values are saved as your custom settings when you switch away from real-time mode."
+                : "These exact numbers and suffixes are currently animated on the SriKode homepage."}
             </p>
           </div>
           <button
