@@ -158,21 +158,78 @@ function CodeBlock({ language, filename, code }) {
 
 export function formatInlineMarkdown(str) {
   if (!str || typeof str !== "string") return "";
+
+  const escapeHtml = (text) =>
+    text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
   let html = str;
 
-  // 1. Inline code: `code`
-  html = html.replace(/`([^`]+)`/g, '<code class="rounded px-1.5 py-0.5 text-[13px] font-mono font-semibold bg-sk-bg-subtle text-sk-primary border border-sk-border/70">$1</code>');
+  // 1. Fix any existing <code> tags that may contain unescaped HTML elements or corrupted <em> tags
+  html = html.replace(/<code([^>]*)>([\s\S]*?)<\/code>/gi, (match, attrs, content) => {
+    let clean = content
+      .replace(/<\/?em>/gi, "*")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&amp;/g, "&");
+    return `<code${attrs}>${escapeHtml(clean)}</code>`;
+  });
 
-  // 2. Bold: **text** or __text__
+  // 2. Protect existing <code ...>...</code> tags (use tokens without markdown characters)
+  const codePlaceholders = [];
+  html = html.replace(/<code[^>]*>[\s\S]*?<\/code>/gi, (codeTag) => {
+    const placeholder = `%%CODETAGPLACEHOLDER${codePlaceholders.length}%%`;
+    codePlaceholders.push(codeTag);
+    return placeholder;
+  });
+
+  // 3. Convert markdown backticks `code` to <code class="...">
+  html = html.replace(/`([^`]+)`/g, (_, code) => {
+    const placeholder = `%%CODETAGPLACEHOLDER${codePlaceholders.length}%%`;
+    codePlaceholders.push(
+      `<code class="rounded px-1.5 py-0.5 text-[13px] font-mono font-semibold bg-sk-bg-subtle text-sk-primary border border-sk-border/70">${escapeHtml(code)}</code>`
+    );
+    return placeholder;
+  });
+
+  // 4. Protect existing <a> tags
+  const linkPlaceholders = [];
+  html = html.replace(/<a[^>]*>[\s\S]*?<\/a>/gi, (linkTag) => {
+    const placeholder = `%%LINKTAGPLACEHOLDER${linkPlaceholders.length}%%`;
+    linkPlaceholders.push(linkTag);
+    return placeholder;
+  });
+
+  // 5. Convert markdown links: [text](url)
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|#[^\s)]+|\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-sk-primary hover:underline font-semibold inline-flex items-center gap-0.5">$1</a>');
+
+  // 6. Convert bold: **text** or __text__
   html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-sk-text">$1</strong>');
   html = html.replace(/__([^_]+)__/g, '<strong class="font-bold text-sk-text">$1</strong>');
 
-  // 3. Italic: *text* or _text_
+  // 7. Convert italic: *text* or _text_
   html = html.replace(/(^|[^*])\*([^*\n\r]+?)\*([^*]|$)/g, '$1<em class="italic text-sk-text">$2</em>$3');
   html = html.replace(/(^|[^_])_([^_\n\r]+?)_([^_]|$)/g, '$1<em class="italic text-sk-text">$2</em>$3');
 
-  // 4. Links: [text](url)
-  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|#[^\s)]+|\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-sk-primary hover:underline font-semibold inline-flex items-center gap-0.5">$1</a>');
+  // 8. Escape any remaining unescaped tags to prevent invalid HTML nesting
+  html = html.replace(/<\/?([a-zA-Z0-9_-]+)[^>]*>/gi, (tag, tagName) => {
+    const lower = tagName.toLowerCase();
+    if (["strong", "em", "a"].includes(lower)) return tag;
+    return escapeHtml(tag);
+  });
+
+  // 9. Restore link placeholders
+  linkPlaceholders.forEach((linkTag, idx) => {
+    html = html.replace(`%%LINKTAGPLACEHOLDER${idx}%%`, () => linkTag);
+  });
+
+  // 10. Restore code placeholders
+  codePlaceholders.forEach((codeTag, idx) => {
+    html = html.replace(`%%CODETAGPLACEHOLDER${idx}%%`, () => codeTag);
+  });
 
   return html;
 }
@@ -300,6 +357,7 @@ function renderParagraphOrTable(text, key) {
     <p
       key={key}
       className="my-4 leading-relaxed text-sk-text-muted"
+      suppressHydrationWarning
       dangerouslySetInnerHTML={{ __html: formatInlineMarkdown(text) }}
     />
   );

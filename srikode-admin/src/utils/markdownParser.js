@@ -48,17 +48,55 @@ function parseFrontmatter(rawYaml) {
  */
 export function parseInlineMarkdown(text) {
   if (!text || typeof text !== "string") return "";
+
+  const escapeHtml = (str) =>
+    str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
   let res = text;
-  // Inline code: `code`
-  res = res.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-zinc-800 text-emerald-400 font-mono text-xs border border-zinc-700/60">$1</code>');
-  // Bold: **text** or __text__
+
+  // 1. Protect and extract inline code: `code`
+  const codePlaceholders = [];
+  res = res.replace(/`([^`]+)`/g, (_, code) => {
+    const placeholder = `%%CODETAGPLACEHOLDER${codePlaceholders.length}%%`;
+    codePlaceholders.push(
+      `<code class="px-1.5 py-0.5 rounded bg-zinc-800 text-emerald-400 font-mono text-xs border border-zinc-700/60">${escapeHtml(code)}</code>`
+    );
+    return placeholder;
+  });
+
+  // 2. Protect existing <a> tags if any
+  const linkPlaceholders = [];
+  res = res.replace(/<a[^>]*>[\s\S]*?<\/a>/gi, (linkTag) => {
+    const placeholder = `%%LINKTAGPLACEHOLDER${linkPlaceholders.length}%%`;
+    linkPlaceholders.push(linkTag);
+    return placeholder;
+  });
+
+  // 3. Links: [text](url)
+  res = res.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline font-semibold hover:text-blue-700">$1</a>');
+
+  // 4. Bold: **text** or __text__
   res = res.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   res = res.replace(/__([^_]+)__/g, "<strong>$1</strong>");
-  // Italic: *text* or _text_
+
+  // 5. Italic: *text* or _text_
   res = res.replace(/(^|[^*])\*([^*\n\r]+?)\*([^*]|$)/g, "$1<em>$2</em>$3");
   res = res.replace(/(^|[^_])_([^_\n\r]+?)_([^_]|$)/g, "$1<em>$2</em>$3");
-  // Links: [text](url)
-  res = res.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline font-semibold hover:text-blue-700">$1</a>');
+
+  // 6. Restore link placeholders
+  linkPlaceholders.forEach((linkTag, idx) => {
+    res = res.replace(`%%LINKTAGPLACEHOLDER${idx}%%`, () => linkTag);
+  });
+
+  // 7. Restore code placeholders
+  codePlaceholders.forEach((codeTag, idx) => {
+    res = res.replace(`%%CODETAGPLACEHOLDER${idx}%%`, () => codeTag);
+  });
+
   return res;
 }
 
