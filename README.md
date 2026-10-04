@@ -141,4 +141,4 @@ This monorepo is optimized for deployment on Vercel using a **Production Branch*
 
 ---
 
-*Designed and Built by Srikant Sahu*
+*Designed and Built by SriKode*

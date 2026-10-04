@@ -1,12 +1,15 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FileText, Plus, Eye, EyeOff, Edit2, Trash2, Loader, BookOpen } from "lucide-react";
+import { FileText, Plus, Eye, EyeOff, Edit2, Trash2, Loader, BookOpen, Star, ExternalLink } from "lucide-react";
 import useBlogStore from "../store/blogStore.js";
 import { toast } from "sonner";
+
+import { getClientBaseUrl } from "../utils/urlHelper.js";
 
 export default function Blogs() {
   const { blogs, loading, error, fetchBlogs, deleteBlog } = useBlogStore();
   const navigate = useNavigate();
+  const clientBaseUrl = getClientBaseUrl();
 
   useEffect(() => {
     fetchBlogs();
@@ -29,6 +32,15 @@ export default function Blogs() {
       toast.error(res.message);
     } else {
       toast.success(blog.isPublished ? "Article is now hidden from site" : "Article is now published to site");
+    }
+  };
+
+  const handleToggleFeatured = async (blog) => {
+    const res = await useBlogStore.getState().updateBlog(blog._id, { isFeatured: !blog.isFeatured });
+    if (!res.success) {
+      toast.error(res.message);
+    } else {
+      toast.success(blog.isFeatured ? `Unpinned "${blog.title}" from Hero` : `Pinned "${blog.title}" to Homepage Hero!`);
     }
   };
 
@@ -119,26 +131,44 @@ export default function Blogs() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="inline-flex items-center gap-1.5">
+                        {/* Toggle Hero Pin */}
+                        <button
+                          onClick={() => handleToggleFeatured(blog)}
+                          className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition duration-200 cursor-pointer ${
+                            blog.isFeatured
+                              ? "bg-purple-50 border-purple-200 text-purple-600 hover:bg-purple-100"
+                              : "bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                          }`}
+                          title={blog.isFeatured ? "Unpin from Homepage Hero" : "Pin to Homepage Hero Bento Grid"}
+                        >
+                          <Star className={`h-4 w-4 ${blog.isFeatured ? "fill-purple-600" : ""}`} />
+                        </button>
+
+                        {/* Toggle Publish / Draft */}
                         <button
                           onClick={() => handleTogglePublish(blog)}
-                          className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition duration-200 ${
+                          className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition duration-200 cursor-pointer ${
                             blog.isPublished
-                              ? "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-200"
-                              : "bg-amber-50 border-amber-100 text-amber-600 hover:bg-amber-600 hover:text-white"
+                              ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                              : "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
                           }`}
-                          title={blog.isPublished ? "Hide from frontend" : "Publish to frontend"}
+                          title={blog.isPublished ? "Publicly Live (Click to make Draft)" : "Draft Mode (Click to Publish Live)"}
                         >
-                          {blog.isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {blog.isPublished ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                         </button>
+
+                        {/* View Live or Preview on Frontend */}
                         <a
-                          href={`${import.meta.env.VITE_CLIENT_URL || "https://sri-kode-fe.vercel.app"}/blog/${blog.slug}`}
+                          href={`${clientBaseUrl}/blog/${blog.slug}${!blog.isPublished ? "?preview=true" : ""}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white transition duration-200"
-                          title="View Live"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-blue-600 transition duration-200 cursor-pointer"
+                          title={blog.isPublished ? "View Live Article on Frontend" : "Preview Draft on Frontend"}
                         >
-                          <Eye className="h-4 w-4" />
+                          <ExternalLink className="h-4 w-4" />
                         </a>
+
+                        {/* Edit Article */}
                         <Link
                           to={`/blogs/edit/${blog._id}`}
                           className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 border border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition duration-200"
@@ -146,9 +176,11 @@ export default function Blogs() {
                         >
                           <Edit2 className="h-4 w-4" />
                         </Link>
+
+                        {/* Delete Article */}
                         <button
                           onClick={() => handleDelete(blog._id, blog.title)}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 border border-red-100 text-red-600 hover:bg-red-600 hover:text-white transition duration-200"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 border border-red-100 text-red-600 hover:bg-red-600 hover:text-white transition duration-200 cursor-pointer"
                           title="Delete Article"
                         >
                           <Trash2 className="h-4 w-4" />

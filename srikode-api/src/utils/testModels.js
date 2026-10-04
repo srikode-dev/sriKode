@@ -32,9 +32,9 @@ const testSchemas = async () => {
       tags: ["HTML", "Test"],
       difficulty: "Beginner",
       author: {
-        name: "Srikant Sahu",
+        name: "SriKode Team",
         role: "Developer",
-        avatar: "/authors/srikant.webp",
+        avatar: "",
         bio: "Bio for tester"
       },
       seo: {

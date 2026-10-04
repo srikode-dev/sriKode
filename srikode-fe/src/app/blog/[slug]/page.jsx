@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   Calendar, Clock, ArrowLeft, ArrowRight, Tag, User,
-  Eye, Heart, Bookmark, ChevronRight, ExternalLink, Code2, Play
+  Eye, Heart, Bookmark, ChevronRight, ExternalLink, Code2, Play, Sparkles
 } from "lucide-react";
 import { formatDate } from "@/data";
 import { getBlogs, getBlogBySlug } from "@/lib/api";
@@ -12,6 +12,12 @@ import Sidebar from "@/components/home/sidebar/Sidebar";
 import TableOfContents from "@/components/blog/TableOfContents";
 import ArticleContent from "@/components/blog/ArticleContent";
 import CommentSection from "@/components/blog/CommentSection";
+import ReadingProgressBar from "@/components/blog/ReadingProgressBar";
+import ScrollToTop from "@/components/blog/ScrollToTop";
+import BlogFaq from "@/components/blog/BlogFaq";
+import SocialShare from "@/components/blog/SocialShare";
+import AuthorBio from "@/components/blog/AuthorBio";
+import AdBanner from "@/components/shared/AdBanner";
 
 export async function generateStaticParams() {
   try {
@@ -46,8 +52,10 @@ export async function generateMetadata({ params }) {
   }
 }
 
-export default async function BlogDetailPage({ params }) {
+export default async function BlogDetailPage({ params, searchParams }) {
   const { slug } = await params;
+  const search = searchParams ? await searchParams : {};
+  const isPreview = search?.preview === "true";
 
   let blog = null;
   let prevBlog = null;
@@ -55,7 +63,7 @@ export default async function BlogDetailPage({ params }) {
   let dbBlogs = [];
 
   try {
-    const res = await getBlogBySlug(slug);
+    const res = await getBlogBySlug(slug, isPreview);
     blog = res.blog;
 
     const listRes = await getBlogs({ limit: 100 });
@@ -92,7 +100,7 @@ export default async function BlogDetailPage({ params }) {
     "dateModified": blog.updatedAt || blog.createdAt,
     "author": {
       "@type": "Person",
-      "name": blog.author?.name || "Srikant Sahu",
+      "name": blog.author?.name || "SriKode Team",
       "url": "https://srikode.dev/about"
     },
     "publisher": {
@@ -111,10 +119,14 @@ export default async function BlogDetailPage({ params }) {
 
   return (
     <>
+      {/* ── Reading Progress Bar fixed at top ── */}
+      <ReadingProgressBar />
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+
       {/* ── Breadcrumb & Title Area ── */}
       <div className="pt-4 pb-8 border-b border-sk-border">
         <Container>
@@ -127,9 +139,22 @@ export default async function BlogDetailPage({ params }) {
             <span className="text-sk-text-muted line-clamp-1 max-w-[200px] sm:max-w-xs">{blog.title}</span>
           </nav>
 
-          <span className="inline-block rounded-full bg-sk-primary-light px-3 py-1 text-[11px] font-black uppercase tracking-wider text-sk-primary-text">
-            {blog.category}
-          </span>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="inline-block rounded-full bg-sk-primary-light px-3 py-1 text-[11px] font-black uppercase tracking-wider text-sk-primary-text border border-sk-primary/20">
+              {blog.category}
+            </span>
+            {blog.difficulty && (
+              <span className="inline-block rounded-full bg-sk-bg-subtle border border-sk-border px-3 py-1 text-[11px] font-bold text-sk-text-muted">
+                {blog.difficulty}
+              </span>
+            )}
+            {isPreview && (
+              <span className="inline-block rounded-full bg-amber-500/10 border border-amber-500/30 px-3 py-1 text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                Draft Preview Mode
+              </span>
+            )}
+          </div>
+
           <h1 className="mt-3 text-3xl font-black leading-tight tracking-tight text-sk-text sm:text-4xl md:text-5xl max-w-4xl">
             {blog.title}
           </h1>
@@ -147,7 +172,7 @@ export default async function BlogDetailPage({ params }) {
               <div className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-sk-border pb-6 text-sm text-sk-text-muted">
                 <div className="flex items-center gap-2">
                   <User size={14} className="text-sk-text-faint" />
-                  <span className="font-semibold text-sk-text">{blog.author?.name || "Srikant Sahu"}</span>
+                  <span className="font-semibold text-sk-text">{blog.author?.name || "SriKode"}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Calendar size={14} className="text-sk-text-faint" />
@@ -180,6 +205,11 @@ export default async function BlogDetailPage({ params }) {
                 {blog.excerpt}
               </p>
 
+              {/* Top Social Share Bar */}
+              <div className="mb-8">
+                <SocialShare title={blog.title} slug={blog.slug} />
+              </div>
+
               {/* Table of Contents (mobile) */}
               {tocItems.length > 0 && (
                 <div className="mb-8 lg:hidden">
@@ -189,6 +219,9 @@ export default async function BlogDetailPage({ params }) {
 
               {/* Article body */}
               <ArticleContent content={blog.content} toc={tocItems} />
+
+              {/* Mid-Article In-Content Ad Banner Slot */}
+              <AdBanner slot="in-article" />
 
               {/* Optional Video Walkthrough Section */}
               {blog.videoUrl && (
@@ -255,6 +288,19 @@ export default async function BlogDetailPage({ params }) {
                 </div>
               )}
 
+              {/* ── Frequently Asked Questions (FAQ) Accordion ── */}
+              {blog.faq && blog.faq.length > 0 && (
+                <BlogFaq items={blog.faq} />
+              )}
+
+              {/* ── Author Bio Box ── */}
+              <AuthorBio author={blog.author} />
+
+              {/* Bottom Social Share Bar */}
+              <div className="my-8">
+                <SocialShare title={blog.title} slug={blog.slug} />
+              </div>
+
               {/* Prev / Next navigation */}
               <div className="mt-10 grid grid-cols-1 gap-4 border-t border-sk-border pt-8 sm:grid-cols-2">
                 {prevBlog ? (
@@ -287,6 +333,9 @@ export default async function BlogDetailPage({ params }) {
                   </Link>
                 )}
               </div>
+
+              {/* Pre-Comments / Wide Leaderboard Ad Slot */}
+              <AdBanner slot="pre-comments" />
 
               {/* Related Posts */}
               {relatedBlogs.length > 0 && (
@@ -329,6 +378,9 @@ export default async function BlogDetailPage({ params }) {
           </div>
         </Container>
       </div>
+
+      {/* ── Floating Scroll To Top Button ── */}
+      <ScrollToTop />
     </>
   );
 }

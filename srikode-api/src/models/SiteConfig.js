@@ -80,12 +80,12 @@ const siteConfigSchema = new mongoose.Schema(
 
     // 4. Complete About Section & Page
     about: {
-      heading: { type: String, default: "Hey, I'm Srikant Sahu 👋" },
-      role: { type: String, default: "Full-Stack Developer, Content Creator & Founder of SriKode" },
-      avatar: { type: String, default: "/authors/srikant.webp" },
+      heading: { type: String, default: "Welcome to SriKode 👋" },
+      role: { type: String, default: "Developer Community & Educational Platform" },
+      avatar: { type: String, default: "/placeholder-banner.webp" },
       bio: {
         type: String,
-        default: "I build modern web apps and love helping aspiring developers master full-stack technologies with practical, production-ready coding tutorials.",
+        default: "Building practical web applications and making modern web development accessible to everyone with production-ready tutorials.",
       },
       experienceYears: { type: String, default: "5+" },
       projectsCount: { type: String, default: "20+" },

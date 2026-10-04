@@ -170,8 +170,8 @@ export default function Layout() {
               <User className="h-5 w-5" />
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-bold text-white truncate">{user?.name || "Srikant Sahu"}</p>
-              <p className="text-xs text-slate-500 truncate">{user?.email || "srikantsahu.dev@gmail.com"}</p>
+              <p className="text-sm font-bold text-white truncate">{user?.name || "Admin"}</p>
+              <p className="text-xs text-slate-500 truncate">{user?.email || "admin@srikode.dev"}</p>
             </div>
           </div>
           <button
@@ -279,8 +279,8 @@ export default function Layout() {
                   <User className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-white">{user?.name || "Srikant Sahu"}</p>
-                  <p className="text-xs text-slate-500">{user?.email || "srikantsahu.dev@gmail.com"}</p>
+                  <p className="text-sm font-bold text-white">{user?.name || "Admin"}</p>
+                  <p className="text-xs text-slate-500">{user?.email || "admin@srikode.dev"}</p>
                 </div>
               </div>
               <button
@@ -319,10 +319,10 @@ export default function Layout() {
             <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
             <div className="flex items-center gap-2.5">
               <span className="text-sm font-semibold text-slate-700 hidden sm:inline-block">
-                {user?.name || "Srikant Sahu"}
+                {user?.name || "Admin"}
               </span>
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-bold shadow-sm">
-                S
+                {(user?.name || "Admin")[0].toUpperCase()}
               </div>
             </div>
           </div>

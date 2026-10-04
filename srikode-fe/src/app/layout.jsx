@@ -23,8 +23,8 @@ export const metadata = {
   },
   description: "Learn HTML, CSS, JavaScript, React, Next.js, and modern full-stack web development through step-by-step practical guides.",
   keywords: ["web development", "tutorials", "coding", "HTML", "CSS", "JavaScript", "React", "Next.js", "Node.js", "MongoDB", "learn programming"],
-  authors: [{ name: "Srikant Sahu" }],
-  creator: "Srikant Sahu",
+  authors: [{ name: "SriKode" }],
+  creator: "SriKode",
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -46,7 +46,7 @@ export const metadata = {
     title: "SriKode — Web Development Tutorials & Guides",
     description: "Learn HTML, CSS, JavaScript, React, Next.js, and modern full-stack web development through step-by-step practical guides.",
     images: ["https://picsum.photos/seed/srikode-og/1200/630"],
-    creator: "@srikantdev",
+    creator: "@srikode",
   },
   robots: {
     index: true,

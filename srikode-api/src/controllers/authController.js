@@ -51,7 +51,7 @@ export const login = async (req, res) => {
     // Sign JWT token with admin payload (future-proofed with role: "admin")
     const payload = {
       id: "admin-srikode",
-      name: "Srikant Sahu",
+      name: process.env.ADMIN_NAME || "Admin",
       email: ADMIN_EMAIL,
       role: "admin",
     };

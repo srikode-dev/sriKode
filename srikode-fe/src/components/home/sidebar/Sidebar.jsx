@@ -2,6 +2,7 @@ import SocialStats from "./SocialStats";
 import MostPopular from "./MostPopular";
 import FeaturedPost from "./FeaturedPost";
 import CategoryList from "./CategoryList";
+import AdBanner from "@/components/shared/AdBanner";
 
 export default function Sidebar({ blogs, socialCard }) {
   // Pick a featured post — the one with most likes
@@ -11,6 +12,7 @@ export default function Sidebar({ blogs, socialCard }) {
     <aside className="flex flex-col gap-6">
       <SocialStats data={socialCard} />
       <MostPopular blogs={blogs} />
+      <AdBanner slot="sidebar" />
       <FeaturedPost blog={featured} />
       <CategoryList blogs={blogs} />
     </aside>

@@ -34,21 +34,27 @@ export async function getBlogs({ category, search, page = 1, limit = 10 } = {}) 
   if (category) query += `&category=${encodeURIComponent(category)}`;
   if (search) query += `&search=${encodeURIComponent(search)}`;
 
-  return fetchJson(`/blogs${query}`, { next: { revalidate: 60 } }); // Cache lists for 60 seconds
+  const isDev = process.env.NODE_ENV !== "production";
+  return fetchJson(`/blogs${query}`, isDev ? { cache: "no-store" } : { next: { revalidate: 30 } });
 }
 
 /**
  * Fetch featured blogs (shown on main hero layouts).
  */
 export async function getFeaturedBlogs() {
-  return fetchJson("/blogs/featured", { next: { revalidate: 60 } });
+  const isDev = process.env.NODE_ENV !== "production";
+  return fetchJson("/blogs/featured", isDev ? { cache: "no-store" } : { next: { revalidate: 30 } });
 }
 
 /**
  * Fetch single blog post by its slug (updates viewCount on backend).
+ * Supports preview query for drafts
  */
-export async function getBlogBySlug(slug) {
-  return fetchJson(`/blogs/post/${slug}`, { next: { revalidate: 60 } }); // Cache single post for 60 seconds (allows ISR pre-rendering)
+export async function getBlogBySlug(slug, isPreview = false) {
+  if (!slug) throw new Error("Slug is required");
+  const query = isPreview ? "?preview=true" : "";
+  const isDev = process.env.NODE_ENV !== "production";
+  return fetchJson(`/blogs/post/${encodeURIComponent(slug)}${query}`, isDev || isPreview ? { cache: "no-store" } : { next: { revalidate: 30 } });
 }
 
 /**
