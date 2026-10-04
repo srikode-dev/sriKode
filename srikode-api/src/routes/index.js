@@ -6,6 +6,7 @@ import videoRoutes from "./videoRoutes.js";
 import contactRoutes from "./contactRoutes.js";
 import analyticsRoutes from "./analyticsRoutes.js";
 import newsletterRoutes from "./newsletterRoutes.js";
+import cmsRoutes from "./cmsRoutes.js";
 
 const router = express.Router();
 
@@ -16,5 +17,6 @@ router.use("/videos", videoRoutes);
 router.use("/contact", contactRoutes);
 router.use("/analytics", analyticsRoutes);
 router.use("/newsletter", newsletterRoutes);
+router.use("/cms", cmsRoutes);
 
 export default router;

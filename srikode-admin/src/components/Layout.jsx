@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
-  BarChart2,
+  BarChart2, 
   FileText, 
   Video, 
   MessageSquare, 
@@ -10,7 +10,15 @@ import {
   LogOut, 
   User, 
   Menu, 
-  X 
+  X,
+  PanelsTopLeft,
+  ChevronDown,
+  ChevronRight,
+  BarChart3,
+  Share2,
+  PhoneCall,
+  Palette,
+  Megaphone
 } from "lucide-react";
 import { useState } from "react";
 import useAuthStore from "../store/authStore.js";
@@ -20,11 +28,25 @@ export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [cmsOpen, setCmsOpen] = useState(true);
 
   const menuItems = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Analytics", href: "/analytics", icon: BarChart2 },
     { name: "Blogs", href: "/blogs", icon: FileText },
+    { 
+      name: "CMS", 
+      icon: PanelsTopLeft, 
+      subItems: [
+        { name: "Landing Stats", href: "/cms/stats", icon: BarChart3 },
+        { name: "Sponsors & Ads", href: "/cms/sponsors", icon: Megaphone },
+        { name: "Social Card", href: "/cms/social-card", icon: Share2 },
+        { name: "Newsletter", href: "/cms/newsletter", icon: Mail },
+        { name: "About Page", href: "/cms/about", icon: User },
+        { name: "Contact Details", href: "/cms/contact", icon: PhoneCall },
+        { name: "Theme Colors", href: "/cms/theme", icon: Palette },
+      ]
+    },
     { name: "Videos", href: "/videos", icon: Video },
     { name: "Comments", href: "/comments", icon: MessageSquare },
     { name: "Contact Inbox", href: "/contacts", icon: Mail },
@@ -37,11 +59,19 @@ export default function Layout() {
   };
 
   const getPageTitle = () => {
+    if (location.pathname === "/cms/stats") return "CMS — Landing Stats";
+    if (location.pathname === "/cms/sponsors") return "CMS — Sponsors & Ads";
+    if (location.pathname === "/cms/social-card") return "CMS — Social Card";
+    if (location.pathname === "/cms/newsletter") return "CMS — Newsletter CTA";
+    if (location.pathname === "/cms/about") return "CMS — About Page";
+    if (location.pathname === "/cms/contact") return "CMS — Contact Details";
+    if (location.pathname === "/cms/theme") return "CMS — Theme Colors";
+    if (location.pathname.startsWith("/cms")) return "CMS Management";
     const current = menuItems.find(item => item.href === location.pathname);
     if (current) return current.name;
     if (location.pathname.startsWith("/blogs/new")) return "Create New Blog";
     if (location.pathname.startsWith("/blogs/edit") || location.pathname.includes("/edit")) return "Edit Blog Post";
-    return "CMS Panel";
+    return "Admin Panel";
   };
 
   return (
@@ -64,14 +94,64 @@ export default function Layout() {
         {/* Sidebar Nav */}
         <nav className="flex-1 space-y-1.5 px-4 py-6 overflow-y-auto">
           {menuItems.map((item) => {
+            const Icon = item.icon;
+
+            if (item.subItems) {
+              const isGroupActive = location.pathname.startsWith("/cms");
+              return (
+                <div key={item.name} className="space-y-1">
+                  <button
+                    type="button"
+                    onClick={() => setCmsOpen(!cmsOpen)}
+                    className={`w-full flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-xl transition duration-200 cursor-pointer ${
+                      isGroupActive
+                        ? "bg-slate-800 text-white font-bold"
+                        : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className={`h-5 w-5 ${isGroupActive ? "text-blue-400" : "text-slate-400"}`} />
+                      <span>{item.name}</span>
+                    </div>
+                    {cmsOpen ? (
+                      <ChevronDown className="h-4 w-4 text-slate-400" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-slate-400" />
+                    )}
+                  </button>
+
+                  {cmsOpen && (
+                    <div className="pl-6 space-y-1 pt-0.5">
+                      {item.subItems.map((sub) => {
+                        const isSubActive = location.pathname.startsWith(sub.href);
+                        const SubIcon = sub.icon;
+                        return (
+                          <Link
+                            key={sub.name}
+                            to={sub.href}
+                            className={`flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg transition duration-200 ${
+                              isSubActive
+                                ? "bg-blue-600 text-white shadow-xs"
+                                : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                            }`}
+                          >
+                            <SubIcon className="h-3.5 w-3.5" />
+                            {sub.name}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             const isActive = location.pathname === item.href || 
                              (item.href !== "/" && location.pathname.startsWith(item.href));
-            const Icon = item.icon;
             
             return (
               <Link
                 key={item.name}
-                href={item.href}
                 to={item.href}
                 className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition duration-200 ${
                   isActive
@@ -93,8 +173,8 @@ export default function Layout() {
               <User className="h-5 w-5" />
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-bold text-white truncate">{user?.name || "Srikant Sahu"}</p>
-              <p className="text-xs text-slate-500 truncate">{user?.email || "srikantsahu.dev@gmail.com"}</p>
+              <p className="text-sm font-bold text-white truncate">{user?.name || "Admin"}</p>
+              <p className="text-xs text-slate-500 truncate">{user?.email || "admin@srikode.dev"}</p>
             </div>
           </div>
           <button
@@ -130,9 +210,52 @@ export default function Layout() {
             {/* Menu */}
             <nav className="flex-1 space-y-1.5 px-4 py-6 overflow-y-auto">
               {menuItems.map((item) => {
+                const Icon = item.icon;
+
+                if (item.subItems) {
+                  const isGroupActive = location.pathname.startsWith(item.href);
+                  return (
+                    <div key={item.name} className="space-y-1">
+                      <div
+                        className={`flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-xl ${
+                          isGroupActive
+                            ? "bg-slate-800 text-white font-bold"
+                            : "text-slate-400"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className={`h-5 w-5 ${isGroupActive ? "text-blue-400" : "text-slate-400"}`} />
+                          <span>{item.name}</span>
+                        </div>
+                      </div>
+
+                      <div className="pl-6 space-y-1 pt-0.5">
+                        {item.subItems.map((sub) => {
+                          const isSubActive = location.pathname.startsWith(sub.href);
+                          const SubIcon = sub.icon;
+                          return (
+                            <Link
+                              key={sub.name}
+                              to={sub.href}
+                              onClick={() => setMobileMenuOpen(false)}
+                              className={`flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg transition duration-200 ${
+                                isSubActive
+                                  ? "bg-blue-600 text-white"
+                                  : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                              }`}
+                            >
+                              <SubIcon className="h-3.5 w-3.5" />
+                              {sub.name}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                }
+
                 const isActive = location.pathname === item.href ||
                                  (item.href !== "/" && location.pathname.startsWith(item.href));
-                const Icon = item.icon;
                 
                 return (
                   <Link
@@ -159,8 +282,8 @@ export default function Layout() {
                   <User className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-white">{user?.name || "Srikant Sahu"}</p>
-                  <p className="text-xs text-slate-500">{user?.email || "srikantsahu.dev@gmail.com"}</p>
+                  <p className="text-sm font-bold text-white">{user?.name || "Admin"}</p>
+                  <p className="text-xs text-slate-500">{user?.email || "admin@srikode.dev"}</p>
                 </div>
               </div>
               <button
@@ -199,10 +322,10 @@ export default function Layout() {
             <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
             <div className="flex items-center gap-2.5">
               <span className="text-sm font-semibold text-slate-700 hidden sm:inline-block">
-                {user?.name || "Srikant Sahu"}
+                {user?.name || "Admin"}
               </span>
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-bold shadow-sm">
-                S
+                {(user?.name || "Admin")[0].toUpperCase()}
               </div>
             </div>
           </div>

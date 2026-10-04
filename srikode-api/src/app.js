@@ -60,9 +60,9 @@ app.get("/", (req, res) => {
     status: "🟢 I am Online",
     docs: `Use /api/${apiVersion}/ to access the API endpoints.`,
     author: {
-      name: "Srikant Sahu",
-      website: "https://srikantsahu.in",
-      github: "https://github.com/Srikant114",
+      name: "SriKode",
+      website: "https://srikode.dev",
+      github: "https://github.com/srikode",
     },
     timestamp: new Date().toISOString(),
   });

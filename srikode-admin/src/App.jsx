@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 // Components
 import Layout from "./components/Layout.jsx";
@@ -17,6 +17,15 @@ import Comments from "./pages/Comments.jsx";
 import Contacts from "./pages/Contacts.jsx";
 import Newsletter from "./pages/Newsletter.jsx";
 
+// CMS Individual Section Pages
+import CmsStats from "./pages/cms/CmsStats.jsx";
+import CmsSponsors from "./pages/cms/CmsSponsors.jsx";
+import CmsSocialCard from "./pages/cms/CmsSocialCard.jsx";
+import CmsNewsletter from "./pages/cms/CmsNewsletter.jsx";
+import CmsAbout from "./pages/cms/CmsAbout.jsx";
+import CmsContact from "./pages/cms/CmsContact.jsx";
+import CmsTheme from "./pages/cms/CmsTheme.jsx";
+
 // Store check auth trigger
 import useAuthStore from "./store/authStore.js";
 
@@ -30,7 +39,7 @@ export default function App() {
 
   return (
     <>
-      <Toaster position="top-right" />
+      <Toaster richColors position="top-right" />
       <BrowserRouter>
       <Routes>
         {/* Public Login Route */}
@@ -66,6 +75,17 @@ export default function App() {
 
           {/* Newsletter subscribers */}
           <Route path="newsletter" element={<Newsletter />} />
+
+          {/* CMS & UI Individual Section Pages */}
+          <Route path="cms" element={<Navigate to="/cms/stats" replace />} />
+          <Route path="cms/sections" element={<Navigate to="/cms/stats" replace />} />
+          <Route path="cms/stats" element={<CmsStats />} />
+          <Route path="cms/sponsors" element={<CmsSponsors />} />
+          <Route path="cms/social-card" element={<CmsSocialCard />} />
+          <Route path="cms/newsletter" element={<CmsNewsletter />} />
+          <Route path="cms/about" element={<CmsAbout />} />
+          <Route path="cms/contact" element={<CmsContact />} />
+          <Route path="cms/theme" element={<CmsTheme />} />
         </Route>
 
         {/* Wildcard Fallback redirection */}

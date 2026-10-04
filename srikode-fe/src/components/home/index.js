@@ -5,11 +5,11 @@ import Sidebar from "./sidebar/Sidebar";
 import LatestVideos from "./LatestVideos";
 import NewsletterCTA from "./NewsletterCTA";
 
-export default function HomeSection({ blogs = [], videos = [] }) {
+export default function HomeSection({ blogs = [], videos = [], cmsConfig = null }) {
   return (
     <>
       {/* ── Hero ── */}
-      <Hero blogs={blogs} />
+      <Hero blogs={blogs} stats={cmsConfig?.stats} />
 
       {/* ── Blog Grid + Sidebar ── */}
       <section className="py-12">
@@ -20,7 +20,7 @@ export default function HomeSection({ blogs = [], videos = [] }) {
 
             {/* Right — Sticky Sidebar */}
             <div className="lg:sticky lg:top-20 lg:self-start">
-              <Sidebar blogs={blogs} />
+              <Sidebar blogs={blogs} socialCard={cmsConfig?.socialCard} />
             </div>
           </div>
         </Container>
@@ -30,7 +30,7 @@ export default function HomeSection({ blogs = [], videos = [] }) {
       <LatestVideos videos={videos} />
 
       {/* ── Newsletter CTA ── */}
-      <NewsletterCTA />
+      <NewsletterCTA data={cmsConfig?.newsletter} />
     </>
   );
 }

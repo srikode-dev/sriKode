@@ -88,25 +88,29 @@ VITE_API_URL=http://localhost:5000/api/v1
 ```
 
 ### 4. Running the Applications
-Run all three development servers simultaneously (in separate terminal tabs):
 
+#### Option A: Run all applications concurrently with a single command (Recommended)
+From the root directory:
 ```bash
-# Terminal 1: Run Backend API
-cd srikode-api
-pnpm dev
-
-# Terminal 2: Run Frontend
-cd srikode-fe
-pnpm dev
-
-# Terminal 3: Run Admin Dashboard
-cd srikode-admin
 pnpm dev
 ```
+This runs `srikode-api`, `srikode-admin`, and `srikode-fe` simultaneously with distinct colored labels (`[API]`, `[ADMIN]`, `[FE]`).
 
-- Frontend runs at: `http://localhost:3000`
-- Admin runs at: `http://localhost:5173`
-- API runs at: `http://localhost:5000`
+#### Option B: Run individual applications separately
+```bash
+# Terminal 1: Run Backend API
+pnpm dev:api   # or: cd srikode-api && pnpm dev
+
+# Terminal 2: Run Frontend
+pnpm dev:fe    # or: cd srikode-fe && pnpm dev
+
+# Terminal 3: Run Admin Dashboard
+pnpm dev:admin # or: cd srikode-admin && pnpm dev
+```
+
+- **Frontend:** `http://localhost:3000`
+- **Admin:** `http://localhost:5173`
+- **API:** `http://localhost:5000`
 
 ---
 
@@ -137,4 +141,4 @@ This monorepo is optimized for deployment on Vercel using a **Production Branch*
 
 ---
 
-*Designed and Built by Srikant Sahu*
+*Designed and Built by SriKode*

@@ -15,7 +15,7 @@ export default function BlogCard({ blog }) {
       {/* Thumbnail */}
       <Link href={`/blog/${blog.slug}`} className="relative block aspect-video overflow-hidden">
         <Image
-          src={blog.coverImage}
+          src={blog.coverImage || "/placeholder-banner.webp"}
           alt={blog.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"

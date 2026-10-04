@@ -107,7 +107,7 @@
   }
 
   html {
-    scroll-behavior: smooth;
+    /* scroll-behavior handled by Lenis smooth scroll provider */
   }
 
   body {
@@ -126,12 +126,7 @@
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* But NOT layout/position properties (causes jank) */
-  *,
-  *::before,
-  *::after {
-    transition-property: none;
-  }
+  /* Layout/position transitions are excluded via the explicit list below */
 
   /* Re-add only for theme-sensitive elements */
   body, header, footer, nav, aside, section,

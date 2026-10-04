@@ -4,17 +4,19 @@ import BlogAnalytics from "../models/BlogAnalytics.js";
 import logger from "../config/logger.js";
 import { sendNewBlogNotificationEmail } from "../services/resendService.js";
 
-// Helper to slugify a string
+// Helper to slugify a string with accent stripping, lowercasing, and clean hyphenation
 const slugify = (text) => {
+  if (!text) return "";
   return text
     .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove accent marks
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, "-")         // Replace spaces with -
-    .replace(/[^\w\-]+/g, "")       // Remove all non-word chars
-    .replace(/\-\-+/g, "-")         // Replace multiple - with single -
-    .replace(/^-+/, "")             // Trim - from start
-    .replace(/-+$/, "");            // Trim - from end
+    .replace(/[^a-z0-9\s-]/g, "")   // remove all characters except lowercase letters, numbers, spaces, and hyphens
+    .replace(/\s+/g, "-")           // replace spaces with hyphens
+    .replace(/-+/g, "-")            // replace multiple hyphens with single hyphen
+    .replace(/^-+|-+$/g, "");       // remove leading and trailing hyphens
 };
 
 // Helper to auto-generate Table of Contents from H2 headings in content blocks
@@ -100,12 +102,40 @@ export const getFeaturedBlogs = async (req, res) => {
 
 /**
  * Public: Get a single blog by slug (and increment views)
+ * Supports ?preview=true for previewing drafts
  */
 export const getBlogBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
+    const { preview } = req.query;
 
-    const blog = await Blog.findOne({ slug, isPublished: true })
+    if (!slug) {
+      return res.status(400).json({ success: false, message: "Slug is required" });
+    }
+
+    const decodedSlug = decodeURIComponent(slug);
+    const cleanSlug = slugify(decodedSlug) || slugify(slug) || decodedSlug.toLowerCase().trim();
+
+    // Query condition: match clean slug, decoded slug, or raw trimmed slug
+    const query = {
+      $or: [
+        { slug: cleanSlug },
+        { slug: decodedSlug.trim() },
+        { slug: slug.trim() }
+      ]
+    };
+
+    // If 24-char hex string, also allow matching by _id
+    if (/^[0-9a-fA-F]{24}$/.test(slug)) {
+      query.$or.push({ _id: slug });
+    }
+
+    // If preview !== "true", require article to be published
+    if (preview !== "true") {
+      query.isPublished = true;
+    }
+
+    const blog = await Blog.findOne(query)
       .populate({
         path: "relatedPosts",
         match: { isPublished: true },
@@ -116,22 +146,24 @@ export const getBlogBySlug = async (req, res) => {
       return res.status(404).json({ success: false, message: "Blog not found" });
     }
 
-    // Increment viewCount asynchronously
-    blog.viewCount += 1;
-    await blog.save();
+    // Only increment views and track analytics for live visits on published posts
+    if (blog.isPublished && preview !== "true") {
+      blog.viewCount += 1;
+      await blog.save();
 
-    // Async Analytics Tracking (Vercel automatic geolocation headers)
-    const country = req.headers["x-vercel-ip-country"] || "Unknown";
-    const city = req.headers["x-vercel-ip-city"] || "Unknown";
-    
-    const today = new Date();
-    const formattedDate = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
+      // Async Analytics Tracking (Vercel automatic geolocation headers)
+      const country = req.headers["x-vercel-ip-country"] || "Unknown";
+      const city = req.headers["x-vercel-ip-city"] || "Unknown";
+      
+      const today = new Date();
+      const formattedDate = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
 
-    BlogAnalytics.findOneAndUpdate(
-      { blog: blog._id, date: formattedDate, country, city },
-      { $inc: { views: 1 } },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    ).catch(err => logger.error(`BlogAnalytics track error: ${err.message}`));
+      BlogAnalytics.findOneAndUpdate(
+        { blog: blog._id, date: formattedDate, country, city },
+        { $inc: { views: 1 } },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      ).catch(err => logger.error(`BlogAnalytics track error: ${err.message}`));
+    }
 
     return res.status(200).json({
       success: true,
@@ -149,7 +181,7 @@ export const getBlogBySlug = async (req, res) => {
 export const getAllBlogsAdmin = async (req, res) => {
   try {
     const blogs = await Blog.find({})
-      .select("title slug category isPublished isFeatured viewCount readingTime createdAt")
+      .select("title slug category isPublished isFeatured adsEnabled viewCount readingTime createdAt")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -186,26 +218,31 @@ export const getBlogByIdAdmin = async (req, res) => {
 };
 
 /**
- * Admin: Create a new blog draft
+ * Admin: Create a new blog (Draft or Published)
  */
 export const createBlogAdmin = async (req, res) => {
   try {
-    const { title, excerpt, category } = req.body;
+    const { title, excerpt, category, slug: customSlug, isPublished } = req.body;
 
     if (!title || !excerpt || !category) {
       return res.status(400).json({
         success: false,
-        message: "Title, excerpt, and category are required to create a draft"
+        message: "Title, excerpt, and category are required to create an article"
       });
     }
 
-    // Auto-generate a unique slug from title
-    let slug = slugify(title);
+    // Auto-generate a unique clean slug from custom slug or title
+    let baseSlug = slugify(customSlug || title);
+    if (!baseSlug) {
+      baseSlug = `article-${Date.now().toString(36)}`;
+    }
+
+    let slug = baseSlug;
     let slugExists = await Blog.findOne({ slug });
     let counter = 1;
     
     while (slugExists) {
-      slug = `${slugify(title)}-${counter}`;
+      slug = `${baseSlug}-${counter}`;
       slugExists = await Blog.findOne({ slug });
       counter++;
     }
@@ -213,17 +250,29 @@ export const createBlogAdmin = async (req, res) => {
     const blogData = {
       ...req.body,
       slug,
-      isPublished: false,
+      isPublished: typeof isPublished === "boolean" ? isPublished : false,
       tableOfContents: generateTableOfContents(req.body.content || [])
     };
 
     const newBlog = await Blog.create(blogData);
 
-    logger.info(`New blog draft created: "${newBlog.title}" (slug: ${newBlog.slug})`);
+    logger.info(`New blog created: "${newBlog.title}" (slug: ${newBlog.slug}, published: ${newBlog.isPublished})`);
+
+    // If published immediately, notify subscribers asynchronously
+    if (newBlog.isPublished) {
+      Subscriber.find({ isActive: true })
+        .then(subscribers => {
+          const emails = subscribers.map(sub => sub.email);
+          if (emails.length > 0) {
+            sendNewBlogNotificationEmail(newBlog.title, newBlog.slug, emails);
+          }
+        })
+        .catch(err => logger.error(`Subscriber email notification error: ${err.message}`));
+    }
 
     return res.status(201).json({
       success: true,
-      message: "Blog draft created successfully",
+      message: newBlog.isPublished ? "Blog published successfully" : "Blog draft created successfully",
       blog: newBlog,
     });
   } catch (error) {
@@ -246,14 +295,28 @@ export const updateBlogAdmin = async (req, res) => {
       return res.status(404).json({ success: false, message: "Blog not found" });
     }
 
-    // If title is changing, auto-update slug (only if it is a draft to avoid breaking SEO on published links, or manually override)
-    if (updateData.title && updateData.title !== blog.title && !blog.isPublished) {
-      let slug = slugify(updateData.title);
+    // Slug management:
+    // If a custom slug is provided and differs from current blog.slug
+    if (updateData.slug && slugify(updateData.slug) !== blog.slug) {
+      let baseSlug = slugify(updateData.slug);
+      let slug = baseSlug;
       let slugExists = await Blog.findOne({ slug, _id: { $ne: id } });
       let counter = 1;
 
       while (slugExists) {
-        slug = `${slugify(updateData.title)}-${counter}`;
+        slug = `${baseSlug}-${counter}`;
+        slugExists = await Blog.findOne({ slug, _id: { $ne: id } });
+        counter++;
+      }
+      updateData.slug = slug;
+    } else if (updateData.title && updateData.title !== blog.title && (!blog.slug || !blog.isPublished)) {
+      let baseSlug = slugify(updateData.title);
+      let slug = baseSlug;
+      let slugExists = await Blog.findOne({ slug, _id: { $ne: id } });
+      let counter = 1;
+
+      while (slugExists) {
+        slug = `${baseSlug}-${counter}`;
         slugExists = await Blog.findOne({ slug, _id: { $ne: id } });
         counter++;
       }
@@ -283,7 +346,7 @@ export const updateBlogAdmin = async (req, res) => {
         .catch(err => logger.error(`Error fetching subscribers for blog notification: ${err.message}`));
     }
 
-    logger.info(`Blog updated by admin: "${updatedBlog.title}"`);
+    logger.info(`Blog updated by admin: "${updatedBlog.title}" (slug: ${updatedBlog.slug}, published: ${updatedBlog.isPublished})`);
 
     return res.status(200).json({
       success: true,

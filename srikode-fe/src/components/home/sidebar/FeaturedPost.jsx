@@ -19,7 +19,7 @@ export default function FeaturedPost({ blog }) {
         {/* Cover image */}
         <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-lg">
           <Image
-            src={blog.coverImage}
+            src={blog.coverImage || "/placeholder-banner.webp"}
             alt={blog.title}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"

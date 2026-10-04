@@ -1,0 +1,16 @@
+{
+  "name": "srikode",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SriKode Full-Stack Monorepo",
+  "scripts": {
+    "dev": "concurrently -n \"API,ADMIN,FE\" -c \"cyan.bold,magenta.bold,green.bold\" \"pnpm --dir srikode-api dev\" \"pnpm --dir srikode-admin dev\" \"pnpm --dir srikode-fe dev\"",
+    "dev:api": "pnpm --dir srikode-api dev",
+    "dev:admin": "pnpm --dir srikode-admin dev",
+    "dev:fe": "pnpm --dir srikode-fe dev",
+    "install:all": "pnpm --dir srikode-api install && pnpm --dir srikode-admin install && pnpm --dir srikode-fe install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

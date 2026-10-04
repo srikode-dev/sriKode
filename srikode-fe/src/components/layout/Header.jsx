@@ -9,7 +9,6 @@ import { HiOutlineMenuAlt3 } from "react-icons/hi";
 
 import Container from "../shared/Container";
 import { categories, navLinks } from "@/data/navigation";
-import SearchBox from "./SearchBox";
 import { cn } from "@/lib/utils";
 import MobileMenu from "./MobileMenu";
 import ThemeToggle from "./ThemeToggle";
@@ -51,11 +50,6 @@ const Header = () => {
 
           {/* Right Side */}
           <div className="flex items-center gap-4">
-            {/* Desktop Search */}
-            <div className="hidden md:block">
-              <SearchBox />
-            </div>
-
             {/* Theme Toggle */}
             <ThemeToggle />
 

@@ -5,7 +5,7 @@ import VideoFilter from "@/components/videos/VideoFilter";
 
 export const metadata = {
   title: "Videos",
-  description: "Watch free web development video tutorials by Srikant Sahu — HTML, CSS, JavaScript, React, Next.js and more.",
+  description: "Watch free web development video tutorials by SriKode — HTML, CSS, JavaScript, React, Next.js and more.",
   alternates: {
     canonical: "/videos",
   },

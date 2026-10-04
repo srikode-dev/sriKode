@@ -86,10 +86,10 @@ const blogSchema = new mongoose.Schema({
   },
   
   author: {
-    name: { type: String, default: "Srikant Sahu" },
-    role: { type: String, default: "Full Stack Developer" },
-    avatar: { type: String, default: "/authors/srikant.webp" },
-    bio: { type: String, default: "MERN & Next.js Developer" }
+    name: { type: String, default: "SriKode Team" },
+    role: { type: String, default: "Web Developers & Technical Editors" },
+    avatar: { type: String, default: "" },
+    bio: { type: String, default: "Practical, production-ready web development tutorials, guides, and architectural patterns." }
   },
 
   seo: {
@@ -138,6 +138,10 @@ const blogSchema = new mongoose.Schema({
   isFeatured: { 
     type: Boolean, 
     default: false 
+  },
+  adsEnabled: {
+    type: Boolean,
+    default: true
   },
   viewCount: { 
     type: Number, 

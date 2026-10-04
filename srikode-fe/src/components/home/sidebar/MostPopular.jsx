@@ -27,7 +27,7 @@ export default function MostPopular({ blogs }) {
               {/* Thumbnail */}
               <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg">
                 <Image
-                  src={blog.coverImage || "https://picsum.photos/seed/popular/150/100"}
+                  src={blog.coverImage || "/placeholder-banner.webp"}
                   alt={blog.title}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
