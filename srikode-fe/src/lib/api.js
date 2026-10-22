@@ -1,9 +1,15 @@
+import { loadingManager } from "./loadingManager";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
 /**
  * Helper to execute JSON fetch queries against backend API.
  */
 async function fetchJson(endpoint, options = {}) {
+  const isClient = typeof window !== "undefined";
+  if (isClient) {
+    loadingManager.start();
+  }
   const url = `${API_BASE_URL}${endpoint}`;
   try {
     const res = await fetch(url, {
@@ -23,6 +29,10 @@ async function fetchJson(endpoint, options = {}) {
   } catch (error) {
     console.error(`API fetch error [${endpoint}]:`, error.message);
     throw error;
+  } finally {
+    if (isClient) {
+      loadingManager.stop();
+    }
   }
 }
 

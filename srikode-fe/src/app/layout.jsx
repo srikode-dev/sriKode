@@ -1,9 +1,11 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { ThemeProvider } from "@/context/ThemeContext";
 import SmoothScrollProvider from "@/components/shared/SmoothScrollProvider";
+import GlobalLoader from "@/components/shared/GlobalLoader";
 import { getCmsConfig } from "@/lib/api";
 
 const geistSans = Geist({
@@ -110,6 +112,9 @@ export default async function RootLayout({ children }) {
       <body>
         <ThemeProvider>
           <SmoothScrollProvider>
+            <Suspense fallback={null}>
+              <GlobalLoader />
+            </Suspense>
             <Header />
             <main className="min-h-screen">{children}</main>
             <Footer />
