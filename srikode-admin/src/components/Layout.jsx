@@ -18,9 +18,11 @@ import {
   Share2,
   PhoneCall,
   Palette,
-  Megaphone
+  Megaphone,
+  PanelLeftClose,
+  PanelLeftOpen
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useAuthStore from "../store/authStore.js";
 
 export default function Layout() {
@@ -29,6 +31,25 @@ export default function Layout() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cmsOpen, setCmsOpen] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem("srikode_admin_sidebar_collapsed") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSidebar = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("srikode_admin_sidebar_collapsed", String(next));
+      } catch (err) {
+        // localStorage fallback
+      }
+      return next;
+    });
+  };
 
   const menuItems = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -77,46 +98,132 @@ export default function Layout() {
   return (
     <div className="flex h-screen bg-slate-100 overflow-hidden">
       {/* ── DESKTOP SIDEBAR ─────────────────────────────────────── */}
-      <aside className="hidden md:flex md:w-64 md:flex-col bg-slate-900 text-slate-350 shadow-xl border-r border-slate-800">
-        {/* Brand */}
-        <div className="flex h-16 items-center justify-between px-6 border-b border-slate-800 bg-slate-950">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-bold">
-              SK
+      <aside 
+        className={`hidden md:flex flex-col bg-slate-900 text-slate-300 shadow-xl border-r border-slate-800 transition-all duration-300 ease-in-out shrink-0 select-none z-20 ${
+          isCollapsed ? "w-20" : "w-64"
+        }`}
+      >
+        {/* Brand & Collapse Toggle */}
+        <div className="flex h-16 items-center border-b border-slate-800 bg-slate-950 px-4">
+          {!isCollapsed ? (
+            <div className="flex w-full items-center justify-between">
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white font-black text-sm shadow-md shadow-blue-600/30">
+                  SK
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base font-extrabold text-white tracking-wider truncate">SRIKODE</span>
+                    <span className="rounded bg-blue-500/10 px-1.5 py-0.2 text-[9px] font-bold text-blue-400 border border-blue-500/20">
+                      ADMIN
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-medium text-slate-500 truncate">Content & Analytics</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={toggleSidebar}
+                title="Collapse sidebar"
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+              >
+                <PanelLeftClose className="h-5 w-5" />
+              </button>
             </div>
-            <span className="text-lg font-bold text-white tracking-wider">SRIKODE</span>
-          </div>
-          <span className="rounded bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-400 border border-blue-500/20">
-            ADMIN
-          </span>
+          ) : (
+            <div className="flex w-full items-center justify-center">
+              <button
+                type="button"
+                onClick={toggleSidebar}
+                title="Expand sidebar"
+                className="group relative flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white font-black text-sm shadow-md shadow-blue-600/30 hover:bg-blue-500 hover:scale-105 transition cursor-pointer"
+              >
+                <span className="group-hover:hidden">SK</span>
+                <PanelLeftOpen className="hidden group-hover:block h-5 w-5 text-white" />
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Sidebar Nav */}
-        <nav className="flex-1 space-y-1.5 px-4 py-6 overflow-y-auto">
+        {/* Sidebar Navigation */}
+        <nav className="flex-1 space-y-1.5 px-3 py-5 overflow-y-auto overflow-x-hidden">
           {menuItems.map((item) => {
             const Icon = item.icon;
 
+            // Group: CMS Submenu
             if (item.subItems) {
               const isGroupActive = location.pathname.startsWith("/cms");
+              
+              if (isCollapsed) {
+                // Collapsed CMS icon with hover flyout
+                return (
+                  <div key={item.name} className="group relative">
+                    <button
+                      type="button"
+                      onClick={() => navigate("/cms/stats")}
+                      className={`relative flex h-11 w-full items-center justify-center rounded-xl transition duration-200 cursor-pointer ${
+                        isGroupActive
+                          ? "bg-blue-600 text-white shadow-md shadow-blue-600/20 font-bold"
+                          : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                      }`}
+                    >
+                      <Icon className="h-5 w-5" />
+                      {/* Active indicator dot */}
+                      {isGroupActive && (
+                        <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-white ring-2 ring-blue-600" />
+                      )}
+                    </button>
+
+                    {/* Floating Flyout Submenu on Hover */}
+                    <div className="absolute left-full top-0 ml-3 hidden min-w-[210px] rounded-xl border border-slate-800 bg-slate-950 p-2 shadow-2xl z-50 group-hover:block">
+                      <div className="px-3 py-1.5 border-b border-slate-800/80 mb-1">
+                        <p className="text-xs font-bold text-white uppercase tracking-wider">CMS Management</p>
+                      </div>
+                      <div className="space-y-0.5">
+                        {item.subItems.map((sub) => {
+                          const isSubActive = location.pathname.startsWith(sub.href);
+                          const SubIcon = sub.icon;
+                          return (
+                            <Link
+                              key={sub.name}
+                              to={sub.href}
+                              className={`flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg transition ${
+                                isSubActive
+                                  ? "bg-blue-600 text-white font-bold"
+                                  : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                              }`}
+                            >
+                              <SubIcon className="h-4 w-4 shrink-0" />
+                              <span className="truncate">{sub.name}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              // Expanded CMS Accordion
               return (
                 <div key={item.name} className="space-y-1">
                   <button
                     type="button"
                     onClick={() => setCmsOpen(!cmsOpen)}
-                    className={`w-full flex items-center justify-between px-4 py-3 text-sm font-semibold rounded-xl transition duration-200 cursor-pointer ${
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 text-sm font-semibold rounded-xl transition duration-200 cursor-pointer ${
                       isGroupActive
                         ? "bg-slate-800 text-white font-bold"
                         : "text-slate-400 hover:bg-slate-800 hover:text-white"
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className={`h-5 w-5 ${isGroupActive ? "text-blue-400" : "text-slate-400"}`} />
-                      <span>{item.name}</span>
+                      <Icon className={`h-5 w-5 shrink-0 ${isGroupActive ? "text-blue-400" : "text-slate-400"}`} />
+                      <span className="truncate">{item.name}</span>
                     </div>
                     {cmsOpen ? (
-                      <ChevronDown className="h-4 w-4 text-slate-400" />
+                      <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />
                     ) : (
-                      <ChevronRight className="h-4 w-4 text-slate-400" />
+                      <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />
                     )}
                   </button>
 
@@ -131,12 +238,12 @@ export default function Layout() {
                             to={sub.href}
                             className={`flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg transition duration-200 ${
                               isSubActive
-                                ? "bg-blue-600 text-white shadow-xs"
+                                ? "bg-blue-600 text-white shadow-xs font-bold"
                                 : "text-slate-400 hover:bg-slate-800 hover:text-white"
                             }`}
                           >
-                            <SubIcon className="h-3.5 w-3.5" />
-                            {sub.name}
+                            <SubIcon className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{sub.name}</span>
                           </Link>
                         );
                       })}
@@ -146,44 +253,87 @@ export default function Layout() {
               );
             }
 
+            // Normal Top-Level Menu Items
             const isActive = location.pathname === item.href || 
                              (item.href !== "/" && location.pathname.startsWith(item.href));
-            
+
+            if (isCollapsed) {
+              return (
+                <div key={item.name} className="group relative">
+                  <Link
+                    to={item.href}
+                    className={`flex h-11 w-full items-center justify-center rounded-xl transition duration-200 ${
+                      isActive
+                        ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                        : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </Link>
+
+                  {/* Floating tooltip on hover */}
+                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 hidden items-center rounded-lg bg-slate-950 px-3 py-1.5 text-xs font-semibold text-white shadow-2xl border border-slate-800 whitespace-nowrap z-50 group-hover:flex pointer-events-none">
+                    {item.name}
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition duration-200 ${
+                className={`flex items-center gap-3 px-3.5 py-2.5 text-sm font-semibold rounded-xl transition duration-200 ${
                   isActive
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-600/10"
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-600/10 font-bold"
                     : "text-slate-400 hover:bg-slate-800 hover:text-white"
                 }`}
               >
-                <Icon className={`h-5 w-5 ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`} />
-                {item.name}
+                <Icon className={`h-5 w-5 shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`} />
+                <span className="truncate">{item.name}</span>
               </Link>
             );
           })}
         </nav>
 
-        {/* User Card & Logout bottom */}
-        <div className="border-t border-slate-800 p-4 bg-slate-950/40">
-          <div className="flex items-center gap-3 mb-4 px-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-slate-300">
-              <User className="h-5 w-5" />
+        {/* User Card & Logout Bottom */}
+        <div className="border-t border-slate-800 p-3 bg-slate-950/40">
+          {!isCollapsed ? (
+            <div>
+              <div className="flex items-center gap-3 mb-3 px-1">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-800 text-slate-300 font-bold border border-slate-700/50">
+                  <User className="h-5 w-5" />
+                </div>
+                <div className="overflow-hidden min-w-0">
+                  <p className="text-sm font-bold text-white truncate">{user?.name || "Admin"}</p>
+                  <p className="text-xs text-slate-500 truncate">{user?.email || "admin@srikode.dev"}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 py-2.5 text-xs font-semibold text-slate-400 transition cursor-pointer"
+              >
+                <LogOut className="h-4 w-4" />
+                Log Out
+              </button>
             </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-bold text-white truncate">{user?.name || "Admin"}</p>
-              <p className="text-xs text-slate-500 truncate">{user?.email || "admin@srikode.dev"}</p>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <div 
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-slate-300 font-bold border border-slate-700/50"
+                title={`${user?.name || "Admin"} (${user?.email || "admin@srikode.dev"})`}
+              >
+                <User className="h-5 w-5" />
+              </div>
+              <button
+                onClick={handleLogout}
+                title="Log Out"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 text-slate-400 transition cursor-pointer"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900/50 hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-400 py-2.5 text-xs font-semibold text-slate-400 transition"
-          >
-            <LogOut className="h-4 w-4" />
-            Log Out
-          </button>
+          )}
         </div>
       </aside>
 
@@ -213,7 +363,7 @@ export default function Layout() {
                 const Icon = item.icon;
 
                 if (item.subItems) {
-                  const isGroupActive = location.pathname.startsWith(item.href);
+                  const isGroupActive = location.pathname.startsWith("/cms");
                   return (
                     <div key={item.name} className="space-y-1">
                       <div
@@ -299,32 +449,44 @@ export default function Layout() {
       )}
 
       {/* ── MAIN CONTENT WORKSPACE ─────────────────────────────── */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         {/* Top Navbar */}
-        <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6 shadow-sm z-10 shrink-0">
-          <div className="flex items-center gap-4">
+        <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6 shadow-xs z-10 shrink-0">
+          <div className="flex items-center gap-3 md:gap-4">
             {/* Mobile menu trigger */}
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden transition"
+              className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden transition cursor-pointer"
             >
               <Menu className="h-6 w-6" />
             </button>
-            <h1 className="text-xl font-bold text-slate-850 tracking-tight leading-none">
+
+            {/* Desktop Sidebar Toggle */}
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              className="hidden md:flex items-center justify-center rounded-xl p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition cursor-pointer border border-transparent hover:border-slate-200"
+            >
+              {isCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+            </button>
+
+            <h1 className="text-lg md:text-xl font-bold text-slate-800 tracking-tight leading-none truncate">
               {getPageTitle()}
             </h1>
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="hidden sm:inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 border border-blue-100">
-              ⚡ Production Live Backend Connected
+            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 border border-blue-100">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Live Backend Connected
             </span>
             <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
             <div className="flex items-center gap-2.5">
               <span className="text-sm font-semibold text-slate-700 hidden sm:inline-block">
                 {user?.name || "Admin"}
               </span>
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-bold shadow-sm">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white text-sm font-bold shadow-sm">
                 {(user?.name || "Admin")[0].toUpperCase()}
               </div>
             </div>
@@ -332,7 +494,7 @@ export default function Layout() {
         </header>
 
         {/* Router Outlet content injection */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
           <Outlet />
         </main>
       </div>

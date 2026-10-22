@@ -94,6 +94,7 @@ export default async function BlogDetailPage({ params, searchParams }) {
   const headerSponsor = mapSponsor(sponsors.find(s => s.isActive && (s.slot === 'header' || s.slot === 'all')));
   const inArticleSponsor = mapSponsor(sponsors.find(s => s.isActive && (s.slot === 'inArticle' || s.slot === 'all')));
   const preCommentsSponsor = mapSponsor(sponsors.find(s => s.isActive && (s.slot === 'footer' || s.slot === 'all')));
+  const sidebarSponsor = mapSponsor(sponsors.find(s => s.isActive && (s.slot === 'sidebar' || s.slot === 'all')));
 
   const relatedBlogs = blog.relatedPosts || [];
 
@@ -397,11 +398,11 @@ export default async function BlogDetailPage({ params, searchParams }) {
             <div className="lg:sticky lg:top-20 lg:self-start">
               {/* Table of Contents (desktop) */}
               {tocItems.length > 0 && (
-                <div className="mb-6">
+                <div className="mb-6 hidden lg:block">
                   <TableOfContents items={tocItems} />
                 </div>
               )}
-              <Sidebar blogs={dbBlogs} />
+              <Sidebar blogs={dbBlogs} sponsor={sidebarSponsor} />
             </div>
           </div>
         </Container>

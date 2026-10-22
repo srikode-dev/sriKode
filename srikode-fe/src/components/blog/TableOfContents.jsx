@@ -33,12 +33,28 @@ export default function TableOfContents({ items = [] }) {
     return () => observer.disconnect();
   }, [items]);
 
-  // Auto-scroll the active TOC link into view inside the nav container
+  // Auto-scroll the active TOC link into view inside the nav container only (never scrolling the window)
   useEffect(() => {
     if (!navRef.current || !active) return;
-    const activeEl = navRef.current.querySelector(`[data-toc-id="${active}"]`);
+    const container = navRef.current;
+    const activeEl = container.querySelector(`[data-toc-id="${active}"]`);
     if (activeEl) {
-      activeEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      const containerRect = container.getBoundingClientRect();
+      const elRect = activeEl.getBoundingClientRect();
+
+      if (containerRect.height === 0) return;
+
+      if (elRect.top < containerRect.top) {
+        container.scrollBy({
+          top: elRect.top - containerRect.top,
+          behavior: "smooth",
+        });
+      } else if (elRect.bottom > containerRect.bottom) {
+        container.scrollBy({
+          top: elRect.bottom - containerRect.bottom,
+          behavior: "smooth",
+        });
+      }
     }
   }, [active]);
 
