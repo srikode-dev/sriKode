@@ -46,7 +46,7 @@ export default function AdBanner({
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-tr from-blue-600 to-indigo-600 text-white shadow-xs">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xs">
             <Sparkles size={16} />
           </div>
           <div className="min-w-0 flex-1">
@@ -54,15 +54,17 @@ export default function AdBanner({
               {customSponsor?.title || "Master Modern Full-Stack"}
             </p>
             <p className="text-[11px] text-sk-text-muted truncate">
-              {customSponsor?.desc || "Explore SriKode dev guides & starter code"}
+              {customSponsor?.desc || customSponsor?.description || "Explore SriKode dev guides & starter code"}
             </p>
           </div>
         </div>
         <a
-          href={customSponsor?.link || "/blogs"}
+          href={customSponsor?.link || customSponsor?.targetUrl || "/blogs"}
+          target="_blank"
+          rel="noopener noreferrer"
           className="mt-2.5 flex items-center justify-between rounded-lg bg-sk-bg-subtle px-3 py-1.5 text-[11px] font-bold text-sk-primary hover:bg-sk-primary-light transition"
         >
-          <span>{customSponsor?.cta || "Explore Free Tutorials"}</span>
+          <span>{customSponsor?.cta || customSponsor?.ctaText || "Explore Free Tutorials"}</span>
           <ArrowUpRight size={12} />
         </a>
       </div>
@@ -75,7 +77,7 @@ export default function AdBanner({
       <div className={`relative overflow-hidden rounded-2xl border border-dashed border-sk-border bg-sk-bg-card p-5 shadow-xs text-center ${className}`}>
         <div className="mb-3 flex items-center justify-between">
           <span className="text-[10px] font-bold tracking-widest text-sk-text-faint uppercase">
-            Sponsor
+            {customSponsor?.badge || "Sponsor"}
           </span>
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
             <Zap size={11} />
@@ -95,7 +97,7 @@ export default function AdBanner({
           </div>
         ) : (
           <div className="py-4 space-y-3">
-            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-tr from-blue-600 to-indigo-600 text-white shadow-sm">
+            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-sm">
               <Sparkles size={20} />
             </div>
             <div>
@@ -103,16 +105,16 @@ export default function AdBanner({
                 {customSponsor?.title || "Supercharge Your Dev Stack"}
               </h4>
               <p className="mt-1 text-xs text-sk-text-muted leading-relaxed">
-                {customSponsor?.desc || "High-performance React & Next.js starter templates built for production."}
+                {customSponsor?.desc || customSponsor?.description || "High-performance React & Next.js starter templates built for production."}
               </p>
             </div>
             <a
-              href={customSponsor?.link || "https://srikode.dev"}
+              href={customSponsor?.link || customSponsor?.targetUrl || "https://srikode.dev"}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-1.5 w-full rounded-xl bg-sk-primary px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-sk-primary-hover transition active:scale-[0.98]"
             >
-              <span>{customSponsor?.cta || "Explore SriKode Pro"}</span>
+              <span>{customSponsor?.cta || customSponsor?.ctaText || "Explore SriKode Pro"}</span>
               <ArrowUpRight size={13} />
             </a>
           </div>
@@ -123,10 +125,10 @@ export default function AdBanner({
 
   // Horizontal wide banners ("in-article" or "pre-comments")
   return (
-    <div className={`my-8 overflow-hidden rounded-2xl border border-dashed border-sk-border bg-linear-to-r from-sk-bg-subtle/70 via-sk-bg-card to-sk-bg-subtle/70 p-5 sm:p-6 shadow-xs ${className}`}>
+    <div className={`my-8 overflow-hidden rounded-2xl border border-dashed border-sk-border bg-gradient-to-r from-sk-bg-subtle/70 via-sk-bg-card to-sk-bg-subtle/70 p-5 sm:p-6 shadow-xs ${className}`}>
       <div className="mb-2 flex items-center justify-between">
         <span className="text-[10px] font-bold tracking-widest text-sk-text-faint uppercase">
-          Advertisement
+          {customSponsor?.badge || "Advertisement"}
         </span>
         <span className="text-[10px] text-sk-text-faint">
           Support SriKode
@@ -155,16 +157,18 @@ export default function AdBanner({
                 {customSponsor?.title || "SriKode Developer Hub • Master Modern Web Tech"}
               </p>
               <p className="text-xs text-sk-text-muted mt-0.5">
-                {customSponsor?.desc || "Explore source code, full-stack video guides, and production architecture."}
+                {customSponsor?.desc || customSponsor?.description || "Explore source code, full-stack video guides, and production architecture."}
               </p>
             </div>
           </div>
 
           <a
-            href={customSponsor?.link || "/blogs"}
+            href={customSponsor?.link || customSponsor?.targetUrl || "/blogs"}
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-sk-primary px-5 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-sk-primary-hover transition active:scale-[0.98]"
           >
-            <span>{customSponsor?.cta || "Browse Free Code"}</span>
+            <span>{customSponsor?.cta || customSponsor?.ctaText || "Browse Free Code"}</span>
             <ArrowUpRight size={14} />
           </a>
         </div>

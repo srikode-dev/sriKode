@@ -6,6 +6,9 @@ import LatestVideos from "./LatestVideos";
 import NewsletterCTA from "./NewsletterCTA";
 
 export default function HomeSection({ blogs = [], videos = [], cmsConfig = null }) {
+  const sponsors = cmsConfig?.sponsors || [];
+  const sidebarSponsor = sponsors.find(s => s.isActive && (s.slot === 'sidebar' || s.slot === 'all'));
+
   return (
     <>
       {/* ── Hero ── */}
@@ -20,7 +23,7 @@ export default function HomeSection({ blogs = [], videos = [], cmsConfig = null 
 
             {/* Right — Sticky Sidebar */}
             <div className="lg:sticky lg:top-20 lg:self-start">
-              <Sidebar blogs={blogs} socialCard={cmsConfig?.socialCard} />
+              <Sidebar blogs={blogs} socialCard={cmsConfig?.socialCard} sponsor={sidebarSponsor} />
             </div>
           </div>
         </Container>
