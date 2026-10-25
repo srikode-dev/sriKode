@@ -5,6 +5,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { IoChevronDown, IoClose } from "react-icons/io5";
 
+import Logo from "../shared/Logo";
 import { navLinks } from "@/data/navigation";
 
 export default function MobileMenu({
@@ -48,9 +49,9 @@ export default function MobileMenu({
         {/* Header */}
 
         <div className="flex items-center justify-between border-b border-gray-200/30 p-5 dark:border-zinc-800/40">
-          <h2 className="font-bold text-xl dark:text-white">
-            SRIKODE
-          </h2>
+          <Link href="/" onClick={() => setMenuOpen(false)}>
+            <Logo className="h-7 w-auto" />
+          </Link>
 
           <button
             onClick={() => setMenuOpen(false)}

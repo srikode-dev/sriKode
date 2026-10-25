@@ -43,14 +43,18 @@ export default function Login() {
       <div className="w-full max-w-md space-y-8 z-10">
         {/* Logo and Headings */}
         <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/30">
-            <span className="text-xl font-black tracking-wider">SK</span>
+          <div className="flex justify-center mb-5">
+            <img 
+              src="/srikode-logo-dark.svg" 
+              alt="SriKode" 
+              className="h-12 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]" 
+            />
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-            SRIKODE CMS
-          </h2>
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 mb-2">
+            <span className="text-xs font-bold tracking-widest text-blue-400 uppercase">ADMIN CMS PORTAL</span>
+          </div>
           <p className="mt-2 text-sm text-slate-400">
-            Sign in to manage your blogs, comments & analytics
+            Sign in to manage your tutorials, comments & readership analytics
           </p>
         </div>
 

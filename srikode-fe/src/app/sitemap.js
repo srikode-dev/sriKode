@@ -4,7 +4,16 @@ export default async function sitemap() {
   const baseUrl = "https://srikode.dev";
 
   // Static routes
-  const routes = ["", "/blogs", "/about", "/contact-us", "/videos"].map((route) => ({
+  const routes = [
+    "",
+    "/blogs",
+    "/about",
+    "/contact-us",
+    "/videos",
+    "/privacy-policy",
+    "/terms-of-service",
+    "/cookie-policy",
+  ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString().split("T")[0],
     changeFrequency: "daily",

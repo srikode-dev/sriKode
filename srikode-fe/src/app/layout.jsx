@@ -25,6 +25,14 @@ export const metadata = {
     template: "%s | SriKode",
   },
   description: "Learn HTML, CSS, JavaScript, React, Next.js, and modern full-stack web development through step-by-step practical guides.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
   keywords: ["web development", "tutorials", "coding", "HTML", "CSS", "JavaScript", "React", "Next.js", "Node.js", "MongoDB", "learn programming"],
   authors: [{ name: "SriKode" }],
   creator: "SriKode",

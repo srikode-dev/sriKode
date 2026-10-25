@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Container from "../shared/Container";
+import Logo from "../shared/Logo";
 import { navLinks } from "@/data/navigation";
 
 export default function Footer() {
@@ -11,9 +12,9 @@ export default function Footer() {
           <div>
             <Link
               href="/"
-              className="text-2xl font-black tracking-widest text-sk-text hover:text-sk-primary transition-colors"
+              className="inline-flex items-center transition-opacity hover:opacity-90"
             >
-              SRIKODE
+              <Logo className="h-9 w-auto" />
             </Link>
 
             <p className="mt-4 text-sm text-sk-text-muted leading-relaxed">
@@ -60,7 +61,7 @@ export default function Footer() {
                 Terms of Service
               </Link>
               <Link
-                href="/privacy-policy#cookies"
+                href="/cookie-policy"
                 className="block text-sm text-sk-text-muted hover:text-sk-primary transition-colors duration-200"
               >
                 Cookie Policy

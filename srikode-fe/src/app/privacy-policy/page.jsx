@@ -1,4 +1,5 @@
 import Container from "@/components/shared/Container";
+import LegalPageWrapper from "@/components/shared/LegalPageWrapper";
 
 export const metadata = {
   title: "Privacy Policy",
@@ -7,7 +8,8 @@ export const metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="py-12" style={{ backgroundColor: "var(--sk-bg)" }}>
+    <LegalPageWrapper titleWidth="w-64">
+      <div className="py-12" style={{ backgroundColor: "var(--sk-bg)" }}>
       <Container>
         <div className="mx-auto max-w-3xl">
           {/* Header */}
@@ -75,5 +77,6 @@ export default function PrivacyPolicyPage() {
         </div>
       </Container>
     </div>
+    </LegalPageWrapper>
   );
 }

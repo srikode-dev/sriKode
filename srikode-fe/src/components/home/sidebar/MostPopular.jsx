@@ -4,11 +4,13 @@ import { Calendar } from "lucide-react";
 
 import { formatDate } from "@/data";
 
-export default function MostPopular({ blogs }) {
-  // Sort by views descending, take top 5
-  const popular = [...blogs]
+export default function MostPopular({ blogs = [] }) {
+  // Sort by views descending, limit to a maximum of 5 items
+  const popular = [...(blogs || [])]
     .sort((a, b) => (b.viewCount || b.views || 0) - (a.viewCount || a.views || 0))
     .slice(0, 5);
+
+  if (!popular.length) return null;
 
   return (
     <div className="overflow-hidden rounded-xl border border-sk-border bg-sk-bg-card shadow-sm transition-all duration-300">
