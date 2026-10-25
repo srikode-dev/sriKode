@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import {
   Calendar, Clock, ArrowLeft, ArrowRight, Tag, User,
   Eye, ChevronRight, ExternalLink, Code2, Play, Sparkles
@@ -62,9 +63,22 @@ export default async function BlogDetailPage({ params, searchParams }) {
   let nextBlog = null;
   let dbBlogs = [];
 
+  let clientHeaders = {};
+  try {
+    const headerList = await headers();
+    clientHeaders = {
+      "x-client-country": headerList.get("x-vercel-ip-country") || headerList.get("cf-ipcountry") || "",
+      "x-client-city": headerList.get("x-vercel-ip-city") || headerList.get("cf-ipcity") || "",
+      "x-timezone": headerList.get("x-timezone") || "",
+      "x-forwarded-for": headerList.get("x-forwarded-for") || "",
+    };
+  } catch {
+    // Static generation context fallback
+  }
+
   let cmsConfig = null;
   try {
-    const res = await getBlogBySlug(slug, isPreview);
+    const res = await getBlogBySlug(slug, isPreview, clientHeaders);
     blog = res.blog;
 
     const listRes = await getBlogs({ limit: 100 });

@@ -70,13 +70,14 @@ const REFERRAL_SOURCES = [
 ];
 
 export default function Analytics() {
-  const [data, setData] = useState({ dailyViews: [], countryViews: [] });
+  const [data, setData] = useState({ dailyViews: [], countryViews: [], cityViews: [] });
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [timeRange, setTimeRange] = useState("all"); // '7d' | '14d' | '30d' | 'all'
   const [chartType, setChartType] = useState("area"); // 'area' | 'bar'
   const [metricType, setMetricType] = useState("views"); // 'views' | 'visitors'
+  const [demographicTab, setDemographicTab] = useState("countries"); // 'countries' | 'cities'
   
   // Interactive Map State
   const [mapZoom, setMapZoom] = useState(1);
@@ -95,6 +96,7 @@ export default function Analytics() {
         setData({
           dailyViews: blogAnalyticsRes.value.data.dailyViews || [],
           countryViews: blogAnalyticsRes.value.data.countryViews || [],
+          cityViews: blogAnalyticsRes.value.data.cityViews || [],
         });
       }
 
@@ -115,7 +117,7 @@ export default function Analytics() {
 
   // 1. Process Timeline Daily Views Data Chronologically
   const timelineData = useMemo(() => {
-    const raw = data.dailyViews.map((d) => ({
+    const raw = (data.dailyViews || []).map((d) => ({
       date: d._id || d.date,
       views: d.views || 0,
     }));
@@ -142,35 +144,38 @@ export default function Analytics() {
     return mapped;
   }, [data.dailyViews, timeRange]);
 
-  // 2. Process Country Views & Lookup Map
+  // 2. Process Country Views & Lookup Map (Properly accumulating duplicate country codes)
   const { countryMap, totalViews, countryList, continentStats } = useMemo(() => {
     const cMap = {};
     let total = 0;
 
-    data.countryViews.forEach((c) => {
+    (data.countryViews || []).forEach((c) => {
       const code = c.country || c._id;
-      const views = c.views || 0;
+      const views = Number(c.views) || 0;
       total += views;
       const info = getCountryInfo(code);
 
-      cMap[info.code] = {
-        ...info,
-        rawCode: code,
-        views,
-      };
+      // Accumulate views properly if multiple records map to the same country code
+      if (cMap[info.code]) {
+        cMap[info.code].views += views;
+      } else {
+        cMap[info.code] = {
+          ...info,
+          rawCode: code,
+          views,
+        };
+      }
     });
 
-    // If total is 0 but we have summary views, use total
-    if (total === 0 && dashboardData?.summary?.totalViews) {
-      total = dashboardData.summary.totalViews;
-    }
+    // Fallback total if countryViews had zero sum but dashboardData has totalViews
+    const finalTotal = Math.max(total, dashboardData?.summary?.totalViews || 0);
 
     const list = Object.values(cMap)
       .sort((a, b) => b.views - a.views)
       .map((item, idx) => ({
         ...item,
         rank: idx + 1,
-        percentage: total > 0 ? ((item.views / total) * 100).toFixed(1) : "0.0",
+        percentage: finalTotal > 0 ? ((item.views / finalTotal) * 100).toFixed(1) : "0.0",
       }));
 
     // Group views by continent
@@ -182,15 +187,31 @@ export default function Analytics() {
 
     return {
       countryMap: cMap,
-      totalViews: total,
+      totalViews: finalTotal,
       countryList: list,
       continentStats: Object.entries(continents).map(([name, count]) => ({
         name,
         count,
-        percent: total > 0 ? ((count / total) * 100).toFixed(1) : 0,
+        percent: finalTotal > 0 ? ((count / finalTotal) * 100).toFixed(1) : "0.0",
       })),
     };
   }, [data.countryViews, dashboardData]);
+
+  // 3. Process City Demographics
+  const cityList = useMemo(() => {
+    return (data.cityViews || []).map((item, idx) => {
+      const countryInfo = getCountryInfo(item.country);
+      return {
+        city: item.city,
+        countryCode: countryInfo.code,
+        countryName: countryInfo.name,
+        flag: countryInfo.flag,
+        views: item.views,
+        rank: idx + 1,
+        percentage: totalViews > 0 ? ((item.views / totalViews) * 100).toFixed(1) : "0.0",
+      };
+    });
+  }, [data.cityViews, totalViews]);
 
   // Total unique visitors estimate
   const totalVisitorsEstimate = useMemo(() => {
@@ -502,6 +523,21 @@ export default function Analytics() {
         )}
       </div>
 
+      {/* ── AUDIENCE DEMOGRAPHICS & GEOGRAPHIC DISTRIBUTION ───── */}
+      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div>
+          <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200/50 mb-1">
+            Demographics
+          </span>
+          <h3 className="text-lg font-black text-slate-800 tracking-tight">
+            Audience Demographics &amp; Geographic Distribution
+          </h3>
+          <p className="text-xs text-slate-500">
+            Real-time demographic breakdown of global visitors by country, continent, and metro regions.
+          </p>
+        </div>
+      </div>
+
       {/* ── WORLD METRICS SECTION ───────────────────────────────── */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* World Map Interactive Visualizer */}
@@ -511,7 +547,7 @@ export default function Analytics() {
               <div>
                 <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
                   <Globe className="h-5 w-5 text-blue-600" />
-                  Global Readership Distribution
+                  Interactive World Demographics Map
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Visual map of international developer engagement based on edge geolocation.
@@ -662,54 +698,122 @@ export default function Analytics() {
         {/* Right: Top Countries Leaderboard */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-4 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-4 gap-2">
               <div>
                 <h3 className="text-base font-bold text-slate-800">Top Locations</h3>
                 <p className="text-xs text-slate-500">Ranked by total page impressions</p>
               </div>
-              <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700">
-                {countryList.length} Countries
-              </span>
+
+              {/* Toggle Countries vs Metros */}
+              <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setDemographicTab("countries")}
+                  className={`rounded-md px-2.5 py-1 font-semibold transition cursor-pointer ${
+                    demographicTab === "countries" ? "bg-white text-blue-600 shadow-2xs font-bold" : "text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  Countries ({countryList.length})
+                </button>
+                {cityList.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setDemographicTab("cities")}
+                    className={`rounded-md px-2.5 py-1 font-semibold transition cursor-pointer ${
+                      demographicTab === "cities" ? "bg-white text-blue-600 shadow-2xs font-bold" : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    Metros ({cityList.length})
+                  </button>
+                )}
+              </div>
             </div>
 
-            {countryList.length === 0 ? (
-              <div className="flex h-64 flex-col items-center justify-center text-slate-400 gap-2">
-                <Globe className="h-8 w-8 text-slate-300" />
-                <p className="text-sm">No geographic records available yet.</p>
-              </div>
-            ) : (
-              <div className="space-y-3.5 max-h-[380px] overflow-y-auto pr-1">
-                {countryList.map((c) => (
-                  <div
-                    key={c.code || c.name}
-                    className="group rounded-xl border border-slate-100 bg-slate-50/50 p-3 hover:bg-slate-50 hover:border-blue-200 transition"
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-600 shadow-2xs">
-                          #{c.rank}
-                        </span>
-                        <span className="text-base shrink-0">{c.flag}</span>
-                        <span className="text-sm font-bold text-slate-700 truncate group-hover:text-blue-600 transition">
-                          {c.name}
-                        </span>
+            {demographicTab === "countries" ? (
+              countryList.length === 0 ? (
+                <div className="flex h-64 flex-col items-center justify-center text-slate-400 gap-2">
+                  <Globe className="h-8 w-8 text-slate-300" />
+                  <p className="text-sm">No geographic records available yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-3.5 max-h-[380px] overflow-y-auto pr-1">
+                  {countryList.map((c) => (
+                    <div
+                      key={c.code || c.name}
+                      className="group rounded-xl border border-slate-100 bg-slate-50/50 p-3 hover:bg-slate-50 hover:border-blue-200 transition"
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-600 shadow-2xs">
+                            #{c.rank}
+                          </span>
+                          <span className="text-base shrink-0">{c.flag}</span>
+                          <span className="text-sm font-bold text-slate-700 truncate group-hover:text-blue-600 transition">
+                            {c.name}
+                          </span>
+                        </div>
+                        <div className="text-right shrink-0 pl-2">
+                          <span className="text-sm font-black text-slate-800">{c.views.toLocaleString()}</span>
+                          <span className="ml-1 text-[11px] font-semibold text-slate-400">({c.percentage}%)</span>
+                        </div>
                       </div>
-                      <div className="text-right shrink-0 pl-2">
-                        <span className="text-sm font-black text-slate-800">{c.views.toLocaleString()}</span>
-                        <span className="ml-1 text-[11px] font-semibold text-slate-400">({c.percentage}%)</span>
-                      </div>
-                    </div>
 
-                    {/* Progress Bar */}
-                    <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-600 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.min(100, Math.max(3, parseFloat(c.percentage)))}%` }}
-                      />
+                      {/* Progress Bar */}
+                      <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                          style={{ width: `${Math.min(100, Math.max(3, parseFloat(c.percentage)))}%` }}
+                        />
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              cityList.length === 0 ? (
+                <div className="flex h-64 flex-col items-center justify-center text-slate-400 gap-2">
+                  <Globe className="h-8 w-8 text-slate-300" />
+                  <p className="text-sm">No metro area records available yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-3.5 max-h-[380px] overflow-y-auto pr-1">
+                  {cityList.map((c) => (
+                    <div
+                      key={`${c.city}-${c.countryCode}`}
+                      className="group rounded-xl border border-slate-100 bg-slate-50/50 p-3 hover:bg-slate-50 hover:border-blue-200 transition"
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-600 shadow-2xs">
+                            #{c.rank}
+                          </span>
+                          <span className="text-base shrink-0">{c.flag}</span>
+                          <div className="min-w-0">
+                            <span className="text-sm font-bold text-slate-700 truncate group-hover:text-blue-600 transition block">
+                              {c.city}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {c.countryName}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0 pl-2">
+                          <span className="text-sm font-black text-slate-800">{c.views.toLocaleString()}</span>
+                          <span className="ml-1 text-[11px] font-semibold text-slate-400">({c.percentage}%)</span>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                          style={{ width: `${Math.min(100, Math.max(3, parseFloat(c.percentage)))}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
             )}
           </div>
 

@@ -60,11 +60,18 @@ export async function getFeaturedBlogs() {
  * Fetch single blog post by its slug (updates viewCount on backend).
  * Supports preview query for drafts
  */
-export async function getBlogBySlug(slug, isPreview = false) {
+export async function getBlogBySlug(slug, isPreview = false, customHeaders = {}) {
   if (!slug) throw new Error("Slug is required");
   const query = isPreview ? "?preview=true" : "";
   const isDev = process.env.NODE_ENV !== "production";
-  return fetchJson(`/blogs/post/${encodeURIComponent(slug)}${query}`, isDev || isPreview ? { cache: "no-store" } : { next: { revalidate: 30 } });
+  return fetchJson(
+    `/blogs/post/${encodeURIComponent(slug)}${query}`,
+    {
+      cache: isDev || isPreview ? "no-store" : "default",
+      headers: customHeaders,
+      ...(!isDev && !isPreview ? { next: { revalidate: 30 } } : {})
+    }
+  );
 }
 
 /**
