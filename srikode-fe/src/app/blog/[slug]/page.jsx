@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   Calendar, Clock, ArrowLeft, ArrowRight, Tag, User,
-  Eye, Heart, Bookmark, ChevronRight, ExternalLink, Code2, Play, Sparkles
+  Eye, ChevronRight, ExternalLink, Code2, Play, Sparkles
 } from "lucide-react";
 import { formatDate } from "@/data";
 import { getBlogs, getBlogBySlug, getCmsConfig } from "@/lib/api";

@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, X, Calendar, Clock, ArrowRight, Grid, List, FileText, Loader2, Sparkles } from "lucide-react";
-import { getBlogs } from "@/lib/api";
+import { Search, X, ArrowRight, Grid, List, ChevronLeft, ChevronRight } from "lucide-react";
+import { getBlogs, getCmsConfig } from "@/lib/api";
 import { formatDate } from "@/data";
 import Container from "@/components/shared/Container";
 import Sidebar from "@/components/home/sidebar/Sidebar";
 import BlogCard from "@/components/home/blog/BlogCard";
+import AdBanner from "@/components/shared/AdBanner";
+import Pagination from "@/components/shared/Pagination";
 
-const BATCH_SIZE = 12;
+const POSTS_PER_PAGE = 12;
 
 function BlogListCard({ blog }) {
   return (
@@ -57,16 +59,16 @@ function BlogListCard({ blog }) {
           </p>
         </div>
 
+        {/* Bottom meta - clean typography without bottom icons */}
         <div className="mt-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 text-xs" style={{ color: "var(--sk-text-faint)" }}>
-            <span className="flex items-center gap-1">
-              <Calendar size={12} />
-              {formatDate(blog.publishedAt || blog.createdAt)}
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock size={12} />
-              {blog.readingTime}
-            </span>
+          <div className="flex items-center gap-2 text-xs" style={{ color: "var(--sk-text-faint)" }}>
+            <span>{formatDate(blog.publishedAt || blog.createdAt)}</span>
+            {blog.readingTime && (
+              <>
+                <span>•</span>
+                <span>{blog.readingTime}</span>
+              </>
+            )}
           </div>
           <Link
             href={`/blog/${blog.slug}`}
@@ -83,21 +85,23 @@ function BlogListCard({ blog }) {
 
 export default function BlogsPage() {
   const [blogs, setBlogs] = useState([]);
+  const [cmsConfig, setCmsConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [viewMode, setViewMode] = useState("grid");
-  
-  // Infinite Scroll State
-  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const sentinelRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const catScrollRef = useRef(null);
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await getBlogs({ limit: 100 });
-        setBlogs(res.blogs || []);
+        const [res, cms] = await Promise.allSettled([
+          getBlogs({ limit: 100 }),
+          getCmsConfig(),
+        ]);
+        if (res.status === "fulfilled") setBlogs(res.value?.blogs || []);
+        if (cms.status === "fulfilled") setCmsConfig(cms.value);
       } catch (error) {
         console.error("Failed to load blogs on client list page:", error);
       } finally {
@@ -107,9 +111,35 @@ export default function BlogsPage() {
     load();
   }, []);
 
-  const ALL_CATEGORIES = useMemo(() => {
-    return ["All", ...Array.from(new Set(blogs.map((b) => b.category)))];
+  const headerSponsor = useMemo(() => {
+    const sponsors = cmsConfig?.sponsors || [];
+    const s = sponsors.find((sp) => sp.isActive && (sp.slot === "header" || sp.slot === "all"));
+    return s ? {
+      title: s.title,
+      desc: s.description,
+      badge: s.badge,
+      cta: s.ctaText,
+      link: s.targetUrl,
+    } : null;
+  }, [cmsConfig]);
+
+  // Count blogs per category
+  const categoryCounts = useMemo(() => {
+    const map = { All: blogs.length };
+    blogs.forEach((b) => {
+      if (b.category) {
+        map[b.category] = (map[b.category] || 0) + 1;
+      }
+    });
+    return map;
   }, [blogs]);
+
+  // Order categories: "All" first, then popular categories descending by count
+  const sortedCategories = useMemo(() => {
+    const distinct = Array.from(new Set(blogs.map((b) => b.category).filter(Boolean)));
+    distinct.sort((a, b) => (categoryCounts[b] || 0) - (categoryCounts[a] || 0));
+    return ["All", ...distinct];
+  }, [blogs, categoryCounts]);
 
   const filtered = useMemo(() => {
     return blogs.filter((b) => {
@@ -122,129 +152,210 @@ export default function BlogsPage() {
     });
   }, [blogs, search, activeCategory]);
 
-  const visiblePosts = useMemo(() => {
-    return filtered.slice(0, visibleCount);
-  }, [filtered, visibleCount]);
+  const totalPages = Math.ceil(filtered.length / POSTS_PER_PAGE);
 
-  const hasMore = visibleCount < filtered.length;
+  const paginatedPosts = useMemo(() => {
+    const start = (currentPage - 1) * POSTS_PER_PAGE;
+    return filtered.slice(start, start + POSTS_PER_PAGE);
+  }, [filtered, currentPage]);
 
   const handleCategoryChange = (cat) => {
     setActiveCategory(cat);
-    setVisibleCount(BATCH_SIZE);
+    setCurrentPage(1);
   };
 
   const handleSearch = (val) => {
     setSearch(val);
-    setVisibleCount(BATCH_SIZE);
+    setCurrentPage(1);
   };
 
-  const loadMore = useCallback(() => {
-    if (isLoadingMore || !hasMore) return;
-    setIsLoadingMore(true);
-    setTimeout(() => {
-      setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, filtered.length));
-      setIsLoadingMore(false);
-    }, 300);
-  }, [isLoadingMore, hasMore, filtered.length]);
+  const handlePageChange = (page) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    const el = document.getElementById("blogs-catalog-start");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
-  // Infinite Scroll IntersectionObserver
-  useEffect(() => {
-    if (!hasMore || loading) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          loadMore();
-        }
-      },
-      { rootMargin: "300px" }
-    );
-
-    const el = sentinelRef.current;
-    if (el) observer.observe(el);
-
-    return () => {
-      if (el) observer.unobserve(el);
-    };
-  }, [hasMore, loading, loadMore]);
+  const scrollCategories = (direction) => {
+    if (!catScrollRef.current) return;
+    const offset = direction === "left" ? -220 : 220;
+    catScrollRef.current.scrollBy({ left: offset, behavior: "smooth" });
+  };
 
   return (
     <div className="pt-5 pb-16">
       <Container>
-        {/* Page Header */}
-        <div className="mb-8">
-          <p
-            className="mb-1 text-xs font-semibold uppercase tracking-widest"
-            style={{ color: "var(--sk-primary)" }}
-          >
-            SriKode Blog
-          </p>
-          <h1
-            className="text-3xl font-extrabold md:text-4xl"
-            style={{ color: "var(--sk-text)" }}
-          >
-            All Tutorials &amp; Articles
-          </h1>
-          <p className="mt-2 text-sm sm:text-base" style={{ color: "var(--sk-text-muted)" }}>
-            Practical, step-by-step web development tutorials for modern developers.
-          </p>
+        {/* Page Header with Top-Right Banner to eliminate empty space */}
+        <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px] lg:items-center">
+          <div>
+            <p
+              className="mb-1 text-xs font-semibold uppercase tracking-widest"
+              style={{ color: "var(--sk-primary)" }}
+            >
+              SriKode Blog
+            </p>
+            <h1
+              className="text-3xl font-extrabold md:text-4xl"
+              style={{ color: "var(--sk-text)" }}
+            >
+              All Tutorials &amp; Articles
+            </h1>
+            <p className="mt-2 text-sm sm:text-base" style={{ color: "var(--sk-text-muted)" }}>
+              Practical, step-by-step web development tutorials for modern developers.
+            </p>
+
+            {/* Search Bar */}
+            <div className="relative mt-4 w-full max-w-xl">
+              <Search
+                size={17}
+                className="absolute left-4 top-1/2 -translate-y-1/2"
+                style={{ color: "var(--sk-text-faint)" }}
+              />
+              <input
+                id="blog-search"
+                type="text"
+                value={search}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Search tutorials by title, topic, or keyword..."
+                className="w-full rounded-xl py-3 pl-11 pr-10 text-sm outline-none focus:ring-2"
+                style={{
+                  backgroundColor: "var(--sk-bg-card)",
+                  border: "1px solid var(--sk-border-strong)",
+                  color: "var(--sk-text)",
+                }}
+              />
+              {search && (
+                <button
+                  onClick={() => handleSearch("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+                  style={{ color: "var(--sk-text-faint)" }}
+                  aria-label="Clear search"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Top-Right Ad Banner / Featured Sponsor slot - fixes top-right empty space */}
+          <div className="hidden lg:block">
+            <AdBanner slot="header" customSponsor={headerSponsor} />
+          </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative mb-6 max-w-xl">
-          <Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "var(--sk-text-faint)" }} />
-          <input
-            id="blog-search"
-            type="text"
-            value={search}
-            onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search tutorials..."
-            className="w-full rounded-xl py-3 pl-11 pr-10 text-sm outline-none focus:ring-2"
+        {/* Category Filter Tabs - Responsive Carousel with Chevron Controls & Direct Selector */}
+        <div className="mb-8 flex items-center gap-2">
+          {/* Scroll Left Button */}
+          <button
+            onClick={() => scrollCategories("left")}
+            className="hidden sm:flex h-8 w-8 shrink-0 items-center justify-center rounded-full border shadow-2xs transition hover:border-sk-primary hover:text-sk-primary active:scale-95 cursor-pointer"
             style={{
               backgroundColor: "var(--sk-bg-card)",
-              border: "1px solid var(--sk-border-strong)",
-              color: "var(--sk-text)",
+              borderColor: "var(--sk-border)",
+              color: "var(--sk-text-muted)",
             }}
-          />
-          {search && (
-            <button
-              onClick={() => handleSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
-              style={{ color: "var(--sk-text-faint)" }}
-              aria-label="Clear search"
-            >
-              <X size={16} />
-            </button>
+            aria-label="Scroll categories left"
+          >
+            <ChevronLeft size={16} />
+          </button>
+
+          {/* Horizontally Scrollable Pills Track */}
+          <div
+            ref={catScrollRef}
+            className="flex-1 flex items-center gap-2 overflow-x-auto py-1 scroll-smooth"
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+          >
+            {sortedCategories.map((cat) => {
+              const count = categoryCounts[cat] || 0;
+              const isActive = activeCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => handleCategoryChange(cat)}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition active:scale-[0.98] cursor-pointer whitespace-nowrap"
+                  style={{
+                    backgroundColor: isActive ? "var(--sk-primary)" : "var(--sk-bg-card)",
+                    borderColor: isActive ? "var(--sk-primary)" : "var(--sk-border-strong)",
+                    color: isActive ? "#ffffff" : "var(--sk-text-muted)",
+                  }}
+                >
+                  <span>{cat}</span>
+                  <span
+                    className="rounded-full px-1.5 py-0.2 text-[10px] font-bold"
+                    style={{
+                      backgroundColor: isActive ? "rgba(255,255,255,0.25)" : "var(--sk-primary-light)",
+                      color: isActive ? "#ffffff" : "var(--sk-primary-text)",
+                    }}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Scroll Right Button */}
+          <button
+            onClick={() => scrollCategories("right")}
+            className="hidden sm:flex h-8 w-8 shrink-0 items-center justify-center rounded-full border shadow-2xs transition hover:border-sk-primary hover:text-sk-primary active:scale-95 cursor-pointer"
+            style={{
+              backgroundColor: "var(--sk-bg-card)",
+              borderColor: "var(--sk-border)",
+              color: "var(--sk-text-muted)",
+            }}
+            aria-label="Scroll categories right"
+          >
+            <ChevronRight size={16} />
+          </button>
+
+          {/* Direct Category Dropdown for quick access when categories grow */}
+          {sortedCategories.length > 5 && (
+            <div className="relative shrink-0 sm:ml-2">
+              <label htmlFor="category-select" className="sr-only">Jump to category</label>
+              <select
+                id="category-select"
+                value={activeCategory}
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                className="rounded-xl border px-3 py-1.5 text-xs font-semibold outline-none transition cursor-pointer"
+                style={{
+                  backgroundColor: "var(--sk-bg-card)",
+                  borderColor: "var(--sk-border-strong)",
+                  color: "var(--sk-text)",
+                }}
+              >
+                {sortedCategories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat} ({categoryCounts[cat] || 0})
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
         </div>
 
-        {/* Category Filter Tabs */}
-        <div className="mb-8 flex flex-wrap gap-2">
-          {ALL_CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => handleCategoryChange(cat)}
-              className="rounded-full px-4 py-1.5 text-xs font-semibold border transition active:scale-[0.98] cursor-pointer"
-              style={{
-                backgroundColor: activeCategory === cat ? "var(--sk-primary)" : "var(--sk-bg-card)",
-                borderColor: activeCategory === cat ? "var(--sk-primary)" : "var(--sk-border-strong)",
-                color: activeCategory === cat ? "#ffffff" : "var(--sk-text-muted)",
-              }}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
         {/* Main layout — posts + sidebar */}
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_300px]">
+        <div id="blogs-catalog-start" className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_300px]">
           {/* Left — Posts */}
           <div>
             {/* Results count & view toggle */}
-            <div className="mb-6 flex items-center justify-between border-b border-gray-150/40 pb-4 dark:border-zinc-800/40">
-              <p className="text-sm text-gray-500 dark:text-zinc-400">
-                Showing <strong className="text-sk-text">{visiblePosts.length}</strong> of <strong className="text-sk-text">{filtered.length}</strong> article{filtered.length !== 1 ? "s" : ""}
+            <div className="mb-6 flex items-center justify-between border-b border-sk-border pb-4">
+              <p className="text-sm" style={{ color: "var(--sk-text-muted)" }}>
+                Showing{" "}
+                <strong style={{ color: "var(--sk-text)" }}>
+                  {filtered.length > 0 ? (currentPage - 1) * POSTS_PER_PAGE + 1 : 0}
+                  –
+                  {Math.min(currentPage * POSTS_PER_PAGE, filtered.length)}
+                </strong>{" "}
+                of <strong style={{ color: "var(--sk-text)" }}>{filtered.length}</strong> article{filtered.length !== 1 ? "s" : ""}
                 {search && <span> for &quot;{search}&quot;</span>}
+                {activeCategory !== "All" && <span> in {activeCategory}</span>}
               </p>
               
               {/* Grid / List Switcher */}
@@ -284,71 +395,29 @@ export default function BlogsPage() {
               <div className="flex h-64 items-center justify-center">
                 <div className="h-8 w-8 animate-spin rounded-full border-4" style={{ borderTopColor: "var(--sk-primary)", borderLeftColor: "var(--sk-border)", borderRightColor: "var(--sk-border)", borderBottomColor: "var(--sk-border)" }} />
               </div>
-            ) : visiblePosts.length > 0 ? (
+            ) : paginatedPosts.length > 0 ? (
               <>
                 {viewMode === "grid" ? (
                   <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    {visiblePosts.map((blog) => (
+                    {paginatedPosts.map((blog) => (
                       <BlogCard key={blog._id || blog.id} blog={blog} />
                     ))}
-                    {/* Fill empty grid space if odd number of items */}
-                    {visiblePosts.length % 2 !== 0 && !hasMore && (
-                      <div 
-                        className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center shadow-xs" 
-                        style={{ borderColor: 'var(--sk-border-strong)', backgroundColor: 'var(--sk-bg-subtle)' }}
-                      >
-                        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50/50 text-blue-600 dark:bg-blue-900/10 dark:text-blue-400">
-                          <FileText size={28} />
-                        </div>
-                        <h3 className="mb-2 text-xl font-bold" style={{ color: 'var(--sk-text)' }}>More Content Incoming!</h3>
-                        <p className="text-sm leading-relaxed max-w-xs" style={{ color: 'var(--sk-text-muted)' }}>
-                          We are actively drafting more practical tutorials. Check back soon or subscribe to our newsletter!
-                        </p>
-                      </div>
-                    )}
                   </div>
                 ) : (
                   <div className="flex flex-col gap-5">
-                    {visiblePosts.map((blog) => (
+                    {paginatedPosts.map((blog) => (
                       <BlogListCard key={blog._id || blog.id} blog={blog} />
                     ))}
                   </div>
                 )}
 
-                {/* Infinite Scroll Sentinel & Loading Indicator */}
-                {hasMore && (
-                  <div ref={sentinelRef} className="mt-12 flex flex-col items-center justify-center py-6 text-center">
-                    {isLoadingMore ? (
-                      <div className="flex items-center gap-2 text-xs font-bold text-sk-primary">
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        <span>Loading next batch of articles...</span>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={loadMore}
-                        className="inline-flex items-center gap-2 rounded-xl border border-sk-border bg-sk-bg-card px-6 py-3 text-xs font-bold text-sk-text shadow-2xs hover:bg-sk-bg-subtle transition active:scale-[0.98] cursor-pointer"
-                      >
-                        <span>Load More Articles</span>
-                        <span className="rounded-full bg-sk-primary-light px-2 py-0.5 text-[10px] text-sk-primary-text">
-                          +{Math.min(BATCH_SIZE, filtered.length - visibleCount)}
-                        </span>
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* End of list banner */}
-                {!hasMore && filtered.length > 0 && (
-                  <div className="mt-12 rounded-2xl border border-dashed border-sk-border bg-sk-bg-card p-6 text-center shadow-2xs">
-                    <span className="inline-block p-2 rounded-xl bg-sk-primary-light text-sk-primary mb-2">
-                      <Sparkles size={18} />
-                    </span>
-                    <p className="text-xs font-bold text-sk-text">You've reached the end of the catalog</p>
-                    <p className="text-[11px] text-sk-text-muted mt-0.5">
-                      Showing all {filtered.length} tutorials in {activeCategory === "All" ? "all categories" : activeCategory}.
-                    </p>
-                  </div>
-                )}
+                {/* Scalable Numbered Pagination */}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  className="mt-12"
+                />
               </>
             ) : (
               <div

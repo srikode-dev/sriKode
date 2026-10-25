@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, Clock } from "lucide-react";
 import { formatDate } from "@/data";
 
 export default function BlogCard({ blog }) {
@@ -42,21 +41,21 @@ export default function BlogCard({ blog }) {
           {blog.excerpt}
         </p>
 
-        {/* Meta */}
+        {/* Meta - Clean typography without bottom icons */}
         <div
-          className="mt-auto flex items-center gap-4 pt-4 text-xs"
+          className="mt-auto flex items-center gap-2 pt-4 text-xs"
           style={{ color: "var(--sk-text-faint)" }}
         >
-          <span className="flex items-center gap-1">
-            <Calendar size={12} />
-            {formatDate(blog.publishedAt || blog.createdAt)}
-          </span>
-          <span className="flex items-center gap-1">
-            <Clock size={12} />
-            {blog.readingTime}
-          </span>
+          <span>{formatDate(blog.publishedAt || blog.createdAt)}</span>
+          {blog.readingTime && (
+            <>
+              <span>•</span>
+              <span>{blog.readingTime}</span>
+            </>
+          )}
         </div>
       </div>
     </article>
   );
 }
+

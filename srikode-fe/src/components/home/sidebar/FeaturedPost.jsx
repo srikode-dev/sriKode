@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, Clock, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { formatDate } from "@/data";
 
@@ -64,16 +64,15 @@ export default function FeaturedPost({ blog, blogs, posts }) {
         </h4>
 
         {/* Meta */}
-        <div className="mt-2 flex items-center gap-3 text-[11px] text-sk-text-faint">
-          <span className="flex items-center gap-1">
-            <Calendar size={11} />
+        <div className="mt-2 flex items-center gap-2 text-[11px] text-sk-text-faint">
+          <span>
             {formatDate(selectedBlog.publishedAt || selectedBlog.createdAt) || selectedBlog.publishedAt}
           </span>
           {selectedBlog.readingTime && (
-            <span className="flex items-center gap-1">
-              <Clock size={11} />
-              {selectedBlog.readingTime}
-            </span>
+            <>
+              <span>•</span>
+              <span>{selectedBlog.readingTime}</span>
+            </>
           )}
         </div>
       </Link>

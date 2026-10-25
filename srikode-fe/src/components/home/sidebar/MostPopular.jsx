@@ -1,7 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar } from "lucide-react";
-
 import { formatDate } from "@/data";
 
 export default function MostPopular({ blogs = [] }) {
@@ -42,8 +40,7 @@ export default function MostPopular({ blogs = [] }) {
                 <p className="line-clamp-2 text-sm font-semibold leading-snug text-sk-text transition-colors group-hover:text-sk-primary">
                   {blog.title}
                 </p>
-                <span className="mt-1 flex items-center gap-1 text-[11px] text-sk-text-faint">
-                  <Calendar size={11} />
+                <span className="mt-1 text-[11px] text-sk-text-faint">
                   {formatDate(blog.publishedAt || blog.createdAt)}
                 </span>
               </div>
