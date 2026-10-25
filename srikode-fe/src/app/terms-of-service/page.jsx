@@ -1,4 +1,5 @@
 import Container from "@/components/shared/Container";
+import LegalPageWrapper from "@/components/shared/LegalPageWrapper";
 
 export const metadata = {
   title: "Terms of Service",
@@ -7,7 +8,8 @@ export const metadata = {
 
 export default function TermsOfServicePage() {
   return (
-    <div className="py-12" style={{ backgroundColor: "var(--sk-bg)" }}>
+    <LegalPageWrapper titleWidth="w-72">
+      <div className="py-12" style={{ backgroundColor: "var(--sk-bg)" }}>
       <Container>
         <div className="mx-auto max-w-3xl">
           {/* Header */}
@@ -64,5 +66,6 @@ export default function TermsOfServicePage() {
         </div>
       </Container>
     </div>
+    </LegalPageWrapper>
   );
 }

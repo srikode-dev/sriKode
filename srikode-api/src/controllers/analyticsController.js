@@ -1,4 +1,5 @@
 import Blog from "../models/Blog.js";
+import BlogAnalytics from "../models/BlogAnalytics.js";
 import Comment from "../models/Comment.js";
 import Contact from "../models/Contact.js";
 import logger from "../config/logger.js";
@@ -70,6 +71,22 @@ export const getAdminAnalytics = async (req, res) => {
       }
     ]);
 
+    // 4. Group by Country for Demographics
+    const countryViews = await BlogAnalytics.aggregate([
+      {
+        $group: {
+          _id: "$country",
+          views: { $sum: "$views" }
+        }
+      },
+      {
+        $sort: { views: -1 }
+      },
+      {
+        $limit: 10
+      }
+    ]);
+
     return res.status(200).json({
       success: true,
       analytics: {
@@ -87,6 +104,13 @@ export const getAdminAnalytics = async (req, res) => {
           name: c._id || "Uncategorized",
           count: c.count
         })),
+        demographics: {
+          countryViews: countryViews.map(c => ({
+            country: c._id || "Unknown",
+            _id: c._id || "Unknown",
+            views: c.views || 0
+          }))
+        },
         recentActivity: {
           comments: recentComments,
           contacts: recentContacts

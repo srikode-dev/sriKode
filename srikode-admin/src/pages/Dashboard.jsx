@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { 
   Eye, 
@@ -8,16 +8,34 @@ import {
   TrendingUp, 
   Clock, 
   ArrowRight,
-  User
+  User,
+  Globe
 } from "lucide-react";
 import useAnalyticsStore from "../store/analyticsStore.js";
+import { getCountryInfo } from "../utils/countryData.js";
 
 export default function Dashboard() {
-  const { summary, popularPosts, categories, recentActivity, loading, fetchAnalytics } = useAnalyticsStore();
+  const { summary, popularPosts, categories, recentActivity, demographics, loading, fetchAnalytics } = useAnalyticsStore();
 
   useEffect(() => {
     fetchAnalytics();
   }, [fetchAnalytics]);
+
+  const demographicList = useMemo(() => {
+    const raw = demographics?.countryViews || [];
+    const total = raw.reduce((sum, item) => sum + (Number(item.views) || 0), 0) || summary.totalViews || 1;
+    return raw.slice(0, 5).map((item, idx) => {
+      const info = getCountryInfo(item.country || item._id);
+      const views = Number(item.views) || 0;
+      const percentage = ((views / total) * 100).toFixed(1);
+      return {
+        ...info,
+        rank: idx + 1,
+        views,
+        percentage
+      };
+    });
+  }, [demographics, summary.totalViews]);
 
   const cards = [
     {
@@ -193,6 +211,78 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ── AUDIENCE DEMOGRAPHICS PREVIEW ───────────────────────── */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-5 gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              <Globe className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-slate-800 leading-none">
+                  Audience Demographics
+                </h2>
+                <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-blue-600 border border-blue-100">
+                  Global Telemetry
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Geographic readership distribution across top countries
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/analytics"
+            className="flex items-center gap-1.5 rounded-xl border border-blue-100 bg-blue-50/60 px-3.5 py-2 text-xs font-bold text-blue-600 hover:bg-blue-100 transition self-start sm:self-auto"
+          >
+            Explore Interactive World Map <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+
+        {demographicList.length === 0 ? (
+          <div className="flex h-32 items-center justify-center text-slate-400 text-sm">
+            No geographic telemetry records yet.
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {demographicList.map((c) => (
+              <div
+                key={c.code || c.name}
+                className="group rounded-xl border border-slate-100 bg-slate-50/50 p-4 hover:bg-slate-50 hover:border-blue-200 transition flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-600 shadow-2xs">
+                      #{c.rank}
+                    </span>
+                    <span className="text-xl">{c.flag}</span>
+                  </div>
+                  <p className="font-bold text-sm text-slate-800 truncate group-hover:text-blue-600 transition">
+                    {c.name}
+                  </p>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">
+                    {c.continent}
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-200/60">
+                  <div className="flex items-center justify-between text-xs mb-1.5">
+                    <span className="font-black text-slate-700">{c.views.toLocaleString()} views</span>
+                    <span className="font-bold text-blue-600">{c.percentage}%</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(100, Math.max(4, parseFloat(c.percentage)))}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── LOWER SECTION ────────────────────────────────────────── */}

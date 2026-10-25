@@ -14,6 +14,9 @@ import { globalLimiter } from "./middlewares/rateLimiter.js";
 const app = express();
 const apiVersion = API_VERSION;
 
+// Trust reverse proxy (Vercel, Cloudflare, Nginx, AWS)
+app.set("trust proxy", true);
+
 // security middleware
 app.use(helmet());
 

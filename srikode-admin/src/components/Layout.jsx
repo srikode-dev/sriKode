@@ -107,20 +107,12 @@ export default function Layout() {
         <div className="flex h-16 items-center border-b border-slate-800 bg-slate-950 px-4">
           {!isCollapsed ? (
             <div className="flex w-full items-center justify-between">
-              <div className="flex items-center gap-3 overflow-hidden">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white font-black text-sm shadow-md shadow-blue-600/30">
-                  SK
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base font-extrabold text-white tracking-wider truncate">SRIKODE</span>
-                    <span className="rounded bg-blue-500/10 px-1.5 py-0.2 text-[9px] font-bold text-blue-400 border border-blue-500/20">
-                      ADMIN
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-medium text-slate-500 truncate">Content & Analytics</span>
-                </div>
-              </div>
+              <Link to="/" className="flex items-center gap-2.5 overflow-hidden hover:opacity-90 transition-opacity">
+                <img src="/srikode-logo-dark.svg" alt="SriKode" className="h-8 w-auto object-contain" />
+                <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-bold text-blue-400 border border-blue-500/20">
+                  ADMIN
+                </span>
+              </Link>
               <button
                 type="button"
                 onClick={toggleSidebar}
@@ -136,10 +128,10 @@ export default function Layout() {
                 type="button"
                 onClick={toggleSidebar}
                 title="Expand sidebar"
-                className="group relative flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white font-black text-sm shadow-md shadow-blue-600/30 hover:bg-blue-500 hover:scale-105 transition cursor-pointer"
+                className="group relative flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 border border-slate-800 shadow-md shadow-blue-600/10 hover:border-blue-500/50 hover:scale-105 transition cursor-pointer"
               >
-                <span className="group-hover:hidden">SK</span>
-                <PanelLeftOpen className="hidden group-hover:block h-5 w-5 text-white" />
+                <img src="/favicon.png" alt="SriKode" className="h-7 w-7 object-contain group-hover:hidden" />
+                <PanelLeftOpen className="hidden group-hover:block h-5 w-5 text-blue-400" />
               </button>
             </div>
           )}
@@ -343,11 +335,11 @@ export default function Layout() {
           <div className="flex w-72 flex-col bg-slate-900 shadow-xl border-r border-slate-800">
             {/* Header */}
             <div className="flex h-16 items-center justify-between px-6 border-b border-slate-800 bg-slate-950">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-bold">
-                  SK
-                </div>
-                <span className="text-lg font-bold text-white tracking-wider">SRIKODE</span>
+              <div className="flex items-center gap-2">
+                <img src="/srikode-logo-dark.svg" alt="SriKode" className="h-7 w-auto object-contain" />
+                <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-bold text-blue-400 border border-blue-500/20">
+                  ADMIN
+                </span>
               </div>
               <button 
                 onClick={() => setMobileMenuOpen(false)}

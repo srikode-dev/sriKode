@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MessageCircle, Send, CheckCircle, Clock } from "lucide-react";
+import { Send, CheckCircle } from "lucide-react";
 import { getComments, submitComment } from "@/lib/api";
 
 function Comment({ comment }) {
@@ -23,8 +23,7 @@ function Comment({ comment }) {
       <div className="flex-1">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-sk-text">{comment.name}</span>
-          <span className="text-xs text-sk-text-faint flex items-center gap-1">
-            <Clock size={10} />
+          <span className="text-xs text-sk-text-faint">
             {dateFormatted}
           </span>
         </div>
@@ -82,10 +81,9 @@ export default function CommentSection({ blogId, slug }) {
   return (
     <section className="mt-12 border-t border-sk-border pt-10">
       {/* Heading */}
-      <div className="mb-6 flex items-center gap-3">
-        <MessageCircle size={20} className="text-sk-primary" />
+      <div className="mb-6">
         <h2 className="text-xl font-bold text-sk-text">
-          Comments ({fetching ? "..." : comments.length})
+          Comments
         </h2>
       </div>
 

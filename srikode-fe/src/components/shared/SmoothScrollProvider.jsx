@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -12,6 +13,15 @@ export const useLenis = () => useContext(LenisContext);
 export default function SmoothScrollProvider({ children }) {
   const lenisRef = useRef(null);
   const [lenisInstance, setLenisInstance] = useState(null);
+  const pathname = usePathname();
+
+  // Scroll to top immediately on route changes
+  useEffect(() => {
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(0, { immediate: true });
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [pathname]);
 
   useEffect(() => {
     // Respect user's motion preference

@@ -13,6 +13,9 @@ const useAnalyticsStore = create((set) => ({
   },
   popularPosts: [],
   categories: [],
+  demographics: {
+    countryViews: []
+  },
   recentActivity: {
     comments: [],
     contacts: []
@@ -24,12 +27,13 @@ const useAnalyticsStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const response = await axiosInstance.get("/analytics");
-      const { summary, popularPosts, categories, recentActivity } = response.data.analytics;
+      const { summary, popularPosts, categories, recentActivity, demographics } = response.data.analytics;
       
       set({
         summary,
         popularPosts,
         categories,
+        demographics: demographics || { countryViews: [] },
         recentActivity,
         loading: false,
         error: null

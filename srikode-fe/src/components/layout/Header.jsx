@@ -8,6 +8,7 @@ import { IoChevronDown } from "react-icons/io5";
 import { HiOutlineMenuAlt3 } from "react-icons/hi";
 
 import Container from "../shared/Container";
+import Logo from "../shared/Logo";
 import { categories, navLinks } from "@/data/navigation";
 import { cn } from "@/lib/utils";
 import MobileMenu from "./MobileMenu";
@@ -25,8 +26,8 @@ const Header = () => {
       <Container>
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-extrabold tracking-wider text-sk-text hover:text-sk-primary transition-colors">
-            SRIKODE
+          <Link href="/" className="flex items-center transition-opacity hover:opacity-90">
+            <Logo className="h-8 md:h-9 w-auto" priority />
           </Link>
 
           {/* Desktop Navigation */}

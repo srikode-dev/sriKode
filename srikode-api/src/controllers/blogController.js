@@ -151,9 +151,66 @@ export const getBlogBySlug = async (req, res) => {
       blog.viewCount += 1;
       await blog.save();
 
-      // Async Analytics Tracking (Vercel automatic geolocation headers)
-      const country = req.headers["x-vercel-ip-country"] || "Unknown";
-      const city = req.headers["x-vercel-ip-city"] || "Unknown";
+      // Multi-proxy geolocation header resolution with timezone & local dev fallback
+      let country = (
+        req.headers["x-client-country"] ||
+        req.headers["x-vercel-ip-country"] ||
+        req.headers["cf-ipcountry"] ||
+        req.headers["x-country-code"] ||
+        req.headers["geoip-country-code"] ||
+        ""
+      ).toString().trim().toUpperCase();
+
+      let city = (
+        req.headers["x-client-city"] ||
+        req.headers["x-vercel-ip-city"] ||
+        req.headers["cf-ipcity"] ||
+        req.headers["x-city"] ||
+        ""
+      ).toString().trim();
+
+      // Timezone fallback if country header not provided by proxy
+      const tz = (req.headers["x-timezone"] || req.headers["x-client-timezone"] || "").toString().trim();
+      if (!country || country === "UNKNOWN") {
+        if (tz.includes("Kolkata") || tz.includes("Calcutta")) {
+          country = "IN";
+          if (!city || city === "Unknown") city = "India";
+        } else if (tz.includes("New_York") || tz.includes("Chicago") || tz.includes("Los_Angeles") || tz.includes("Denver")) {
+          country = "US";
+        } else if (tz.includes("London")) {
+          country = "GB";
+        } else if (tz.includes("Berlin") || tz.includes("Frankfurt")) {
+          country = "DE";
+        } else if (tz.includes("Paris")) {
+          country = "FR";
+        } else if (tz.includes("Tokyo")) {
+          country = "JP";
+        } else if (tz.includes("Sydney") || tz.includes("Melbourne")) {
+          country = "AU";
+        } else if (tz.includes("Singapore")) {
+          country = "SG";
+        } else if (tz.includes("Toronto") || tz.includes("Vancouver")) {
+          country = "CA";
+        }
+      }
+
+      // Local development fallback on loopback
+      const ip = req.ip || req.connection?.remoteAddress || "";
+      const isLoopback = ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1";
+      if ((!country || country === "UNKNOWN") && isLoopback) {
+        try {
+          const sysTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+          if (sysTz.includes("Kolkata") || sysTz.includes("Calcutta")) {
+            country = "IN";
+            if (!city || city === "Unknown") city = "India";
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      if (!country) country = "Unknown";
+      if (!city) city = "Unknown";
       
       const today = new Date();
       const formattedDate = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
@@ -402,7 +459,7 @@ export const getAnalyticsAdmin = async (req, res) => {
       { $sort: { _id: 1 } } // Sort by date ascending (assuming DD-MM-YYYY formats properly when string sorted if we enforce format, wait DD-MM-YYYY sorts by day first. Let's fix that in frontend or return raw data).
     ]);
 
-    // 2. Group by Country for the Map
+    // 2. Group by Country for Demographic Distribution
     const countryViews = await BlogAnalytics.aggregate([
       {
         $group: {
@@ -413,10 +470,34 @@ export const getAnalyticsAdmin = async (req, res) => {
       { $sort: { views: -1 } }
     ]);
 
+    // 3. Group by City for Top Metros
+    const cityViews = await BlogAnalytics.aggregate([
+      {
+        $match: { city: { $ne: "Unknown" } }
+      },
+      {
+        $group: {
+          _id: { city: "$city", country: "$country" },
+          views: { $sum: "$views" }
+        }
+      },
+      { $sort: { views: -1 } },
+      { $limit: 15 }
+    ]);
+
     return res.status(200).json({
       success: true,
       dailyViews,
-      countryViews
+      countryViews: countryViews.map((c) => ({
+        country: c._id || "Unknown",
+        _id: c._id || "Unknown",
+        views: c.views || 0,
+      })),
+      cityViews: cityViews.map((c) => ({
+        city: c._id.city,
+        country: c._id.country,
+        views: c.views || 0,
+      })),
     });
   } catch (error) {
     logger.error(`getAnalyticsAdmin error: ${error.message}`);
