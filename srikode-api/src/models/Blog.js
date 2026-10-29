@@ -131,9 +131,14 @@ const blogSchema = new mongoose.Schema({
     default: ""
   },
 
-  isPublished: { 
-    type: Boolean, 
-    default: false 
+  isPublished: {
+    type: Boolean,
+    default: false
+  },
+  // Future publish time for scheduled drafts; cleared once the post goes live
+  scheduledAt: {
+    type: Date,
+    default: null
   },
   isFeatured: { 
     type: Boolean, 
@@ -177,6 +182,7 @@ blogSchema.pre("save", function() {
 // Performance Indexing
 blogSchema.index({ isPublished: 1, createdAt: -1 }); // Optimizes main blog feed
 blogSchema.index({ category: 1 }); // Optimizes category filtering
+blogSchema.index({ isPublished: 1, scheduledAt: 1 }); // Optimizes due-schedule lookups
 
 const Blog = mongoose.model("Blog", blogSchema);
 export default Blog;

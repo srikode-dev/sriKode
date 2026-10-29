@@ -31,6 +31,34 @@ const generateTableOfContents = (content) => {
 };
 
 /**
+ * Applies schedule rules to a create/update payload (mutates it).
+ * - Publishing now clears any schedule.
+ * - A future scheduledAt keeps the post as a draft until the scheduler publishes it.
+ * - Empty/null scheduledAt cancels the schedule.
+ * Returns an error message for invalid input, otherwise null.
+ */
+const applyScheduleRules = (data) => {
+  if (data.isPublished === true) {
+    data.scheduledAt = null;
+    return null;
+  }
+  if (!("scheduledAt" in data)) return null;
+
+  if (!data.scheduledAt) {
+    data.scheduledAt = null;
+    return null;
+  }
+
+  const date = new Date(data.scheduledAt);
+  if (Number.isNaN(date.getTime())) return "Invalid schedule date.";
+  if (date.getTime() <= Date.now()) return "Scheduled publish time must be in the future.";
+
+  data.scheduledAt = date;
+  data.isPublished = false;
+  return null;
+};
+
+/**
  * Public: Get all published blogs
  * Supports pagination, search, category filtering, and tag filtering
  */
@@ -238,7 +266,7 @@ export const getBlogBySlug = async (req, res) => {
 export const getAllBlogsAdmin = async (req, res) => {
   try {
     const blogs = await Blog.find({})
-      .select("title slug category isPublished isFeatured adsEnabled viewCount readingTime createdAt")
+      .select("title slug excerpt tags category isPublished scheduledAt isFeatured adsEnabled viewCount readingTime createdAt updatedAt")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -311,6 +339,11 @@ export const createBlogAdmin = async (req, res) => {
       tableOfContents: generateTableOfContents(req.body.content || [])
     };
 
+    const scheduleError = applyScheduleRules(blogData);
+    if (scheduleError) {
+      return res.status(400).json({ success: false, message: scheduleError });
+    }
+
     const newBlog = await Blog.create(blogData);
 
     logger.info(`New blog created: "${newBlog.title}" (slug: ${newBlog.slug}, published: ${newBlog.isPublished})`);
@@ -329,7 +362,11 @@ export const createBlogAdmin = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: newBlog.isPublished ? "Blog published successfully" : "Blog draft created successfully",
+      message: newBlog.isPublished
+        ? "Blog published successfully"
+        : newBlog.scheduledAt
+        ? "Blog scheduled successfully"
+        : "Blog draft created successfully",
       blog: newBlog,
     });
   } catch (error) {
@@ -383,6 +420,11 @@ export const updateBlogAdmin = async (req, res) => {
     // Automatically rebuild Table of Contents if content is modified
     if (updateData.content) {
       updateData.tableOfContents = generateTableOfContents(updateData.content);
+    }
+
+    const scheduleError = applyScheduleRules(updateData);
+    if (scheduleError) {
+      return res.status(400).json({ success: false, message: scheduleError });
     }
 
     const updatedBlog = await Blog.findByIdAndUpdate(

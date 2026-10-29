@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { Fragment, useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   FileText, 
@@ -15,11 +15,17 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Filter
+  Filter,
+  CalendarClock,
+  ChevronDown
 } from "lucide-react";
 import useBlogStore from "../store/blogStore.js";
 import { toast } from "sonner";
 import { getClientBaseUrl } from "../utils/urlHelper.js";
+import { formatScheduleDate } from "../utils/schedule.js";
+import QuickScheduleModal from "../components/QuickScheduleModal.jsx";
+
+const isScheduled = (blog) => !blog.isPublished && !!blog.scheduledAt;
 
 export default function Blogs() {
   const { blogs, loading, error, fetchBlogs, deleteBlog } = useBlogStore();
@@ -34,6 +40,19 @@ export default function Blogs() {
   // Page-wise Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  // Quick schedule modal (schedule from the list without opening the editor)
+  const [scheduleTarget, setScheduleTarget] = useState(null);
+
+  // Expandable detail rows (several can be open at once)
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
+  const toggleExpanded = (id) =>
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   useEffect(() => {
     fetchBlogs();
@@ -89,7 +108,8 @@ export default function Blogs() {
       const matchesStatus = 
         statusFilter === "all" ||
         (statusFilter === "published" && blog.isPublished) ||
-        (statusFilter === "draft" && !blog.isPublished);
+        (statusFilter === "scheduled" && isScheduled(blog)) ||
+        (statusFilter === "draft" && !blog.isPublished && !isScheduled(blog));
 
       const matchesCategory = 
         categoryFilter === "all" || 
@@ -184,7 +204,15 @@ export default function Blogs() {
                 statusFilter === "draft" ? "bg-white text-amber-700 shadow-2xs font-bold" : "text-slate-500 hover:text-slate-700"
               }`}
             >
-              Drafts ({blogs.filter(b => !b.isPublished).length})
+              Drafts ({blogs.filter(b => !b.isPublished && !isScheduled(b)).length})
+            </button>
+            <button
+              onClick={() => setStatusFilter("scheduled")}
+              className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                statusFilter === "scheduled" ? "bg-white text-indigo-700 shadow-2xs font-bold" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Scheduled ({blogs.filter(isScheduled).length})
             </button>
           </div>
 
@@ -224,29 +252,64 @@ export default function Blogs() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
-                  <th className="px-6 py-4">Title</th>
-                  <th className="px-6 py-4">Category</th>
-                  <th className="px-6 py-4">Read Time</th>
-                  <th className="px-6 py-4">Views</th>
-                  <th className="px-6 py-4">Date</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500 whitespace-nowrap">
+                  <th className="w-10 py-3.5 pl-4 pr-0"><span className="sr-only">Expand</span></th>
+                  <th className="px-4 py-3.5 w-full min-w-70">Article</th>
+                  <th className="px-4 py-3.5">Category</th>
+                  <th className="px-4 py-3.5">Read</th>
+                  <th className="px-4 py-3.5 text-right">Views</th>
+                  <th className="px-4 py-3.5">Date</th>
+                  {/* Pinned to the right edge so actions stay visible when the table scrolls */}
+                  <th className="sticky right-0 z-10 bg-slate-50 px-4 py-3.5 text-right shadow-[-8px_0_12px_-10px_rgba(15,23,42,0.25)]">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedBlogs.map((blog) => (
-                  <tr key={blog._id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition">
-                    <td className="px-6 py-4">
-                      <p className="font-semibold text-slate-700 truncate max-w-xs sm:max-w-md">{blog.title}</p>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                {paginatedBlogs.map((blog) => {
+                  const isOpen = expandedIds.has(blog._id);
+                  return (
+                  <Fragment key={blog._id}>
+                  <tr
+                    className={`group border-b transition ${
+                      isOpen ? "border-transparent bg-blue-50/60" : "border-slate-100 hover:bg-slate-50"
+                    }`}
+                  >
+                    {/* Expand toggle (left accent bar when open) */}
+                    <td className={`py-3.5 pl-4 pr-0 align-middle ${isOpen ? "shadow-[inset_3px_0_0_0_#2563eb]" : ""}`}>
+                      <button
+                        type="button"
+                        onClick={() => toggleExpanded(blog._id)}
+                        aria-expanded={isOpen}
+                        aria-label={isOpen ? "Hide details" : "Show details"}
+                        className={`inline-flex h-6 w-6 items-center justify-center rounded-md transition cursor-pointer ${
+                          isOpen ? "text-blue-600 hover:bg-blue-100" : "text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                        }`}
+                      >
+                        <ChevronDown className={`h-4 w-4 transition-transform duration-300 ease-out ${isOpen ? "" : "-rotate-90"}`} />
+                      </button>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <p className="font-semibold text-slate-700 truncate max-w-xs sm:max-w-md" title={blog.title}>{blog.title}</p>
+                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                         {/* Status badge */}
-                        <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${
-                          blog.isPublished 
-                            ? "bg-emerald-50 text-emerald-600 border border-emerald-100" 
-                            : "bg-slate-100 text-slate-500 border border-slate-200"
-                        }`}>
-                          {blog.isPublished ? "Live" : "Draft"}
-                        </span>
+                        {isScheduled(blog) ? (
+                          <span
+                            className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100"
+                            title="Auto-publishes at this time"
+                          >
+                            <CalendarClock className="h-3 w-3" />
+                            Scheduled · {formatScheduleDate(blog.scheduledAt)}
+                          </span>
+                        ) : (
+                          <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${
+                            blog.isPublished
+                              ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                              : "bg-slate-100 text-slate-500 border border-slate-200"
+                          }`}>
+                            {blog.isPublished ? "Live" : "Draft"}
+                          </span>
+                        )}
 
                         {/* Featured badge */}
                         {blog.isFeatured && (
@@ -267,24 +330,28 @@ export default function Blogs() {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm font-semibold text-slate-500">
-                      {blog.category}
+                    <td className="px-4 py-3.5 whitespace-nowrap">
+                      <span className="inline-block rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
+                        {blog.category}
+                      </span>
                     </td>
-                    <td className="px-6 py-4 text-sm font-semibold text-slate-400">
+                    <td className="px-4 py-3.5 whitespace-nowrap text-sm font-medium text-slate-500">
                       {blog.readingTime}
                     </td>
-                    <td className="px-6 py-4 text-sm font-semibold text-slate-700">
-                      {blog.viewCount.toLocaleString()}
+                    <td className="px-4 py-3.5 whitespace-nowrap text-right text-sm font-semibold tabular-nums text-slate-700">
+                      {(blog.viewCount || 0).toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-400 font-semibold">
-                      {new Date(blog.createdAt).toLocaleDateString()}
+                    <td className="px-4 py-3.5 whitespace-nowrap text-sm font-medium text-slate-500">
+                      {new Date(blog.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="inline-flex items-center gap-1.5">
+                    <td className={`sticky right-0 px-4 py-3.5 whitespace-nowrap text-right shadow-[-8px_0_12px_-10px_rgba(15,23,42,0.25)] transition ${
+                      isOpen ? "bg-[#f5f9ff]" : "bg-white group-hover:bg-slate-50"
+                    }`}>
+                      <div className="inline-flex items-center gap-1">
                         {/* Toggle Hero Pin */}
                         <button
                           onClick={() => handleToggleFeatured(blog)}
-                          className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition duration-200 cursor-pointer ${
+                          className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition duration-200 cursor-pointer ${
                             blog.isFeatured
                               ? "bg-purple-50 border-purple-200 text-purple-600 hover:bg-purple-100"
                               : "bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
@@ -297,7 +364,7 @@ export default function Blogs() {
                         {/* Toggle Monetization / Ads */}
                         <button
                           onClick={() => handleToggleAds(blog)}
-                          className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition duration-200 cursor-pointer ${
+                          className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition duration-200 cursor-pointer ${
                             blog.adsEnabled !== false
                               ? "bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100"
                               : "bg-rose-50 border-rose-200 text-rose-500 hover:bg-rose-100"
@@ -310,7 +377,7 @@ export default function Blogs() {
                         {/* Toggle Publish / Draft */}
                         <button
                           onClick={() => handleTogglePublish(blog)}
-                          className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition duration-200 cursor-pointer ${
+                          className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition duration-200 cursor-pointer ${
                             blog.isPublished
                               ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
                               : "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
@@ -320,12 +387,28 @@ export default function Blogs() {
                           {blog.isPublished ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                         </button>
 
+                        {/* Quick Schedule */}
+                        <button
+                          onClick={() => setScheduleTarget(blog)}
+                          className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition duration-200 cursor-pointer ${
+                            isScheduled(blog)
+                              ? "bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100"
+                              : "bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                          }`}
+                          title={isScheduled(blog) ? `Scheduled for ${formatScheduleDate(blog.scheduledAt)} (Click to edit)` : "Schedule Publish"}
+                        >
+                          <CalendarClock className="h-4 w-4" />
+                        </button>
+
+                        {/* Divider: status toggles | open / edit / delete */}
+                        <span className="mx-1 h-5 w-px bg-slate-200" aria-hidden="true" />
+
                         {/* View Live or Preview on Frontend */}
                         <a
                           href={`${clientBaseUrl}/blog/${blog.slug}${!blog.isPublished ? "?preview=true" : ""}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-blue-600 transition duration-200 cursor-pointer"
+                          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-blue-600 transition duration-200 cursor-pointer"
                           title={blog.isPublished ? "View Live Article on Frontend" : "Preview Draft on Frontend"}
                         >
                           <ExternalLink className="h-4 w-4" />
@@ -334,7 +417,7 @@ export default function Blogs() {
                         {/* Edit Article */}
                         <Link
                           to={`/blogs/edit/${blog._id}`}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 border border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition duration-200"
+                          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 border border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition duration-200"
                           title="Edit Article"
                         >
                           <Edit2 className="h-4 w-4" />
@@ -343,7 +426,7 @@ export default function Blogs() {
                         {/* Delete Article */}
                         <button
                           onClick={() => handleDelete(blog._id, blog.title)}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 border border-red-100 text-red-600 hover:bg-red-600 hover:text-white transition duration-200 cursor-pointer"
+                          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-50 border border-red-100 text-red-600 hover:bg-red-600 hover:text-white transition duration-200 cursor-pointer"
                           title="Delete Article"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -351,7 +434,50 @@ export default function Blogs() {
                       </div>
                     </td>
                   </tr>
-                ))}
+
+                  {/* Compact detail strip: always rendered, height animates via grid rows 0fr -> 1fr */}
+                  <tr className={isOpen ? "border-b border-slate-200" : ""} aria-hidden={!isOpen}>
+                      <td colSpan={7} className="bg-blue-50/60 p-0 shadow-[inset_3px_0_0_0_#2563eb]">
+                        <div
+                          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                            isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                          }`}
+                        >
+                        <div className="overflow-hidden">
+                        <div className="sticky left-0 max-w-[calc(100vw-4rem)] px-14 py-3.5 lg:max-w-none">
+                          <p className="text-sm font-semibold text-slate-800">{blog.title}</p>
+                          {blog.excerpt && (
+                            <p className="mt-1 text-xs leading-relaxed text-slate-500 line-clamp-2">{blog.excerpt}</p>
+                          )}
+
+                          <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2.5 sm:grid-cols-3 lg:grid-cols-6">
+                            {[
+                              ["Slug", <span key="s" className="font-mono text-xs">/{blog.slug}</span>],
+                              [
+                                "Status",
+                                isScheduled(blog)
+                                  ? `Scheduled · ${formatScheduleDate(blog.scheduledAt)}`
+                                  : blog.isPublished ? "Live" : "Draft",
+                              ],
+                              ["Created", formatScheduleDate(blog.createdAt)],
+                              ["Last Updated", blog.updatedAt ? formatScheduleDate(blog.updatedAt) : "—"],
+                              ["Read Time · Views", `${blog.readingTime} · ${(blog.viewCount || 0).toLocaleString()} views`],
+                              ["Tags", blog.tags?.length ? blog.tags.map((t) => `#${t}`).join("  ") : "—"],
+                            ].map(([label, value]) => (
+                              <div key={label} className="min-w-0">
+                                <dt className="text-[11px] font-medium text-slate-400">{label}</dt>
+                                <dd className="mt-0.5 truncate text-[13px] font-semibold text-slate-700">{value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        </div>
+                        </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -433,6 +559,10 @@ export default function Blogs() {
             )}
           </div>
         </div>
+      )}
+
+      {scheduleTarget && (
+        <QuickScheduleModal blog={scheduleTarget} onClose={() => setScheduleTarget(null)} />
       )}
     </div>
   );

@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import axios from "axios";
 import axiosInstance from "../api/axiosInstance.js";
 
 const useBlogStore = create((set) => ({
@@ -95,39 +94,31 @@ const useBlogStore = create((set) => ({
   },
 
   /**
-   * Uploads an image directly to ImageKit root folder '/srikode'.
-   * 1. Fetches authentication parameters from the backend.
-   * 2. Formulates a direct client-side upload payload to ImageKit CDN API.
+   * Sends the cropped image to the backend, which converts it to optimized WebP (sharp)
+   * and stores it in ImageKit under '/srikode'.
+   * onProgress({ stage, percent }) reports "uploading" (with %) then "converting" (server side).
    */
-  uploadImage: async (file) => {
+  uploadImage: async (file, onProgress) => {
     try {
-      const authRes = await axiosInstance.get("/blogs/admin/imagekit/auth");
-      const { signature, expire, token } = authRes.data;
-
-      const publicKey = import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY;
-      if (!publicKey) {
-        throw new Error("VITE_IMAGEKIT_PUBLIC_KEY is not defined in the frontend environment.");
-      }
-
       const formData = new FormData();
-      formData.append("file", file);
-      formData.append("fileName", file.name);
-      formData.append("publicKey", publicKey);
-      formData.append("signature", signature);
-      formData.append("expire", expire);
-      formData.append("token", token);
-      formData.append("folder", "/srikode"); // Upload directly inside the /srikode folder!
+      formData.append("image", file, file.name);
 
-      // Using raw axios instance to prevent routing interceptor header mutations
-      const response = await axios.post("https://upload.imagekit.io/api/v1/files/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data"
+      const response = await axiosInstance.post("/blogs/admin/upload-image", formData, {
+        // Let the browser set the multipart boundary (instance default is JSON)
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (e) => {
+          if (!onProgress) return;
+          const percent = e.total ? Math.round((e.loaded / e.total) * 100) : 0;
+          onProgress(percent >= 100
+            ? { stage: "converting", percent: 100 }
+            : { stage: "uploading", percent });
         }
       });
 
-      return { success: true, url: response.data.url };
+      const { url, width, height, originalSize, size } = response.data;
+      return { success: true, url, width, height, originalSize, size };
     } catch (error) {
-      console.error("Direct ImageKit Upload Error: ", error);
+      console.error("Image Convert/Upload Error: ", error);
       const message = error.response?.data?.message || error.message || "Image upload failed.";
       return { success: false, message };
     }

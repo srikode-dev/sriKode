@@ -6,6 +6,7 @@ import connectDb from "./src/config/db.js";
 import logger from "./src/config/logger.js";
 import apiTracker from "./src/config/apiTracker.js";
 import { NODE_ENV, PORT } from "./src/config/envConfig.js";
+import { checkScheduledBlogs } from "./src/services/scheduleService.js";
 
 // Connect to MongoDB
 connectDb();
@@ -24,6 +25,10 @@ if (process.env.VERCEL === "1") {
     logger.info("====================================");
     apiTracker(app);
   });
+
+  // Long-running server: publish scheduled posts on time even with no traffic.
+  // (On Vercel this is handled lazily by the blog routes middleware.)
+  setInterval(() => checkScheduledBlogs({ force: true }), 60 * 1000);
 }
 
 export default app;
