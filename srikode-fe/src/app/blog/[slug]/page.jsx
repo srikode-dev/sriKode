@@ -9,6 +9,7 @@ import {
 import { formatDate } from "@/data";
 import { getBlogs, getBlogBySlug, getCmsConfig } from "@/lib/api";
 import Container from "@/components/shared/Container";
+import FitImage from "@/components/shared/FitImage";
 import Sidebar from "@/components/home/sidebar/Sidebar";
 import TableOfContents from "@/components/blog/TableOfContents";
 import ArticleContent from "@/components/blog/ArticleContent";
@@ -36,15 +37,24 @@ export async function generateMetadata({ params }) {
     const res = await getBlogBySlug(slug);
     const blog = res.blog;
     if (!blog) return {};
+    const authorName = blog.author?.name || "SriKode";
     return {
       title: blog.title,
       description: blog.excerpt,
+      authors: [{ name: authorName }],
       alternates: {
         canonical: `/blog/${slug}`,
       },
+      // og:type "article" + dates/author help browser reader views (Chrome Reading mode) detect the post
       openGraph: {
+        type: "article",
         title: blog.title,
         description: blog.excerpt,
+        publishedTime: blog.createdAt,
+        modifiedTime: blog.updatedAt || blog.createdAt,
+        authors: [authorName],
+        section: blog.category,
+        tags: blog.tags,
         images: [{ url: blog.coverImage || "/placeholder-banner.webp" }],
       },
     };
@@ -159,11 +169,14 @@ export default async function BlogDetailPage({ params, searchParams }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
+      {/* Semantic article wrapper: Chrome Reading mode keeps the <article> and drops
+          the <nav>/<aside>/<footer> parts (ads, share bars, sidebar, related, comments) */}
+      <article>
       {/* ── Breadcrumb & Title Area ── */}
-      <div className="pt-4 pb-8 border-b border-sk-border">
+      <header className="pt-4 pb-8 border-b border-sk-border">
         <Container>
           {/* Breadcrumbs */}
-          <nav className="mb-6 flex items-center gap-2 text-xs text-sk-text-faint font-medium">
+          <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-xs text-sk-text-faint font-medium">
             <Link href="/" className="hover:text-sk-primary transition-colors">Home</Link>
             <ChevronRight size={12} />
             <Link href="/blogs" className="hover:text-sk-primary transition-colors">Blogs</Link>
@@ -196,13 +209,13 @@ export default async function BlogDetailPage({ params, searchParams }) {
 
             {/* Top-Right Ad Banner / Featured Sponsor slot */}
             {blog.adsEnabled !== false && (
-              <div className="hidden lg:block">
+              <aside className="hidden lg:block">
                 <AdBanner slot="header" customSponsor={headerSponsor} />
-              </div>
+              </aside>
             )}
           </div>
         </Container>
-      </div>
+      </header>
 
       {/* ── Body ── */}
       <div className="py-10">
@@ -210,7 +223,7 @@ export default async function BlogDetailPage({ params, searchParams }) {
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_300px]">
 
             {/* ── Left: Article ── */}
-            <article className="min-w-0">
+            <div className="min-w-0">
               {/* Author / Meta Bar */}
               <div className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-sk-border pb-6 text-sm text-sk-text-muted">
                 <div className="flex items-center gap-2">
@@ -219,7 +232,7 @@ export default async function BlogDetailPage({ params, searchParams }) {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Calendar size={14} className="text-sk-text-faint" />
-                  {formatDate(blog.createdAt)}
+                  <time dateTime={blog.createdAt}>{formatDate(blog.createdAt)}</time>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Clock size={14} className="text-sk-text-faint" />
@@ -232,16 +245,19 @@ export default async function BlogDetailPage({ params, searchParams }) {
               </div>
 
               {/* Cover Image Card */}
-              <div className="relative aspect-21/9 w-full overflow-hidden rounded-2xl bg-sk-bg-subtle shadow-xs border border-sk-border mb-8">
+              <figure className="w-full overflow-hidden rounded-2xl bg-sk-bg-subtle shadow-xs border border-sk-border mb-8">
+                {/* Natural aspect ratio so the uploaded cover is never cropped */}
                 <Image
                   src={blog.coverImage || "/placeholder-banner.webp"}
                   alt={blog.title}
-                  fill
+                  width={1200}
+                  height={800}
                   priority
-                  className="object-cover"
+                  className="block h-auto w-full"
+                  style={{ width: "100%", height: "auto" }}
                   sizes="(max-width: 1024px) 100vw, 800px"
                 />
-              </div>
+              </figure>
 
               {/* Excerpt lead */}
               <p className="mb-8 text-lg leading-relaxed text-sk-text-muted border-l-4 border-sk-primary pl-5 italic">
@@ -249,26 +265,30 @@ export default async function BlogDetailPage({ params, searchParams }) {
               </p>
 
               {/* Top Social Share Bar */}
-              <div className="mb-8">
+              <aside aria-label="Share this post" className="mb-8">
                 <SocialShare title={blog.title} slug={blog.slug} />
-              </div>
+              </aside>
 
               {/* Table of Contents (mobile) */}
               {tocItems.length > 0 && (
-                <div className="mb-8 lg:hidden">
+                <nav aria-label="Table of contents" className="mb-8 lg:hidden">
                   <TableOfContents items={tocItems} />
-                </div>
+                </nav>
               )}
 
               {/* Article body */}
               <ArticleContent content={blog.content} toc={tocItems} />
 
               {/* Mid-Article In-Content Ad Banner Slot */}
-              {blog.adsEnabled !== false && <AdBanner slot="in-article" customSponsor={inArticleSponsor} />}
+              {blog.adsEnabled !== false && (
+                <aside aria-label="Sponsored">
+                  <AdBanner slot="in-article" customSponsor={inArticleSponsor} />
+                </aside>
+              )}
 
               {/* Optional Video Walkthrough Section */}
               {blog.videoUrl && (
-                <div className="mt-12 space-y-4">
+                <section className="mt-12 space-y-4">
                   <h3 className="text-lg font-extrabold text-sk-text flex items-center gap-2">
                     <Play className="text-red-500" size={20} fill="currentColor" />
                     Video Walkthrough Tutorial
@@ -284,7 +304,7 @@ export default async function BlogDetailPage({ params, searchParams }) {
                       />
                     </div>
                   </div>
-                </div>
+                </section>
               )}
 
               {/* Action buttons (Live Demo & Source Code) */}
@@ -336,16 +356,18 @@ export default async function BlogDetailPage({ params, searchParams }) {
                 <BlogFaq items={blog.faq} />
               )}
 
+              {/* Everything below is post chrome, not article text */}
+              <footer>
               {/* ── Author Bio Box ── */}
               <AuthorBio author={blog.author} />
 
               {/* Bottom Social Share Bar */}
-              <div className="my-8">
+              <aside aria-label="Share this post" className="my-8">
                 <SocialShare title={blog.title} slug={blog.slug} />
-              </div>
+              </aside>
 
               {/* Prev / Next navigation */}
-              <div className="mt-10 grid grid-cols-1 gap-4 border-t border-sk-border pt-8 sm:grid-cols-2">
+              <nav aria-label="More posts" className="mt-10 grid grid-cols-1 gap-4 border-t border-sk-border pt-8 sm:grid-cols-2">
                 {prevBlog ? (
                   <Link
                     href={`/blog/${prevBlog.slug}`}
@@ -375,14 +397,18 @@ export default async function BlogDetailPage({ params, searchParams }) {
                     <ArrowRight size={18} className="shrink-0 text-sk-text-faint transition-colors group-hover:text-sk-primary" />
                   </Link>
                 )}
-              </div>
+              </nav>
 
               {/* Pre-Comments / Wide Leaderboard Ad Slot */}
-              {blog.adsEnabled !== false && <AdBanner slot="pre-comments" customSponsor={preCommentsSponsor} />}
+              {blog.adsEnabled !== false && (
+                <aside aria-label="Sponsored">
+                  <AdBanner slot="pre-comments" customSponsor={preCommentsSponsor} />
+                </aside>
+              )}
 
               {/* Related Posts */}
               {relatedBlogs.length > 0 && (
-                <div className="mt-12 border-t border-sk-border pt-10">
+                <aside aria-label="Related posts" className="mt-12 border-t border-sk-border pt-10">
                   <div className="mb-5 flex items-center gap-3">
                     <span className="h-4 w-1 rounded-full bg-sk-primary" />
                     <h2 className="text-lg font-bold uppercase tracking-widest text-sk-text">Related Posts</h2>
@@ -391,7 +417,7 @@ export default async function BlogDetailPage({ params, searchParams }) {
                     {relatedBlogs.map((rb) => (
                       <Link key={rb._id || rb.id} href={`/blog/${rb.slug}`} className="group block overflow-hidden rounded-xl border border-sk-border bg-sk-bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-md">
                         <div className="relative aspect-video overflow-hidden">
-                          <Image src={rb.coverImage || "/placeholder-banner.webp"} alt={rb.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="300px" />
+                          <FitImage src={rb.coverImage || "/placeholder-banner.webp"} alt={rb.title} className="transition-transform duration-500 group-hover:scale-105" sizes="300px" />
                         </div>
                         <div className="p-3">
                           <span className="text-[10px] font-semibold uppercase text-sk-primary">{rb.category}</span>
@@ -401,15 +427,18 @@ export default async function BlogDetailPage({ params, searchParams }) {
                       </Link>
                     ))}
                   </div>
-                </div>
+                </aside>
               )}
 
               {/* Comment Section */}
-              <CommentSection blogId={blog._id || blog.id} slug={blog.slug} />
-            </article>
+              <section aria-label="Comments">
+                <CommentSection blogId={blog._id || blog.id} slug={blog.slug} />
+              </section>
+              </footer>
+            </div>
 
             {/* ── Right: Sticky Sidebar ── */}
-            <div className="lg:sticky lg:top-20 lg:self-start">
+            <aside className="lg:sticky lg:top-20 lg:self-start">
               {/* Table of Contents (desktop) */}
               {tocItems.length > 0 && (
                 <div className="mb-6 hidden lg:block">
@@ -417,10 +446,11 @@ export default async function BlogDetailPage({ params, searchParams }) {
                 </div>
               )}
               <Sidebar blogs={dbBlogs} sponsor={sidebarSponsor} />
-            </div>
+            </aside>
           </div>
         </Container>
       </div>
+      </article>
 
       {/* ── Floating Scroll To Top Button ── */}
       <ScrollToTop />

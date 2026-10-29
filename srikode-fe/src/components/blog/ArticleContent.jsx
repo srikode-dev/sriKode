@@ -131,26 +131,29 @@ function CodeBlock({ language, filename, code }) {
           </button>
         </div>
       </div>
-      {/* Code body with line numbers */}
+      {/* Code body with line numbers. Real <pre><code> with an aria-hidden gutter so
+          reader views (Chrome Reading mode) get clean code without line numbers */}
       <div className="code-scrollbar overflow-auto py-4 max-h-[450px]">
-        <table className="w-full border-collapse font-mono text-sm leading-relaxed text-zinc-100">
-          <tbody>
-            {lines.map((line, idx) => (
-              <tr key={idx} className="group hover:bg-[#252525]">
-                <td className="w-10 select-none text-right pr-4 text-zinc-600 font-mono text-xs border-r border-zinc-800/40">
-                  {idx + 1}
-                </td>
-                <td className="pl-4 whitespace-pre font-mono text-zinc-100 text-[13px]">
-                  {highlightedHtml ? (
-                    <span dangerouslySetInnerHTML={{ __html: line || " " }} />
-                  ) : (
-                    <span>{line || " "}</span>
-                  )}
-                </td>
-              </tr>
+        <div className="flex min-w-max font-mono text-[13px] leading-6">
+          <div
+            aria-hidden="true"
+            className="w-10 shrink-0 select-none border-r border-zinc-800/40 pr-4 text-right text-xs leading-6 text-zinc-600"
+          >
+            {lines.map((_, idx) => (
+              <div key={idx}>{idx + 1}</div>
             ))}
-          </tbody>
-        </table>
+          </div>
+          <pre className="m-0 whitespace-pre pl-4 text-zinc-100">
+            {highlightedHtml ? (
+              <code
+                className={`language-${language?.toLowerCase() || "javascript"}`}
+                dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+              />
+            ) : (
+              <code>{code}</code>
+            )}
+          </pre>
+        </div>
       </div>
     </div>
   );
@@ -397,12 +400,16 @@ export default function ArticleContent({ content, toc = [] }) {
           case "image":
             return (
               <figure key={i} className="my-8">
-                <div className="relative aspect-video overflow-hidden rounded-xl border border-sk-border bg-sk-bg-subtle">
+                <div className="overflow-hidden rounded-xl border border-sk-border bg-sk-bg-subtle">
+                  {/* Render at the image's natural aspect ratio so nothing gets cropped;
+                      width/height are only placeholders until the real size is known */}
                   <Image
                     src={block.src}
                     alt={block.alt || ""}
-                    fill
-                    className="object-cover"
+                    width={1200}
+                    height={800}
+                    className="block h-auto w-full"
+                    style={{ width: "100%", height: "auto" }}
                     sizes="(max-width: 1024px) 100vw, 65vw"
                   />
                 </div>

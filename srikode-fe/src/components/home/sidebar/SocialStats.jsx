@@ -43,7 +43,9 @@ export default function SocialStats({ data }) {
   if (data?.links && Array.isArray(data.links) && data.links.length > 0) {
     items = data.links.map((link) => ({
       icon: getSocialIcon(link.platform || link.label),
-      label: link.label || link.platform,
+      // Caption shows the platform; a per-link label (e.g. "Follow") becomes the button text
+      label: link.platform || link.label,
+      action: link.platform && link.label ? link.label : "",
       count: link.count || "",
       color: link.color || "bg-blue-600",
       href: link.href || "#",
@@ -61,9 +63,9 @@ export default function SocialStats({ data }) {
       </div>
 
       <div className={`grid ${items.length === 4 ? "grid-cols-4" : items.length === 2 ? "grid-cols-2" : "grid-cols-3"} gap-0 divide-x divide-sk-border p-3 sm:p-4`}>
-        {items.map(({ icon: Icon, label, count, color, href }) => (
+        {items.map(({ icon: Icon, label, action, count, color, href }, index) => (
           <a
-            key={label}
+            key={`${label}-${index}`}
             href={href}
             target="_blank"
             rel="noopener noreferrer"
@@ -73,7 +75,7 @@ export default function SocialStats({ data }) {
               <Icon />
             </span>
             <span className="mt-1 text-xs font-bold text-sk-text transition-colors group-hover:text-sk-primary">
-              {buttonText}
+              {action || buttonText}
             </span>
             <span className="w-full truncate px-0.5 text-[9px] sm:text-[10px] uppercase font-semibold tracking-wider text-sk-text-faint">
               {label} {count ? `(${count})` : ""}

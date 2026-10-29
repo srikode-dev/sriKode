@@ -63,7 +63,7 @@ export default function BlogFaq({ items = [] }) {
           return (
             <div
               key={index}
-              className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
+              className={`rounded-2xl border transition-colors duration-300 overflow-hidden ${
                 isOpen
                   ? "border-sk-primary/40 bg-sk-bg-card shadow-xs"
                   : "border-sk-border bg-sk-bg-subtle/50 hover:bg-sk-bg-card hover:border-sk-border-strong"
@@ -83,17 +83,25 @@ export default function BlogFaq({ items = [] }) {
                 </span>
                 <ChevronDown
                   size={18}
-                  className={`shrink-0 text-sk-text-muted transition-transform duration-200 ${
+                  className={`shrink-0 text-sk-text-muted transition-transform duration-300 ease-out ${
                     isOpen ? "rotate-180 text-sk-primary" : ""
                   }`}
                 />
               </button>
 
-              {isOpen && (
-                <div className="border-t border-sk-border/60 px-5 pt-3 pb-5 text-sm leading-relaxed text-sk-text-muted animate-in fade-in-50 duration-200">
-                  <p className="whitespace-pre-line pl-8">{item.answer}</p>
+              {/* Smooth height animation: grid row 0fr -> 1fr, answer stays in the DOM (good for SEO too) */}
+              <div
+                className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                  isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                }`}
+                aria-hidden={!isOpen}
+              >
+                <div className="overflow-hidden">
+                  <div className="border-t border-sk-border/60 px-5 pt-3 pb-5 text-sm leading-relaxed text-sk-text-muted">
+                    <p className="whitespace-pre-line pl-8">{item.answer}</p>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           );
         })}
