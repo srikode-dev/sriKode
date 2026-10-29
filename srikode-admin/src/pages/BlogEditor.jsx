@@ -24,10 +24,13 @@ import {
   Table as TableIcon,
   Minus,
   Quote,
-  DollarSign
+  DollarSign,
+  CalendarClock
 } from "lucide-react";
 import useBlogStore from "../store/blogStore.js";
 import ImageCropperModal from "../components/ImageCropperModal.jsx";
+import SchedulePicker from "../components/SchedulePicker.jsx";
+import { toLocalInputValue, localInputToIso, formatScheduleDate, defaultScheduleValue } from "../utils/schedule.js";
 import BlogAiImportModal from "../components/BlogAiImportModal.jsx";
 import { toast } from "sonner";
 import { getClientBaseUrl, slugify } from "../utils/urlHelper.js";
@@ -66,6 +69,10 @@ export default function BlogEditor() {
   const [content, setContent] = useState([]);
   const [faq, setFaq] = useState([]);
   const [isPublished, setIsPublished] = useState(false);
+  // Scheduled publishing: isScheduling + a local datetime-local value
+  const [isScheduling, setIsScheduling] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState("");
+  const publishMode = isPublished ? "published" : isScheduling ? "scheduled" : "draft";
   const [isFeatured, setIsFeatured] = useState(false);
   const [adsEnabled, setAdsEnabled] = useState(true);
 
@@ -99,6 +106,8 @@ export default function BlogEditor() {
           setContent(blog.content || []);
           setFaq(blog.faq || []);
           setIsPublished(blog.isPublished || false);
+          setIsScheduling(!blog.isPublished && !!blog.scheduledAt);
+          setScheduledAt(toLocalInputValue(blog.scheduledAt));
           setIsFeatured(blog.isFeatured || false);
           setAdsEnabled(blog.adsEnabled !== undefined ? blog.adsEnabled : true);
           setSeoTitle(blog.seo?.title || "");
@@ -117,9 +126,14 @@ export default function BlogEditor() {
     fileName: "",
     defaultAspect: 16 / 9,
     recommendedDimensions: "1200 × 630 px (16:9)",
+    originalSize: 0,
     onCropSuccess: null,
     setLoadingState: null,
   });
+  const [uploadProgress, setUploadProgress] = useState(null);
+
+  const formatBytes = (bytes) =>
+    bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
 
   const handleSelectCoverFile = (e) => {
     const file = e.target.files?.[0];
@@ -130,6 +144,7 @@ export default function BlogEditor() {
       isOpen: true,
       imageSrc: previewUrl,
       fileName: file.name,
+      originalSize: file.size,
       defaultAspect: 16 / 9,
       recommendedDimensions: "1200 × 630 px (16:9)",
       onCropSuccess: (url) => setCoverImage(url),
@@ -147,6 +162,7 @@ export default function BlogEditor() {
       isOpen: true,
       imageSrc: previewUrl,
       fileName: file.name,
+      originalSize: file.size,
       defaultAspect: 1, // 1080x1080 square or user can switch to 16:9, 4:3, Free
       recommendedDimensions: "1080 × 1080 px (1:1) or 1200 × 800 px (3:2)",
       onCropSuccess: (url) => updateBlock(index, { src: url }),
@@ -155,22 +171,31 @@ export default function BlogEditor() {
     e.target.value = "";
   };
 
-  const handleCropComplete = async (webpFile) => {
+  // Cropped image -> backend converts to WebP and stores it in ImageKit
+  const handleCropComplete = async (croppedFile) => {
     if (!cropperState.onCropSuccess) return;
 
     if (cropperState.setLoadingState) {
       cropperState.setLoadingState(true);
     }
+    setUploadProgress({ stage: "uploading", percent: 0 });
 
     try {
-      const res = await uploadImage(webpFile);
+      const res = await uploadImage(croppedFile, setUploadProgress);
       if (res.success) {
         cropperState.onCropSuccess(res.url);
         if (cropperState.imageSrc) {
           URL.revokeObjectURL(cropperState.imageSrc);
         }
         setCropperState((prev) => ({ ...prev, isOpen: false, imageSrc: null }));
-        toast.success("Image uploaded successfully!");
+
+        const before = cropperState.originalSize;
+        const saved = before && res.size ? Math.round((1 - res.size / before) * 100) : null;
+        toast.success(
+          saved > 0
+            ? `Uploaded as WebP · ${formatBytes(before)} → ${formatBytes(res.size)} (${saved}% smaller)`
+            : `Uploaded as WebP · ${formatBytes(res.size)}`
+        );
       } else {
         toast.error(res.message || "Image upload failed");
       }
@@ -178,6 +203,7 @@ export default function BlogEditor() {
       console.error("Upload error:", err);
       toast.error("Failed to upload cropped image.");
     } finally {
+      setUploadProgress(null);
       if (cropperState.setLoadingState) {
         cropperState.setLoadingState(false);
       }
@@ -288,8 +314,9 @@ export default function BlogEditor() {
     }
   };
 
-  // Save Article Internal logic: persists to DB and updates editor state
-  const saveArticleInternal = async (targetPublishState) => {
+  // Save Article Internal logic: persists to DB and updates editor state.
+  // scheduleIso: ISO time to schedule, null to clear; undefined keeps the current editor schedule.
+  const saveArticleInternal = async (targetPublishState, scheduleIso) => {
     if (!title.trim()) {
       toast.error("Please enter an Article Title.");
       return { success: false };
@@ -320,6 +347,14 @@ export default function BlogEditor() {
     const finalPublishState = typeof targetPublishState === "boolean" ? targetPublishState : isPublished;
     setIsPublished(finalPublishState);
 
+    const finalSchedule = finalPublishState
+      ? null
+      : scheduleIso !== undefined
+      ? scheduleIso
+      : isScheduling
+      ? localInputToIso(scheduledAt)
+      : null;
+
     const generatedSlug = slugify(slug || title);
 
     const payload = {
@@ -337,6 +372,7 @@ export default function BlogEditor() {
       content,
       faq,
       isPublished: finalPublishState,
+      scheduledAt: finalSchedule,
       isFeatured,
       adsEnabled,
       seo: {
@@ -361,14 +397,20 @@ export default function BlogEditor() {
     if (res.success && res.blog?.slug) {
       setSlug(res.blog.slug);
     }
+    // Server is the source of truth for publish/schedule state
+    if (res.success && res.blog) {
+      setIsPublished(!!res.blog.isPublished);
+      setIsScheduling(!res.blog.isPublished && !!res.blog.scheduledAt);
+      if (res.blog.scheduledAt) setScheduledAt(toLocalInputValue(res.blog.scheduledAt));
+    }
 
     return res;
   };
 
-  // Save / Publish Handler
+  // Save / Publish Handler (Save Draft and Publish both clear any schedule)
   const handleSave = async (explicitPublishState = null) => {
     const finalPublishState = typeof explicitPublishState === "boolean" ? explicitPublishState : isPublished;
-    const res = await saveArticleInternal(finalPublishState);
+    const res = await saveArticleInternal(finalPublishState, null);
 
     if (res.success) {
       toast.success(
@@ -381,6 +423,35 @@ export default function BlogEditor() {
       }
     } else if (res.message) {
       toast.error(res.message);
+    }
+  };
+
+  // Schedule Handler: saves as a draft that the API auto-publishes at scheduledAt
+  const handleSchedule = async () => {
+    const iso = localInputToIso(scheduledAt);
+    if (!iso) {
+      toast.error("Pick a date and time to schedule this article.");
+      return;
+    }
+    if (new Date(iso).getTime() <= Date.now()) {
+      toast.error("Scheduled time must be in the future.");
+      return;
+    }
+
+    const res = await saveArticleInternal(false, iso);
+    if (res.success) {
+      toast.success(`Article scheduled for ${formatScheduleDate(iso)}`);
+      navigate("/blogs");
+    } else if (res.message) {
+      toast.error(res.message);
+    }
+  };
+
+  const selectPublishMode = (mode) => {
+    setIsPublished(mode === "published");
+    setIsScheduling(mode === "scheduled");
+    if (mode === "scheduled" && !scheduledAt) {
+      setScheduledAt(defaultScheduleValue());
     }
   };
 
@@ -457,6 +528,11 @@ export default function BlogEditor() {
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                   Published Live
                 </span>
+              ) : publishMode === "scheduled" && scheduledAt ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  <CalendarClock className="h-3 w-3" />
+                  Scheduled · {formatScheduleDate(scheduledAt)}
+                </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
                   <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
@@ -513,17 +589,30 @@ export default function BlogEditor() {
             <span>Save Draft</span>
           </button>
 
-          {/* Publish / Update Live Button */}
-          <button
-            type="button"
-            onClick={() => handleSave(true)}
-            disabled={loading}
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 active:scale-[0.98] transition cursor-pointer disabled:opacity-50"
-            title="Make this article publicly visible on SriKode"
-          >
-            {isPublished ? <CheckCircle2 className="h-4 w-4" /> : <Send className="h-4 w-4" />}
-            <span>{isPublished ? "Update Live Post" : "Publish to Site"}</span>
-          </button>
+          {/* Publish / Update Live Button (or Schedule in scheduled mode) */}
+          {publishMode === "scheduled" ? (
+            <button
+              type="button"
+              onClick={handleSchedule}
+              disabled={loading}
+              className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/20 active:scale-[0.98] transition cursor-pointer disabled:opacity-50"
+              title="Save and auto-publish this article at the scheduled time"
+            >
+              <CalendarClock className="h-4 w-4" />
+              <span>Schedule Post</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => handleSave(true)}
+              disabled={loading}
+              className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 active:scale-[0.98] transition cursor-pointer disabled:opacity-50"
+              title="Make this article publicly visible on SriKode"
+            >
+              {isPublished ? <CheckCircle2 className="h-4 w-4" /> : <Send className="h-4 w-4" />}
+              <span>{isPublished ? "Update Live Post" : "Publish to Site"}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -1234,6 +1323,11 @@ export default function BlogEditor() {
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                   Live on Site
                 </span>
+              ) : publishMode === "scheduled" ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  <CalendarClock className="h-3 w-3" />
+                  Scheduled
+                </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                   <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
@@ -1242,14 +1336,14 @@ export default function BlogEditor() {
               )}
             </div>
 
-            {/* Segmented Selector for Draft vs Published */}
+            {/* Segmented Selector for Draft vs Scheduled vs Published */}
             <div>
-              <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-xl gap-1">
+              <div className="grid grid-cols-3 p-1 bg-slate-100 rounded-xl gap-1">
                 <button
                   type="button"
-                  onClick={() => setIsPublished(false)}
-                  className={`py-2 px-3 text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${
-                    !isPublished
+                  onClick={() => selectPublishMode("draft")}
+                  className={`py-2 px-2 text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                    publishMode === "draft"
                       ? "bg-white text-slate-800 shadow-xs border border-slate-200/80"
                       : "text-slate-500 hover:text-slate-700"
                   }`}
@@ -1259,22 +1353,42 @@ export default function BlogEditor() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsPublished(true)}
-                  className={`py-2 px-3 text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${
-                    isPublished
+                  onClick={() => selectPublishMode("scheduled")}
+                  className={`py-2 px-2 text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                    publishMode === "scheduled"
+                      ? "bg-indigo-600 text-white shadow-xs"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  <CalendarClock className="h-3.5 w-3.5" />
+                  Schedule
+                </button>
+                <button
+                  type="button"
+                  onClick={() => selectPublishMode("published")}
+                  className={`py-2 px-2 text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                    publishMode === "published"
                       ? "bg-emerald-600 text-white shadow-xs"
                       : "text-slate-500 hover:text-slate-700"
                   }`}
                 >
                   <Globe className="h-3.5 w-3.5" />
-                  Published Live
+                  Live
                 </button>
               </div>
               <p className="text-[11px] text-slate-400 mt-2">
-                {!isPublished
+                {publishMode === "draft"
                   ? "Draft mode: Hidden from public listings. Only visible to admins."
+                  : publishMode === "scheduled"
+                  ? "Scheduled: Stays hidden until the time below, then goes live automatically and subscribers are emailed."
                   : "Live on site: Publicly visible to all readers on SriKode."}
               </p>
+
+              {publishMode === "scheduled" && (
+                <div className="mt-3">
+                  <SchedulePicker value={scheduledAt} onChange={setScheduledAt} />
+                </div>
+              )}
             </div>
 
             <hr className="border-slate-100" />
@@ -1590,6 +1704,7 @@ export default function BlogEditor() {
         onClose={handleCloseCropper}
         onCropComplete={handleCropComplete}
         isUploading={uploadingCover || uploadingBlockIndex !== null}
+        uploadProgress={uploadProgress}
       />
     </div>
   );

@@ -43,10 +43,19 @@ function getInitialCrop(mediaWidth, mediaHeight, aspect) {
   );
 }
 
+// The cropped image is only an intermediate: the backend does the real WebP compression (sharp).
+// Keep it near-lossless but small enough for the 4MB upload limit.
+const MAX_SOURCE_WIDTH = 2400;
+const MAX_UPLOAD_BYTES = 3.8 * 1024 * 1024;
+const EXPORT_QUALITIES = [0.95, 0.9, 0.85, 0.8];
+
+const canvasToBlob = (canvas, quality) =>
+  new Promise((resolve) => canvas.toBlob(resolve, "image/webp", quality));
+
 /**
- * Converts a cropped HTMLImageElement region into a compressed WebP File
+ * Crops an HTMLImageElement region into a high-quality intermediate WebP File for server-side conversion
  */
-async function generateWebpFile(image, crop, originalFileName) {
+async function generateCroppedFile(image, crop, originalFileName) {
   const canvas = document.createElement("canvas");
   const scaleX = image.naturalWidth / image.width;
   const scaleY = image.naturalHeight / image.height;
@@ -57,8 +66,10 @@ async function generateWebpFile(image, crop, originalFileName) {
   const pixelWidth = Math.round(crop.width * scaleX);
   const pixelHeight = Math.round(crop.height * scaleY);
 
-  canvas.width = pixelWidth;
-  canvas.height = pixelHeight;
+  // Downscale very large crops; the server caps output at 1920px anyway
+  const outScale = Math.min(1, MAX_SOURCE_WIDTH / pixelWidth);
+  canvas.width = Math.round(pixelWidth * outScale);
+  canvas.height = Math.round(pixelHeight * outScale);
 
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not initialize 2D canvas context");
@@ -75,37 +86,33 @@ async function generateWebpFile(image, crop, originalFileName) {
     pixelHeight,
     0,
     0,
-    pixelWidth,
-    pixelHeight
+    canvas.width,
+    canvas.height
   );
 
-  return new Promise((resolve, reject) => {
-    // Export directly as webp with 0.88 quality
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          reject(new Error("Failed to export image as WebP"));
-          return;
-        }
+  // Highest quality that fits the upload limit
+  let blob = null;
+  for (const quality of EXPORT_QUALITIES) {
+    blob = await canvasToBlob(canvas, quality);
+    if (blob && blob.size <= MAX_UPLOAD_BYTES) break;
+  }
+  if (!blob) throw new Error("Failed to export cropped image");
+  if (blob.size > MAX_UPLOAD_BYTES) throw new Error("Cropped image is too large to upload");
 
-        const baseName = (originalFileName || "image").replace(/\.[^/.]+$/, "");
-        const webpFile = new File([blob], `${baseName}.webp`, {
-          type: "image/webp",
-          lastModified: Date.now(),
-        });
-
-        resolve({
-          file: webpFile,
-          pixelWidth,
-          pixelHeight,
-          blobSize: blob.size,
-        });
-      },
-      "image/webp",
-      0.88
-    );
+  const baseName = (originalFileName || "image").replace(/\.[^/.]+$/, "");
+  const file = new File([blob], `${baseName}.webp`, {
+    type: "image/webp",
+    lastModified: Date.now(),
   });
+
+  return { file, pixelWidth, pixelHeight, blobSize: blob.size };
 }
+
+const UPLOAD_STEPS = [
+  { key: "preparing", label: "Preparing crop" },
+  { key: "uploading", label: "Uploading image" },
+  { key: "converting", label: "Converting to WebP & saving to cloud" },
+];
 
 export default function ImageCropperModal({
   isOpen,
@@ -116,6 +123,7 @@ export default function ImageCropperModal({
   onClose,
   onCropComplete,
   isUploading = false,
+  uploadProgress = null, // { stage: "uploading" | "converting", percent }
 }) {
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState(null);
@@ -158,20 +166,25 @@ export default function ImageCropperModal({
 
     try {
       setIsProcessing(true);
-      const { file, pixelWidth, pixelHeight, blobSize } = await generateWebpFile(
+      const { file, pixelWidth, pixelHeight, blobSize } = await generateCroppedFile(
         imgRef.current,
         completedCrop,
         fileName
       );
+      setIsProcessing(false);
 
       await onCropComplete(file, { pixelWidth, pixelHeight, blobSize });
     } catch (err) {
       console.error("Error cropping image:", err);
-      alert("Failed to crop image. Please try again.");
+      alert(err.message || "Failed to crop image. Please try again.");
     } finally {
       setIsProcessing(false);
     }
   };
+
+  const busy = isProcessing || isUploading;
+  const activeStage = isProcessing ? "preparing" : uploadProgress?.stage || "uploading";
+  const activeIndex = UPLOAD_STEPS.findIndex((s) => s.key === activeStage);
 
   if (!isOpen || !imageSrc) return null;
 
@@ -272,7 +285,64 @@ export default function ImageCropperModal({
         </div>
 
         {/* Cropper Viewport */}
-        <div className="flex-1 overflow-auto bg-slate-950/90 p-4 sm:p-6 flex items-center justify-center min-h-[300px] max-h-[55vh]">
+        <div className="relative flex-1 overflow-auto bg-slate-950/90 p-4 sm:p-6 flex items-center justify-center min-h-[300px] max-h-[55vh]">
+          {/* Convert & upload progress overlay */}
+          {busy && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-950/75 backdrop-blur-sm">
+              <div className="w-full max-w-sm rounded-2xl border border-slate-700/60 bg-slate-900/90 p-5 shadow-2xl">
+                <div className="mb-4 flex items-center gap-2.5">
+                  <Loader className="h-5 w-5 animate-spin text-blue-400" />
+                  <p className="text-sm font-bold text-white">Converting &amp; uploading image…</p>
+                </div>
+
+                <ol className="space-y-2.5">
+                  {UPLOAD_STEPS.map((step, i) => {
+                    const done = i < activeIndex;
+                    const active = i === activeIndex;
+                    return (
+                      <li key={step.key} className="flex items-center gap-2.5 text-xs">
+                        <span
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                            done
+                              ? "border-emerald-500 bg-emerald-500 text-white"
+                              : active
+                              ? "border-blue-400 text-blue-400"
+                              : "border-slate-600 text-slate-600"
+                          }`}
+                        >
+                          {done ? (
+                            <Check className="h-3 w-3" />
+                          ) : active ? (
+                            <Loader className="h-3 w-3 animate-spin" />
+                          ) : (
+                            i + 1
+                          )}
+                        </span>
+                        <span className={done ? "text-slate-400" : active ? "font-semibold text-white" : "text-slate-500"}>
+                          {step.label}
+                          {active && step.key === "uploading" && uploadProgress?.percent != null && (
+                            <span className="ml-1 font-mono text-blue-300">{uploadProgress.percent}%</span>
+                          )}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ol>
+
+                {/* Progress bar: real % while uploading, indeterminate while the server converts */}
+                <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-slate-700/70">
+                  {activeStage === "uploading" ? (
+                    <div
+                      className="h-full rounded-full bg-blue-500 transition-all duration-200"
+                      style={{ width: `${uploadProgress?.percent || 0}%` }}
+                    />
+                  ) : (
+                    <div className="h-full w-full animate-pulse rounded-full bg-linear-to-r from-blue-500 via-indigo-400 to-emerald-400" />
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
           <ReactCrop
             crop={crop}
             onChange={(_, percentCrop) => setCrop(percentCrop)}
@@ -306,15 +376,15 @@ export default function ImageCropperModal({
             disabled={isProcessing || isUploading || !currentWidth}
             className="flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-sm hover:shadow transition disabled:opacity-50 cursor-pointer"
           >
-            {isProcessing || isUploading ? (
+            {busy ? (
               <>
                 <Loader className="h-4 w-4 animate-spin" />
-                {isUploading ? "Uploading..." : "Processing..."}
+                {activeStage === "converting" ? "Converting..." : activeStage === "uploading" ? "Uploading..." : "Processing..."}
               </>
             ) : (
               <>
                 <Check className="h-4 w-4" />
-                Apply Crop
+                Crop &amp; Upload
               </>
             )}
           </button>
